@@ -319,6 +319,9 @@ generated folder is never edited.
       `POST /api/pairing/redeem`, `/ws` (device, `connectDevice` first) and `/admin/ws` (admin token) route every
       message to its use case; the connection registry feeds `connected`, events fan out by scope and a revocation
       closes the device's sockets (endpoints, close codes and routing in ARCHITECTURE.md, Transport endpoints).
+- [x] `leverdeck.local` resolves: `DnsServiceRegister` published the service but Windows answered no A query for
+      its host, so the agent runs its own mDNS responder for the A record (ARCHITECTURE.md, Connectivity). Manual
+      check (owner): `Resolve-DnsName leverdeck.local` on the PC and `http://leverdeck.local:8765` on the phone.
 - [ ] Manual test over LAN and over USB (`adb reverse tcp:8765 tcp:8765`).
 
 **Done when:** a freshly paired phone presses a key and the PC receives the hotkey. **This is the MVP.**

@@ -60,6 +60,18 @@ served through `ManifestEmbeddedFileProvider` (`LeverDeck.App/WebUi.targets` and
 - **Port:** `8765` (HTTP and WebSocket on the same port).
 - **LAN:** the agent advertises itself via mDNS as `leverdeck.local`. Devices always connect by name, never by IP,
   so the browser origin stays stable when the PC's IP changes.
+- **mDNS responder:** Windows publishes the `DnsServiceRegister` service records but does not answer A queries for
+  their target host, so the agent answers queries for `leverdeck.local` itself (RFC 6762, BCL sockets only). It binds
+  UDP `5353` with `SO_REUSEADDR` and without exclusive use, so it shares the port with Windows' own listener
+  (Dnscache) and other responders, joins `224.0.0.251` on the LAN interface chosen by `LanAddressSelector`, sends
+  with IP TTL 255, and keeps multicast loopback on (in Winsock it governs receiving, so the PC's own resolver queries
+  reach it). Records: A = the LAN IPv4 address, TTL 120 s, cache-flush; every other type for the name gets an NSEC
+  stating A is the only type (§6.1), so AAAA lookups fail fast; each answer carries the other record as additional.
+  QU questions get a unicast answer only if the record was multicast in the last 30 s and the querier is not this PC
+  (§5.4); legacy resolvers (source port other than 5353) get a unicast answer with their query ID, the question and
+  TTL 10 s. Responses, malformed packets, non-zero opcodes or response codes and other names are ignored. It sends
+  two announcements one second apart on start and on address change, and a goodbye (TTL 0) on stop. No probing or
+  known-answer suppression; another host answering for the name with a different address is logged as a warning.
 - **USB (Android):** `adb reverse tcp:8765 tcp:8765`. The device connects to `localhost:8765`.
   `localhost` is a secure context, so the full PWA (service worker, Wake Lock) works over USB.
 - **HTTPS over LAN (optional):** a `mkcert` certificate issued for `leverdeck.local`, with its CA installed on the device.
@@ -216,7 +228,7 @@ runtime (`win-x64`).
 | Launch apps | `Process.Start` with `UseShellExecute` |
 | Steam/Epic games | Store URLs built from validated ids |
 | OBS | obs-websocket client (library to confirm AOT compatibility) |
-| mDNS | Native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32, run as a hosted service |
+| mDNS | `MdnsHostNameResponder` (UDP 5353 responder for the `leverdeck.local` A record, see Connectivity) plus native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32 for the service records, combined by `CompositeServiceAdvertiser` and run as a hosted service |
 | Persistence | JSON files (see Persistence) |
 | Secrets at rest | DPAPI (`ProtectedData`, current user) |
 | Config paths | `Environment.GetFolderPath` / known folders |

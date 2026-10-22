@@ -15,6 +15,7 @@ using LeverDeck.Infrastructure.Transport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace LeverDeck.Infrastructure.DependencyInjection;
 
@@ -46,7 +47,17 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddSingleton<IActionExecutor, SendInputActionExecutor>();
 
-        services.AddSingleton<IServiceAdvertiser, DnsServiceAdvertiser>();
+        // mDNS: our own responder answers A queries for leverdeck.local (Windows does not for DnsServiceRegister's
+        // target host); the native registration still publishes the _http._tcp service records.
+        services.AddSingleton(provider => new MdnsHostNameResponder(
+            provider.GetRequiredService<ILogger<MdnsHostNameResponder>>(),
+            provider.GetRequiredService<TimeProvider>()));
+        services.AddSingleton<DnsServiceAdvertiser>();
+        services.AddSingleton<IServiceAdvertiser>(provider => new CompositeServiceAdvertiser(
+        [
+            provider.GetRequiredService<MdnsHostNameResponder>(),
+            provider.GetRequiredService<DnsServiceAdvertiser>(),
+        ]));
         services.AddHostedService<ServiceAdvertisementHostedService>();
 
         services.AddLeverDeckTransport();
