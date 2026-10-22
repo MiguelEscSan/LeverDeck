@@ -95,8 +95,18 @@ so every paired device sees the same configuration.
 ├── profiles.json
 ├── devices.json     (token hashes, names, pairing dates)
 ├── settings.json
-└── admin token      (generated once; see Desktop editor)
+└── admin-token      (generated once, DPAPI-protected; see Desktop editor)
 ```
+
+- Each file has its own persistence records with a `schemaVersion` (not the wire DTOs: `devices.json` keeps token
+  hashes, which never go on the wire) and its own source-generated `JsonSerializerContext`.
+- Writes are atomic (temp file, flush, rename) and serialized by one lock per file. A missing file is a first run:
+  no devices, default settings, and a seeded "Default" profile that is written at once so its id stays stable.
+- A file that cannot be parsed, has an unknown schema version or breaks a domain rule throws and is left untouched;
+  user data is never silently replaced by defaults.
+- Secrets at rest (the admin token, the OBS password) are protected with DPAPI for the current Windows user.
+- The folder is `LeverDeck:DataDirectory` when set (tests use a temp folder), else
+  `Environment.GetFolderPath(ApplicationData)\LeverDeck`.
 
 ## Agent (.NET) — hexagonal solution
 
@@ -141,14 +151,19 @@ App ──▶ Infrastructure ──▶ Application ──▶ Domain
 
 ### Windows adapters (`Infrastructure`)
 
+`Infrastructure`, `App` and the test projects that reference them target `net10.0-windows`; `Domain`, `Application`
+and `Protocol` stay `net10.0`. CsWin32 generates the interop for x64 (`CsWin32PlatformTarget`), the only published
+runtime (`win-x64`).
+
 | Port concern | Adapter |
 |--------------|---------|
-| Hotkeys, media keys | `SendInput` through CsWin32 |
+| Hotkeys, media keys | `SendInput` through CsWin32; `ActionExecutorCoverage` states how every action type is routed |
 | Launch apps | `Process.Start` with `UseShellExecute` |
 | Steam/Epic games | Store URLs built from validated ids |
 | OBS | obs-websocket client (library to confirm AOT compatibility) |
-| mDNS | Native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via P/Invoke |
-| Persistence | JSON files |
+| mDNS | Native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32, run as a hosted service |
+| Persistence | JSON files (see Persistence) |
+| Secrets at rest | DPAPI (`ProtectedData`, current user) |
 | Config paths | `Environment.GetFolderPath` / known folders |
 
 ## Light CQRS

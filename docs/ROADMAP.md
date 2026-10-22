@@ -276,11 +276,18 @@ generated folder is never edited.
 
 ## Phase 4 — Windows adapters
 
-- [ ] `SendInputActionExecutor` via CsWin32: hotkeys and media keys.
-- [ ] JSON stores under `%APPDATA%\LeverDeck\` (`profiles.json`, `devices.json`, `settings.json`) with a seeded default
-      profile on first run.
-- [ ] mDNS: register `leverdeck.local` with `DnsServiceRegister` (P/Invoke) behind the `ServiceAdvertiser` port.
-- [ ] Integration tests for the stores (temp folder); manual check for input and mDNS.
+- [x] `SendInputActionExecutor` via CsWin32: hotkeys and media keys. `LaunchApp`, `OpenUrl`, `ObsScene` and
+      `LaunchGame` fail with `actionNotExecutable` until Phase 7. Architecture test: every action in `ActionCatalog.All`
+      is classified by `ActionExecutorCoverage` (the deferred half of 2.4).
+- [x] JSON stores under `%APPDATA%\LeverDeck\` (`profiles.json`, `devices.json`, `settings.json`) with a seeded default
+      profile on first run. Atomic writes, one lock per file, `schemaVersion`; a corrupt file fails loudly and is never
+      overwritten. Persistent DPAPI-protected admin token in `admin-token`; the OBS password is DPAPI-protected too.
+- [x] mDNS: register `leverdeck.local` with `DnsServiceRegister` (CsWin32) behind the `ServiceAdvertiser` port, as a
+      hosted service that re-advertises on address changes (off with `LeverDeck__Mdns__Enabled=false`).
+- [x] Integration tests for the stores (temp folder). DI wiring of the 18 use cases in `LeverDeck.App`, plus a
+      Development-only, loopback-only `POST /debug/execute` compiled into Debug builds only.
+- [ ] Manual check (owner): a hotkey reaching the PC through `/debug/execute`, and `ping leverdeck.local` from another
+      device. They cannot run unattended; the debug command is in CLAUDE.md.
 
 **Done when:** a debug endpoint can trigger a hotkey on the PC, and `ping leverdeck.local` resolves from another device.
 
