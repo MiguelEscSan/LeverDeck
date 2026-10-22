@@ -132,6 +132,7 @@ issued device token, because it can be delivered only once. **Scope** says who m
 | `GetPairingSession` | admin | Active code, QR URL (with IP fallback) and expiry, or none |
 | `GetSettings` | admin | `AgentSettings` |
 | `GetAgentStatus` | device | Agent version, protocol version, OBS connection state |
+| `GetInstalledGames` | admin | Steam and Epic games installed on the PC (store, id, name), through the `IGameLibrary` port (Phase 7) |
 
 **Events** pushed by the agent: `ProfileUpdated`, `ProfileDeleted`, `DevicesChanged`, `DeviceRevoked`,
 `PairingSessionChanged`, `SettingsUpdated`, `ObsSceneChanged` (Phase 7).
@@ -219,6 +220,7 @@ or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result 
 | `getPairingSession` | `{}` | `pairingSession` | `{ session: PairingSessionDto \| null }` |
 | `getSettings` | `{}` | `settings` | `{ settings: SettingsDto }` |
 | `getAgentStatus` | `{}` | `agentStatus` | `{ agentVersion, protocolVersion, obsConnected }` |
+| `getInstalledGames` | `{}` | `installedGames` | `{ games: InstalledGameDto[] }` (Phase 7) |
 
 **Events**
 
@@ -330,8 +332,11 @@ generated folder is never edited.
 
 - [x] Desktop editor: profiles sidebar, grid editor, selected-key panel, paired devices with revoke. The PC edits,
       devices only read (see `odd/tasks/phase-7-make-it-usable.md`).
-- [ ] More actions: launch app, OBS scene (confirm OBS client AOT compatibility), then Steam/Epic games.
-- [ ] Multiple pages per profile; grid size setting (decide the default — still open in PRODUCT.md).
+- [x] More actions: open URL, launch registered apps, launch Steam/Epic games (installed games listed by
+      `getInstalledGames`). Executed by `AgentActionExecutor` through the Windows shell.
+- [ ] OBS scene (confirm OBS client AOT compatibility). Postponed: not used by the owner.
+- [x] Multiple pages per profile and the grid size (3×3, 5×3, 8×4; new profiles take the 5×3 default setting) in
+      the editor, plus dragging keys between positions and pages.
 - [ ] Tray icon, start with Windows, firewall rule on the private profile.
 - [ ] Optional HTTPS over LAN with `mkcert` for installable PWA.
 

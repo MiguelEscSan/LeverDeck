@@ -224,9 +224,11 @@ runtime (`win-x64`).
 
 | Port concern | Adapter |
 |--------------|---------|
-| Hotkeys, media keys | `SendInput` through CsWin32; `ActionExecutorCoverage` states how every action type is routed |
-| Launch apps | `Process.Start` with `UseShellExecute` |
-| Steam/Epic games | Store URLs built from validated ids |
+| Running actions | `AgentActionExecutor`: hotkeys and media keys through `SendInputActionExecutor` (`SendInput` via CsWin32); links, store games and registered apps through the Windows shell; `ActionExecutorCoverage` states how every action type is routed |
+| Launch apps | `Process.Start` with `UseShellExecute`, the executable path read from the settings (never from a client), no arguments |
+| Open URL | `Process.Start` with `UseShellExecute` on the validated `http`/`https` URL (default browser) |
+| Steam/Epic games | Store URIs built from validated ids: `steam://rungameid/<id>`, `com.epicgames.launcher://apps/<AppName>?action=launch&silent=true` |
+| Installed games (`IGameLibrary`) | `InstalledGameLibrary`: Steam's `libraryfolders.vdf` and `appmanifest_*.acf` (folder from the `SteamPath` registry value, else Program Files (x86)), and the Epic launcher's `*.item` manifests under ProgramData |
 | OBS | obs-websocket client (library to confirm AOT compatibility) |
 | mDNS | `MdnsHostNameResponder` (UDP 5353 responder for the `leverdeck.local` A record, see Connectivity) plus native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32 for the service records, combined by `CompositeServiceAdvertiser` and run as a hosted service |
 | Persistence | JSON files (see Persistence) |
