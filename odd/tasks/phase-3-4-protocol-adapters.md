@@ -29,9 +29,9 @@ Specs: [docs/ROADMAP.md](../../docs/ROADMAP.md) Phases 3 and 4.
 | P3-1 | Protocol DTOs, envelope, JSON source generation, contract round-trip tests | delegated writer | done |
 | P3-2 | DTO ⇄ domain mappers in Infrastructure, `ActionFailed` code | delegated writer | done |
 | P3-3 | TypeScript generation + snapshot test; admin-auth decision in ARCHITECTURE.md | delegated writer | done |
-| P4-1 | JSON repositories, in-memory pairing store, token generator/hasher, clock, admin token store | delegated writer | pending |
-| P4-2 | `SendInput` executor (Hotkey, MediaKey) via CsWin32 + executor-coverage architecture test | delegated writer | pending |
-| P4-3 | mDNS advertiser via `DnsServiceRegister`; DI wiring in App; Development-only debug endpoint | delegated writer | pending |
+| P4-1 | JSON repositories, in-memory pairing store, token generator/hasher, clock, admin token store | delegated writer | done |
+| P4-2 | `SendInput` executor (Hotkey, MediaKey) via CsWin32 + executor-coverage architecture test | delegated writer | done (manual check pending) |
+| P4-3 | mDNS advertiser via `DnsServiceRegister`; DI wiring in App; Development-only debug endpoint | delegated writer | done (manual check pending) |
 
 ## Acceptance
 
@@ -52,3 +52,17 @@ Specs: [docs/ROADMAP.md](../../docs/ROADMAP.md) Phases 3 and 4.
   - **ROADMAP deviations (documented there):** ack payload only for `registerApp`; `pairDevice` is HTTP-only;
     `error.requestId` may be null; `updateSettings` uses `SettingsUpdateDto` (password: null keeps, "" clears).
   - Architecture test tightened: Protocol references no project.
+- 2026-10-22: Phase 4 done, 825 tests green, AOT publish clean (10.45 MB, no warnings), published exe answered
+  `/health` with mDNS disabled. Safety held: `SendInput` and real mDNS never ran; the real `%APPDATA%\LeverDeck` was
+  never created.
+  - Admin token and OBS password protected with DPAPI (CurrentUser); AOT-clean.
+  - Infrastructure, App and their test projects target `net10.0-windows`; Domain/Application/Protocol stay neutral.
+    CsWin32 needs `CsWin32PlatformTarget=x64` for the DnsService* structs (ARM64 would need revisiting).
+  - Debug endpoint `POST /debug/execute`: `#if DEBUG` + Development + loopback only.
+  - **Pending manual checks (owner):** (1) a media key/hotkey reaches the PC via the debug endpoint; (2) `ping
+    leverdeck.local` from another device — Microsoft's docs do not confirm that `DnsServiceRegister`'s host name makes
+    Windows answer A queries, so this is the real test. Steps in CLAUDE.md "Commands" and the Phase 4 report.
+- 2026-10-22: `profiles.json` was only written on the first read, so the manual check had no ids to use; fixed by
+  seeding the default profile at startup (`DefaultProfileSeeder`, test-first). Manual check (1) passed: the "Vol -"
+  media key lowered the PC volume twice through `/debug/execute` (confirmed by the owner). Check (2), `ping
+  leverdeck.local`, is still pending.
