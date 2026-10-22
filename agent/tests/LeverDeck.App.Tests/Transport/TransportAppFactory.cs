@@ -13,12 +13,17 @@ namespace LeverDeck.App.Tests.Transport;
 
 /// <summary>
 /// The isolated host with the real transport. The action executor is always replaced by a recorder, so a test that
-/// presses a key never injects real input, and the game library by a fixed list, so no test reads the PC's launchers;
-/// the connect timeout is short so the timeout tests stay fast.
+/// presses a key never injects real input, and the game library by a fixed list, so no test reads the PC's launchers.
+/// The connect timeout is generous, so a slow CI runner never times out a test that does send its first message; the
+/// test of the timeout itself passes <see cref="ShortConnectTimeout"/> to stay fast.
 /// </summary>
-public sealed class TransportAppFactory : LeverDeckAppFactory
+public sealed class TransportAppFactory(TimeSpan? connectTimeout = null) : LeverDeckAppFactory
 {
-    public static readonly TimeSpan ConnectTimeout = TimeSpan.FromMilliseconds(500);
+    public static readonly TimeSpan ShortConnectTimeout = TimeSpan.FromMilliseconds(500);
+
+    public static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(5);
+
+    public TimeSpan ConnectTimeout { get; } = connectTimeout ?? DefaultConnectTimeout;
 
     public RecordingActionExecutor Executor { get; } = new();
 

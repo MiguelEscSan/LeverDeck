@@ -13,7 +13,7 @@ public sealed class DeviceSocketTests
     [Fact]
     public async Task Connect_WithoutAFirstMessage_ClosesAfterTheTimeout()
     {
-        using var factory = new TransportAppFactory();
+        using var factory = new TransportAppFactory(TransportAppFactory.ShortConnectTimeout);
         using var device = await OpenDeviceSocketAsync(factory);
 
         var seen = await device.ReceiveUntilClosedAsync();
