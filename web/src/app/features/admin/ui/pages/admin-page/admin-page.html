@@ -1,0 +1,139 @@
+@if (admin.access() === 'ready') {
+  <div class="editor">
+    <aside class="sidebar">
+      <ng-container *ngTemplateOutlet="brand" />
+      <app-profile-list
+        [profiles]="editor.profiles()"
+        [activeId]="editor.profile()?.id ?? null"
+        [disabled]="editor.loading()"
+        (selected)="editor.selectProfile($event)"
+        (create)="editor.createProfile()"
+      />
+      <div class="side-footer">
+        <span class="status" role="status" aria-live="polite" [attr.data-status]="admin.status()">
+          <i aria-hidden="true"></i>{{ statusLabel() }}
+        </span>
+        <span class="saving" aria-live="polite">{{ editor.saving() ? 'Saving…' : 'All changes saved' }}</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      @if (editor.error(); as error) {
+        <p class="banner" role="alert">
+          <span class="ld-error">{{ error }}</span>
+          <button type="button" class="dismiss" aria-label="Dismiss" (click)="editor.dismissError()">×</button>
+        </p>
+      }
+      @if (editor.profile(); as profile) {
+        <app-profile-toolbar
+          [profile]="profile"
+          [canDelete]="editor.canDeleteProfile()"
+          (rename)="editor.renameProfile($event)"
+          (recolor)="editor.recolorProfile($event)"
+          (gridChange)="editor.changeGrid($event)"
+          (remove)="editor.deleteProfile()"
+        />
+        <div class="stage">
+          <app-editor-grid
+            [cells]="editor.cells()"
+            [columns]="profile.grid.columns"
+            [selection]="selectedPosition()"
+            [label]="gridName()"
+            (selected)="editor.selectCell($event.row, $event.column)"
+          />
+        </div>
+        <app-page-bar
+          [count]="editor.pageCount()"
+          [current]="editor.page()"
+          (selected)="editor.goToPage($event)"
+          (add)="editor.addPage()"
+          (remove)="editor.removePage()"
+        />
+      } @else if (editor.loading()) {
+        <p class="message" role="status">Loading profiles…</p>
+      } @else {
+        <p class="message">No profiles yet. Create one with “+ New profile”.</p>
+      }
+    </main>
+
+    <aside class="panel">
+      @if (editor.profile(); as profile) {
+        <app-key-inspector
+          class="card"
+          [button]="selectedKey()"
+          [emptyAt]="selectedEmpty()"
+          [profileId]="profile.id"
+          [profiles]="editor.profiles()"
+          [pageCount]="editor.pageCount()"
+          (changed)="editor.updateKey($event)"
+          (actionChanged)="editor.changeAction($event)"
+          (add)="editor.addKey()"
+          (remove)="editor.removeKey()"
+        />
+      }
+      @if (admin.error(); as error) {
+        <p class="ld-error error" role="alert">{{ error }}</p>
+      }
+      <app-pairing-card
+        class="card"
+        [session]="admin.session()"
+        [secondsLeft]="admin.secondsLeft()"
+        [expired]="admin.expired()"
+        [busy]="admin.busy()"
+        (startPairing)="admin.startPairing()"
+        (cancelPairing)="admin.cancelPairing()"
+      />
+      <app-device-list
+        class="card"
+        [devices]="admin.devices()"
+        [now]="admin.now()"
+        [busy]="admin.busy()"
+        (revoke)="admin.revoke($event)"
+      />
+    </aside>
+  </div>
+} @else {
+  <header class="header">
+    <ng-container *ngTemplateOutlet="brand" />
+    @if (admin.access() !== 'missingToken') {
+      <span class="status" role="status" aria-live="polite" [attr.data-status]="admin.status()">
+        <i aria-hidden="true"></i>{{ statusLabel() }}
+      </span>
+    }
+  </header>
+
+  <main class="content">
+    @switch (admin.access()) {
+      @case ('missingToken') {
+        <section class="card notice">
+          <h2>Open the editor from its link</h2>
+          <p>
+            The LeverDeck agent prints the desktop editor link (with <code>?admin=</code>) when it starts. Open that
+            link on this PC.
+          </p>
+        </section>
+      }
+      @case ('rejected') {
+        <section class="card notice" role="alert">
+          <h2>This editor link is not valid</h2>
+          <p>The agent did not accept it. Open the link the agent printed the last time it started.</p>
+        </section>
+      }
+      @default {
+        <p class="message" role="status">Connecting to the LeverDeck agent…</p>
+      }
+    }
+  </main>
+}
+
+<ng-template #brand>
+  <div class="brand">
+    <span class="mark" aria-hidden="true">
+      <i style="background: var(--ld-key-red)"></i>
+      <i style="background: var(--ld-key-blue)"></i>
+      <i style="background: var(--ld-key-orange)"></i>
+      <i style="background: var(--ld-key-purple)"></i>
+    </span>
+    <h1>LeverDeck</h1>
+  </div>
+</ng-template>

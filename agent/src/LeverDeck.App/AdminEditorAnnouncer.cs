@@ -5,7 +5,7 @@ namespace LeverDeck.App;
 
 /// <summary>
 /// Creates the admin token on start (if needed) and logs the editor URL once, so the owner can open the editor until
-/// the tray icon does it (Phase 7). The editor itself arrives later; the path is a placeholder.
+/// the tray icon does it (Phase 7). The PWA moves the token out of the URL and opens <c>/admin</c>.
 /// </summary>
 internal sealed partial class AdminEditorAnnouncer(AdminTokenStore adminTokens, ILogger<AdminEditorAnnouncer> logger) : IHostedService
 {

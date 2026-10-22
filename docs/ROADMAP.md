@@ -311,10 +311,10 @@ generated folder is never edited.
 
 ## Phase 6 — First vertical slice: pair and press
 
-- [ ] PC side: pairing page with QR (`/pair?code=…` + IP fallback) and expiring one-time code, as in
+- [x] PC side: pairing page with QR (`/pair?code=…` + IP fallback) and expiring one-time code, as in
       [mocks/desktop.html](mocks/desktop.html).
-- [ ] Phone side: `features/pairing` (scan or type code), as in [mocks/login.html](mocks/login.html); store the token.
-- [ ] Phone side: `features/deck` renders the active profile grid; tapping a key sends `executeAction`.
+- [x] Phone side: `features/pairing` (scan or type code), as in [mocks/login.html](mocks/login.html); store the token.
+- [x] Phone side: `features/deck` renders the active profile grid; tapping a key sends `executeAction`.
 - [x] Agent authenticates every WebSocket with the token hash; unknown or revoked tokens are rejected.
       `POST /api/pairing/redeem`, `/ws` (device, `connectDevice` first) and `/admin/ws` (admin token) route every
       message to its use case; the connection registry feeds `connected`, events fan out by scope and a revocation
@@ -328,7 +328,8 @@ generated folder is never edited.
 
 ## Phase 7 — Make it usable
 
-- [ ] Desktop editor: profiles sidebar, grid editor, selected-key panel, paired devices with revoke.
+- [x] Desktop editor: profiles sidebar, grid editor, selected-key panel, paired devices with revoke. The PC edits,
+      devices only read (see `odd/tasks/phase-7-make-it-usable.md`).
 - [ ] More actions: launch app, OBS scene (confirm OBS client AOT compatibility), then Steam/Epic games.
 - [ ] Multiple pages per profile; grid size setting (decide the default — still open in PRODUCT.md).
 - [ ] Tray icon, start with Windows, firewall rule on the private profile.

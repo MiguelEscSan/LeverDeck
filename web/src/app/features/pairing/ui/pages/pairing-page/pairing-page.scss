@@ -1,0 +1,86 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  // Paint edge to edge, keep content out of the notch and home-indicator zones.
+  padding: calc(var(--ld-space-8) + env(safe-area-inset-top, 0px))
+    calc(var(--ld-space-6) + env(safe-area-inset-right, 0px))
+    calc(var(--ld-space-6) + env(safe-area-inset-bottom, 0px))
+    calc(var(--ld-space-6) + env(safe-area-inset-left, 0px));
+}
+
+h1 {
+  font-size: var(--ld-font-size-title);
+  font-weight: var(--ld-font-weight-bold);
+  letter-spacing: -0.3px;
+}
+
+.sub {
+  margin-top: var(--ld-space-1);
+  color: var(--ld-color-muted);
+  font-size: var(--ld-font-size-md);
+}
+
+.hero {
+  margin: var(--ld-space-8) 0;
+}
+
+.notice {
+  margin-bottom: var(--ld-space-5);
+  padding: var(--ld-space-3) var(--ld-space-4);
+  border-radius: var(--ld-radius-md);
+  background: var(--ld-color-panel);
+  color: var(--ld-color-text);
+  font-size: var(--ld-font-size-md);
+}
+
+.form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-space-5);
+}
+
+.address {
+  display: flex;
+  align-items: center;
+  gap: var(--ld-space-3);
+  min-height: 54px;
+  padding: 0 var(--ld-space-4);
+  border: 2px solid var(--ld-color-field-border);
+  border-radius: var(--ld-radius-md);
+  background: var(--ld-color-field);
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    color: var(--ld-color-muted);
+  }
+}
+
+.host {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  margin-top: auto;
+  display: grid;
+  gap: var(--ld-space-3);
+}
+
+.error:empty {
+  display: none;
+}
+
+.help {
+  margin-top: var(--ld-space-2);
+  color: var(--ld-color-muted);
+  font-size: var(--ld-font-size-sm);
+  text-align: center;
+}

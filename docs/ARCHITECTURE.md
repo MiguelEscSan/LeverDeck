@@ -255,14 +255,19 @@ web/src/app/
 ├── app.ts, app.config.ts, app.routes.ts   composition root: providers (ports → adapters) and routes
 ├── core/
 │   ├── protocol/        generated wire types (never edited by hand)
+│   ├── auth/            device and admin tokens (Web Storage), pairing redeem API, route guards
+│   ├── keys/            the bundled key icon set, shared by the deck and the editor
 │   └── connection/      shared module, same layers as a feature (no ui/)
-│       ├── domain/          ConnectionStatus, message unions, backoff policy
-│       ├── application/     ConnectionPort (abstract class) and ConnectionFacade
-│       └── infrastructure/  WebSocket adapter, wire format, socket URL, provideConnection()
+│       ├── domain/          ConnectionStatus, message unions, backoff policy, rejections, request errors
+│       ├── application/     ConnectionPort (abstract class), RequestChannel, ConnectionFacade (`/ws`) and
+│       │                    AdminConnectionFacade (`/admin/ws`)
+│       └── infrastructure/  WebSocket adapter, wire format, socket URLs, provideConnection()
 └── features/
     ├── shell/           app frame: header with the name and the connection status
-    ├── pairing/         (Phase 6)
-    ├── deck/            (Phase 6)
+    ├── pairing/         `/pair` and `/pair?code=…`: type or receive the code, redeem it, keep the device token
+    ├── deck/            `/deck`: the active profile's grid; a tap sends `executeAction`
+    ├── admin/           `/admin`: the desktop editor (profiles, grid and key editing, pairing, devices with revoke);
+    │                    the only place layouts change
     ├── profiles/
     └── settings/
         ├── domain/          models and rules of the feature

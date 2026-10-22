@@ -1,33 +1,37 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  type EnvironmentProviders,
-  inject,
-  makeEnvironmentProviders,
-  provideAppInitializer,
-} from '@angular/core';
-import { ConnectionFacade } from '../application/connection.facade';
-import { ConnectionPort } from '../application/connection.port';
+import { type EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { ADMIN_CONNECTION, ConnectionPort } from '../application/connection.port';
 import { browserNetwork } from './browser-network';
-import { socketUrl } from './socket-url';
 import { WebSocketConnection } from './websocket-connection';
 
-/** Binds {@link ConnectionPort} to the WebSocket adapter on the page origin and starts it with the app. */
+/** The agent's liveness endpoint; any HTTP answer from it means the agent is up. */
+export const HEALTH_PATH = '/health';
+
+const createConnection = (): WebSocketConnection => {
+  const window = inject(DOCUMENT).defaultView;
+  if (!window) {
+    throw new Error('LeverDeck needs a browser window to connect to the agent.');
+  }
+  return new WebSocketConnection({
+    location: window.location,
+    createSocket: (url) => new window.WebSocket(url),
+    network: browserNetwork(window),
+    agentReachable: () =>
+      window
+        .fetch(HEALTH_PATH, { cache: 'no-store' })
+        .then((response) => response.ok)
+        .catch(() => false),
+  });
+};
+
+/**
+ * Binds the device ({@link ConnectionPort}, `/ws`) and editor ({@link ADMIN_CONNECTION}, `/admin/ws`) connections to
+ * WebSocket adapters on the page origin. Nothing connects on its own: the deck and the editor pages start the one
+ * they need, once they have its token.
+ */
 export function provideConnection(): EnvironmentProviders {
   return makeEnvironmentProviders([
-    {
-      provide: ConnectionPort,
-      useFactory: () => {
-        const window = inject(DOCUMENT).defaultView;
-        if (!window) {
-          throw new Error('LeverDeck needs a browser window to connect to the agent.');
-        }
-        return new WebSocketConnection({
-          url: socketUrl(window.location),
-          createSocket: (url) => new window.WebSocket(url),
-          network: browserNetwork(window),
-        });
-      },
-    },
-    provideAppInitializer(() => inject(ConnectionFacade).start()),
+    { provide: ConnectionPort, useFactory: createConnection },
+    { provide: ADMIN_CONNECTION, useFactory: createConnection },
   ]);
 }

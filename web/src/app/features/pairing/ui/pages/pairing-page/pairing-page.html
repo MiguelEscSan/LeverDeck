@@ -1,0 +1,55 @@
+<header class="header">
+  <h1>LeverDeck</h1>
+  <p class="sub">Connect to your PC</p>
+</header>
+
+<app-pairing-hero class="hero" />
+
+@if (notice) {
+  <p class="notice" role="status">{{ notice }}</p>
+}
+
+<form class="form" novalidate (submit)="submit($event)">
+  <div>
+    <span class="ld-label" id="pc-address-label">PC address</span>
+    <div class="address" aria-labelledby="pc-address-label" role="group">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="12" rx="2" />
+        <path d="M8 20h8M12 16v4" />
+      </svg>
+      <span class="host">{{ host }}</span>
+    </div>
+  </div>
+
+  <app-code-input
+    [value]="facade.code()"
+    [invalid]="facade.error() !== null"
+    describedBy="pairing-error"
+    (valueChange)="facade.setCode($event)"
+  />
+
+  <div>
+    <label class="ld-label" for="device-name">Device name</label>
+    <input
+      id="device-name"
+      class="ld-field"
+      type="text"
+      autocomplete="off"
+      autocapitalize="words"
+      enterkeyhint="go"
+      [attr.maxlength]="nameMaxLength"
+      [value]="facade.deviceName()"
+      (input)="onNameInput($event)"
+    />
+  </div>
+
+  <div class="actions">
+    <p id="pairing-error" class="ld-error error" role="alert">{{ facade.error() ?? '' }}</p>
+    <button class="ld-btn ld-btn--primary" type="submit" [disabled]="!facade.canPair() || facade.busy()">
+      {{ facade.busy() ? 'Pairing…' : 'Pair device' }}
+    </button>
+    <p class="help">
+      Scan the QR code on your PC with this device's camera,<br />or type the 6-digit code shown there.
+    </p>
+  </div>
+</form>

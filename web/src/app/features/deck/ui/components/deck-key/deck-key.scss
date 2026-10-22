@@ -1,0 +1,106 @@
+:host {
+  display: block;
+  container-type: inline-size;
+}
+
+.key {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: var(--ld-touch-target);
+  padding: 0;
+  border: max(2px, 3cqi) solid var(--ld-key-border);
+  border-radius: var(--ld-radius-key);
+  background: var(--key-fill, var(--ld-key-dark));
+  box-shadow: var(--ld-shadow-key);
+  color: var(--key-ink, #ffffff);
+  font: inherit;
+  font-size: max(11px, 11cqi);
+  cursor: pointer;
+  transition:
+    transform var(--ld-duration-press) var(--ld-ease-out),
+    box-shadow 160ms var(--ld-ease-out);
+
+  // Feedback on pointer-down, before the agent answers: the key sinks.
+  &:active {
+    transform: scale(0.93);
+    box-shadow: inset 0 2px 0 rgb(0 0 0 / 30%);
+  }
+}
+
+// Label ink per color, all AA for the 12–13 px heavy label: white on the dark keys, near-black on orange (5.5:1).
+[data-color='red'] {
+  --key-fill: var(--ld-key-red);
+}
+
+[data-color='blue'] {
+  --key-fill: var(--ld-key-blue);
+}
+
+[data-color='orange'] {
+  --key-fill: var(--ld-key-orange);
+  --key-ink: #1e1e1e;
+}
+
+[data-color='purple'] {
+  --key-fill: var(--ld-key-purple);
+}
+
+[data-color='teal'] {
+  --key-fill: var(--ld-key-teal);
+}
+
+[data-color='dark'] {
+  --key-fill: var(--ld-key-dark);
+  border-color: var(--ld-color-line);
+}
+
+.glyph {
+  width: 56%;
+  height: 56%;
+  margin-bottom: 6%;
+}
+
+.label {
+  position: absolute;
+  bottom: 7%;
+  left: 6%;
+  right: 6%;
+  overflow: hidden;
+  font-size: 1em;
+  font-weight: var(--ld-font-weight-heavy);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+[data-feedback='pending'] {
+  filter: brightness(0.85);
+}
+
+[data-feedback='success'] {
+  box-shadow:
+    0 0 0 4px var(--ld-color-success),
+    var(--ld-shadow-key);
+}
+
+[data-feedback='failure'] {
+  box-shadow:
+    0 0 0 4px var(--ld-key-red),
+    var(--ld-shadow-key);
+  animation: shake 240ms var(--ld-ease-out);
+}
+
+@keyframes shake {
+  25% {
+    transform: translateX(-4%);
+  }
+
+  75% {
+    transform: translateX(4%);
+  }
+}

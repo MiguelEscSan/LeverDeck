@@ -14,3 +14,11 @@ export function socketUrl(location: PageLocation): string {
   const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${scheme}//${location.host}${SOCKET_PATH}`;
 }
+
+export const ADMIN_SOCKET_PATH = '/admin/ws';
+
+/** The editor channel on the same origin; the admin token goes in `?token=` since browsers cannot set headers. */
+export function adminSocketUrl(location: PageLocation, token: string): string {
+  const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${scheme}//${location.host}${ADMIN_SOCKET_PATH}?token=${encodeURIComponent(token)}`;
+}
