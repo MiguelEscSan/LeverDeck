@@ -51,6 +51,11 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
   and Epic's `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item`. Model as `Action::LaunchGame { store, id }` plus a
   `GameLibrary` port; build the URL from a validated id, never accept a free-form URL.
 - **OBS integration** through OBS's built-in WebSocket server (v28+).
+- **Games that ignore simulated input:** some anti-cheat systems reject keystrokes flagged as injected by `SendInput`
+  (`LLKHF_INJECTED`), so hotkeys may not reach those games. A kernel driver is out of scope. Revisit in a later iteration:
+  document known affected games and prefer non-input actions (store launch URLs, OBS) where possible.
+- **Elevated targets (UIPI):** a non-elevated agent cannot send input to an app running as administrator. Decide later
+  whether to detect this and warn the user, or offer an opt-in elevated mode.
 
 ## Next steps
 
