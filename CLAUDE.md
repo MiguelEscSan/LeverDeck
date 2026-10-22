@@ -28,7 +28,8 @@ Agent (run from `agent/`):
 - Run: `dotnet run --project src/LeverDeck.App` (listens on `http://0.0.0.0:8765`, `GET /health`, and logs the
   desktop editor URL with the admin token). Data lives in `%APPDATA%\LeverDeck\`; override it with
   `LeverDeck__DataDirectory=<absolute path>`. Turn mDNS off with `LeverDeck__Mdns__Enabled=false`.
-- Manual input check (Debug build, Development environment, loopback only, so `dotnet run`):
+- Manual input check (Debug build, Development environment, loopback only, so `dotnet run`). The first start writes
+  `profiles.json` with a "Default" profile; take a profile id and a button id from it, then:
   `curl -X POST http://localhost:8765/debug/execute -H "content-type: application/json" -d "{\"profileId\":\"<id>\",\"pageIndex\":0,\"buttonId\":\"<id>\"}"`
   runs a stored button and injects real input. Never call it from tests or automation.
 - Regenerate the TypeScript protocol types after changing `LeverDeck.Protocol`:

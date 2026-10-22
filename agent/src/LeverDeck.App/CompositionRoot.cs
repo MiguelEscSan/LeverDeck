@@ -15,6 +15,7 @@ internal static class CompositionRoot
     {
         services.AddLeverDeckInfrastructure();
         services.AddLeverDeckUseCases();
+        services.AddHostedService<DefaultProfileSeeder>();
         services.AddHostedService<AdminEditorAnnouncer>();
 #if DEBUG
         services.AddDebugEndpointServices();
