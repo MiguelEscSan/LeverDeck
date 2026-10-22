@@ -21,4 +21,13 @@ and executes actions. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before m
 
 ## Commands
 
-No code has been scaffolded yet. Add build, test and lint commands here once `agent/` and `web/` exist.
+Agent (run from `agent/`):
+
+- Build: `dotnet build LeverDeck.slnx`
+- Test: `dotnet test LeverDeck.slnx`
+- Run: `dotnet run --project src/LeverDeck.App` (listens on `http://0.0.0.0:8765`, `GET /health`)
+- Publish: `dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck` (Native AOT).
+  Needs the MSVC build tools; if the linker reports `vswhere.exe` not found, add
+  `C:\Program Files (x86)\Microsoft Visual Studio\Installer` to `PATH`.
+
+Web: not scaffolded yet (Phase 5).

@@ -21,7 +21,7 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
   The PWA build is embedded as embedded resources and served via `ManifestEmbeddedFileProvider`.
 - **Frontend:** **Angular** PWA (`@angular/pwa`), standalone, Signals, `OnPush`. The user knows Angular well,
   and the UI will grow beyond the grid (profiles, settings, button editor).
-- **Architecture:** hexagonal on both sides. The agent is a solution `agent/LeverDeck.sln` with one project per layer
+- **Architecture:** hexagonal on both sides. The agent is a solution `agent/LeverDeck.slnx` with one project per layer
   (`LeverDeck.Domain`, `LeverDeck.Application`, `LeverDeck.Protocol`, `LeverDeck.Infrastructure`, `LeverDeck.App`)
   under `src/` and xUnit tests under `tests/`; project references enforce the dependency rule. Angular is feature-first
   (`core`, `pairing`, `deck`, `profiles`, `settings`), each with `domain/application/infrastructure/ui`.
@@ -71,13 +71,8 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 Full phased plan: [ROADMAP.md](ROADMAP.md).
 
-1. Add `.gitattributes` (`* text=auto eol=lf`) — Git currently warns about LF/CRLF on Windows.
-2. Scaffold `agent/LeverDeck.sln` with the five projects under `src/`, xUnit tests under `tests/`, and the dependency
-   rule as project references. Verify Native AOT publish early.
-3. Set up TypeScript type generation from `LeverDeck.Protocol` (confirm TypeGen).
-4. Scaffold the Angular app under `web/` with `@angular/pwa` and `eslint-plugin-boundaries`.
-5. Fill the **Commands** section of `CLAUDE.md` with build, test and lint commands.
-6. First vertical slice: pairing + one `Hotkey` action end to end, test-first in `domain`/`application`.
+Phases 0 and 1 are done: the agent solution is scaffolded, the dependency rule is tested, and the Native AOT spike
+passed (~9.5 MB `leverdeck.exe`, no AOT warnings). Next is Phase 2: domain and use cases, test-first.
 
 ## Working preferences
 
