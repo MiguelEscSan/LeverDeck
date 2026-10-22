@@ -28,6 +28,13 @@ Everything a daily user needs beyond the MVP. Spec: [docs/ROADMAP.md](../../docs
 - **Moving keys (P7-3):** drag a key onto another position (a key there trades places) or onto a page number (first
   free position of that page); Alt + arrow keys do the same from the keyboard. The default grid setting stays 5×3 and
   is not editable yet.
+- **Library sections (P7-6):** the sidebar has a "Library" with "Apps" (registered programs, moved out of the right
+  panel) and "Icons" (uploaded pictures); the middle column shows the chosen section instead of the grid.
+- **Uploaded icons (P7-6):** the editor draws any picture the browser can decode on a transparent 256 × 256 canvas
+  and uploads the PNG (`saveIcon`, base64) under a new `custom-<32 hex>` icon id, so keys keep referring to icons by
+  id. The agent accepts only PNG (signature and header checked, ≤ 256 KiB, ≤ 512 px, never SVG), writes each id once
+  to `icons/` in the data directory and serves it at `/api/icons/<id>.png`, cached forever. No logos are bundled:
+  the owner uploads their own.
 - **Ids:** profile and key ids are UUIDs made in the browser from `crypto.getRandomValues` (works without a secure
   context).
 
@@ -38,6 +45,7 @@ Everything a daily user needs beyond the MVP. Spec: [docs/ROADMAP.md](../../docs
 | P7-1 | Web: desktop editor — profiles sidebar (create, select), profile toolbar (rename, color, grid size, delete), grid editor with pages (add, remove), selected-key panel (label, color, icon, action) | delegated writer | done (manual check pending) |
 | P7-2 | More actions: open URL, launch registered apps, Steam/Epic games with the installed-games list (agent + web); OBS postponed | delegated writer | done (manual check pending) |
 | P7-3 | Drag and drop keys between positions and pages, with a keyboard alternative | delegated writer | done (manual check pending) |
+| P7-6 | Library sections in the editor (Apps, Icons) and uploaded key icons (agent store, endpoint and protocol; web gallery and picker) | delegated writer | done (manual check pending) |
 | P7-4 | Tray icon, start with Windows, firewall rule on the private profile | — | pending |
 | P7-5 | Optional HTTPS over LAN with `mkcert` | — | pending |
 
@@ -59,3 +67,8 @@ Everything a daily user needs beyond the MVP. Spec: [docs/ROADMAP.md](../../docs
   editor for links, apps and games, an Apps card, drag and drop; 331 tests, lint and build green, and smoke-tested in
   Chromium against a fake agent (real drag and drop, Alt + arrows, swap, move to another page). Manual: press a link,
   a Steam/Epic game and an app key on the phone and see them open on the PC.
+- 2026-10-23: P7-6 done. Agent: `SaveIcon`/`DeleteIcon`/`GetIcons` with `IconImage` validation, `FileIconStore`,
+  `GET /api/icons/<id>.png`, `iconsChanged`, regenerated TypeScript types. Web: Library nav, Apps and Icons sections,
+  canvas encoder, custom icons in the key picker and on the phone's keys; 354 tests, lint and build green, and an
+  upload smoke-tested in Chromium (600 × 300 picture → 256 × 256 PNG on a key). Manual: upload a logo, put it on a
+  key, see it on the phone.

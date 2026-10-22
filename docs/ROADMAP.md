@@ -121,6 +121,7 @@ issued device token, because it can be delivered only once. **Scope** says who m
 | `RevokeDevice` | admin | `DeviceId` | Marks it revoked and closes its connection | `DeviceRevoked`, `DevicesChanged` |
 | `UpdateSettings` | admin | `AgentSettings` | Validates and saves settings | `SettingsUpdated` |
 | `RegisterApp` / `UnregisterApp` | admin | display name + path / `AppId` | Manages the apps that `LaunchApp` can reference; unregistering an app in use is rejected | `SettingsUpdated` |
+| `SaveIcon` / `DeleteIcon` | admin | new `custom-` icon id + PNG (≤ 256 KiB, ≤ 512 px) / icon id | Stores an uploaded key icon once per id; deleting an icon a key shows is rejected (Phase 7) | `IconsChanged` |
 
 **Queries** (no side effects)
 
@@ -132,6 +133,7 @@ issued device token, because it can be delivered only once. **Scope** says who m
 | `GetPairingSession` | admin | Active code, QR URL (with IP fallback) and expiry, or none |
 | `GetSettings` | admin | `AgentSettings` |
 | `GetAgentStatus` | device | Agent version, protocol version, OBS connection state |
+| `GetIcons` | admin | The uploaded icon ids (Phase 7) |
 | `GetInstalledGames` | admin | Steam and Epic games installed on the PC (store, id, name), through the `IGameLibrary` port (Phase 7) |
 
 **Events** pushed by the agent: `ProfileUpdated`, `ProfileDeleted`, `DevicesChanged`, `DeviceRevoked`,
@@ -206,6 +208,8 @@ nest two discriminators, so `MessageConverter` handles `kind` and each kind's ba
 | `updateSettings` | `{ settings: SettingsUpdateDto }` |
 | `registerApp` | `{ displayName, path }` |
 | `unregisterApp` | `{ appId }` |
+| `saveIcon` | `{ iconId, data }` (base64 PNG, Phase 7) |
+| `deleteIcon` | `{ iconId }` (Phase 7) |
 
 HTTP `POST /api/pairing/redeem`: `PairDeviceRequest { code, deviceName }` → `200 PairDeviceResponse { deviceId, deviceToken }`
 or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result is not an `ack`.
@@ -221,6 +225,7 @@ or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result 
 | `getSettings` | `{}` | `settings` | `{ settings: SettingsDto }` |
 | `getAgentStatus` | `{}` | `agentStatus` | `{ agentVersion, protocolVersion, obsConnected }` |
 | `getInstalledGames` | `{}` | `installedGames` | `{ games: InstalledGameDto[] }` (Phase 7) |
+| `getIcons` | `{}` | `icons` | `{ icons: string[] }` (Phase 7) |
 
 **Events**
 
@@ -259,7 +264,7 @@ may set it (`SettingsUpdateDto`), results only expose `hasPassword`. Reads are s
 
 Domain codes map onto them in `Infrastructure/ProtocolMapping/ErrorMapper`: every invariant failure
 (`DuplicateProfileName`, `LastProfileCannotBeDeleted`, `Position*`, `GridTooSmall`) is `validationFailed`;
-`ProfileNotFound`/`DeviceNotFound`/`ButtonNotFound` are `notFound`; `ActionNotExecutable` and `ActionFailed` are
+`ProfileNotFound`/`DeviceNotFound`/`ButtonNotFound`/`IconNotFound` (Phase 7) are `notFound`; `ActionNotExecutable` and `ActionFailed` are
 `actionFailed`; anything unexpected is `internal` with a generic message.
 
 ### 3.4 Tasks

@@ -113,6 +113,7 @@ All live in `Infrastructure/Transport`, as plain request delegates with source-g
 | Endpoint | Auth | Behaviour |
 |---|---|---|
 | `POST /api/pairing/redeem` | none (public scope) | JSON only (`415` otherwise), body ≤ 4 KiB (`413`). `200 PairDeviceResponse` with `Cache-Control: no-store`; `400 ErrorDto` for `pairingCodeInvalid`/`pairingCodeExpired`/malformed bodies, `422` for `validationFailed` (device name), `500 internal`. The token is never logged. |
+| `GET /api/icons/<id>.png` | none | An uploaded icon (`custom-` + 32 hex digits), `image/png`, cached a year as `immutable` (an id's image never changes), `nosniff`; anything else is `404`. Public because an `<img>` cannot send a token and an icon is not a secret. |
 | `GET /ws` | device token in the first message | The first message must be `connectDevice` within 10 s (`LeverDeck:Transport:ConnectTimeout`). On success: `ack`, then the socket is bound to that device. Messages ≤ 64 KiB. |
 | `GET /admin/ws` | admin token as `?token=` | Checked in constant time before the upgrade: a wrong or missing token gets `401` and no socket (browsers cannot set headers on a WebSocket). Bound to the admin scope. Messages ≤ 1 MiB (whole profiles). |
 
@@ -147,6 +148,7 @@ cases (as the admin), so a query result and an event never disagree.
 | `DeviceRevoked` | `deviceRevoked { deviceId }`, then close `1008 deviceRevoked` | the revoked device's connections |
 | `PairingSessionChanged` | `pairingSessionChanged { session }` (with `qrUrl` and `fallbackUrl`) | admin connections |
 | `SettingsUpdated` | `settingsUpdated { settings }` | admin connections |
+| `IconsChanged` | `iconsChanged { icons }` | admin connections |
 
 Events published while a command runs reach the clients before that command's `ack`. `qrUrl` is
 `http://leverdeck.local:8765/pair?code=<code>`; `fallbackUrl` uses the LAN IPv4 address chosen as for mDNS, or is
@@ -162,6 +164,7 @@ so every paired device sees the same configuration.
 ├── profiles.json
 ├── devices.json     (token hashes, names, pairing dates)
 ├── settings.json
+├── icons/           (uploaded key icons, <custom-id>.png; see Transport endpoints)
 └── admin-token      (generated once, DPAPI-protected; see Desktop editor)
 ```
 
