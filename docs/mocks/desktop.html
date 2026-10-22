@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeverDeck Desktop Mock</title>
+<style>
+  :root {
+    --bg: #2b2b2b;
+    --side: #242424;
+    --panel: #333333;
+    --field: #232323;
+    --border: #151515;
+    --line: #3f3f3f;
+    --text: #ffffff;
+    --muted: #a0a0a0;
+    --red: #e8315a;
+    --blue: #1f4fe0;
+    --orange: #f26b3a;
+    --purple: #8a5cd6;
+    --teal: #2f5b4e;
+    --dark: #1e1e1e;
+    --green: #3ccf7a;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1440px;
+    height: 900px;
+    display: grid;
+    grid-template-columns: 240px 1fr 340px;
+    background: var(--bg);
+    font-family: "Segoe UI", Inter, system-ui, sans-serif;
+    color: var(--text);
+  }
+
+  /* Sidebar: profiles */
+  aside.profiles { background: var(--side); border-right: 1px solid var(--line); padding: 28px 16px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; padding: 0 8px 28px; }
+  .brand .mark { display: grid; grid-template-columns: repeat(2, 11px); gap: 3px; }
+  .brand .mark i { width: 11px; height: 11px; border-radius: 3px; }
+  .section-title { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .8px; padding: 0 8px 10px; }
+  .profile { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 15px; color: #d8d8d8; }
+  .profile .dot { width: 10px; height: 10px; border-radius: 3px; }
+  .profile.active { background: #3a3a3a; color: var(--text); font-weight: 600; }
+  .profile.new { color: var(--muted); margin-top: 6px; }
+  .side-footer { margin-top: auto; padding: 12px; border-radius: 12px; background: #2d2d2d; font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .side-footer strong { color: var(--text); font-weight: 600; }
+
+  /* Main: deck grid */
+  main { padding: 28px 40px; display: flex; flex-direction: column; }
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; }
+  h1 { font-size: 26px; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .layout { display: flex; gap: 8px; }
+  .chip { padding: 8px 14px; border-radius: 10px; background: var(--panel); color: #d8d8d8; font-size: 13px; border: 1px solid var(--line); }
+  .chip.on { background: #3f3f3f; color: var(--text); border-color: #5a5a5a; }
+
+  .stage { flex: 1; display: grid; place-items: center; }
+  .grid { display: grid; grid-template-columns: repeat(5, 112px); gap: 20px; }
+  .key {
+    width: 112px; height: 112px; border-radius: 22px; border: 4px solid var(--border);
+    display: grid; place-items: center; position: relative;
+    box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .18);
+  }
+  .key svg { width: 54px; height: 54px; filter: drop-shadow(0 2px 0 rgba(0,0,0,.55)); }
+  .key .label { position: absolute; bottom: 10px; font-size: 12px; font-weight: 800; letter-spacing: .5px; color: #1e1e1e; }
+  .key.empty { background: transparent; border: 2px dashed #4a4a4a; box-shadow: none; color: #6a6a6a; }
+  .key.empty svg { width: 30px; height: 30px; filter: none; }
+  .key.selected { outline: 3px solid var(--text); outline-offset: 4px; }
+
+  .pages { align-self: center; display: flex; align-items: center; gap: 6px; background: #333; border-radius: 999px; padding: 6px 10px; font-size: 13px; color: var(--muted); }
+  .pages b { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; color: #d8d8d8; }
+  .pages b.on { background: #d8d8d8; color: #1e1e1e; }
+
+  /* Right panel: pairing + key inspector */
+  aside.right { background: var(--side); border-left: 1px solid var(--line); padding: 28px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .card { background: var(--panel); border-radius: 18px; padding: 20px; }
+  .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .card p { color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .qr { margin: 18px auto 14px; width: 180px; height: 180px; background: #fff; border-radius: 14px; padding: 12px; }
+  .qr svg { width: 100%; height: 100%; }
+  .code { display: flex; justify-content: center; gap: 6px; }
+  .code span { width: 34px; height: 42px; border-radius: 10px; background: var(--field); border: 2px solid #444; display: grid; place-items: center; font-size: 20px; font-weight: 700; }
+  .addr { margin-top: 14px; text-align: center; font-size: 13px; color: var(--muted); }
+  .addr strong { color: var(--text); font-weight: 600; }
+
+  .device { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .device:first-of-type { border-top: 0; }
+  .device svg { width: 22px; height: 22px; color: var(--muted); }
+  .device .meta { color: var(--muted); font-size: 12px; }
+  .state { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .state i { width: 8px; height: 8px; border-radius: 50%; }
+
+  .field-row { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .field-row:first-of-type { border-top: 0; margin-top: 8px; }
+  .field-row span:first-child { color: var(--muted); }
+</style>
+</head>
+<body>
+  <aside class="profiles">
+    <div class="brand">
+      <span class="mark"><i style="background: var(--red)"></i><i style="background: var(--blue)"></i><i style="background: var(--orange)"></i><i style="background: var(--purple)"></i></span>
+      LeverDeck
+    </div>
+    <p class="section-title">Profiles</p>
+    <div class="profile active"><span class="dot" style="background: var(--red)"></span>Streaming</div>
+    <div class="profile"><span class="dot" style="background: var(--blue)"></span>Editing</div>
+    <div class="profile"><span class="dot" style="background: var(--orange)"></span>Media</div>
+    <div class="profile"><span class="dot" style="background: var(--purple)"></span>Games</div>
+    <div class="profile new">+ New profile</div>
+    <div class="side-footer"><strong>Agent running</strong><br>Windows · port 7420</div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>Streaming</h1>
+        <p class="sub">Drag actions onto keys. Changes sync to paired devices instantly.</p>
+      </div>
+      <div class="layout">
+        <span class="chip">3 × 3</span>
+        <span class="chip on">5 × 3</span>
+        <span class="chip">8 × 4</span>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="grid">
+        <div class="key" style="background: var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5" fill="#fff"/><rect x="17" y="14" width="4" height="6" rx="1.5" fill="#fff"/></svg></div>
+        <div class="key" style="background: var(--blue)"><svg viewBox="0 0 24 24" fill="#fff"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0" stroke="#fff" stroke-width="2" fill="none"/><rect x="11" y="17" width="2" height="4"/></svg></div>
+        <div class="key selected" style="background: var(--orange)"><svg viewBox="0 0 24 24" fill="#fff"><path d="M3 7h7l2 2h9v10H3z"/></svg><span class="label">SCENES</span></div>
+        <div class="key" style="background: var(--purple)"><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="key" style="background: var(--dark)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m10 8 4 4-4 4"/></svg></div>
+
+        <div class="key" style="background: var(--red)"><svg viewBox="0 0 24 24" fill="#fff"><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/></svg></div>
+        <div class="key" style="background: var(--blue)"><svg viewBox="0 0 24 24" fill="#fff"><rect x="7" y="3" width="6" height="11" rx="3"/><path d="M4 11a6 6 0 0 0 12 0" stroke="#fff" stroke-width="2" fill="none"/><path d="M18 6v6M15 9h6" stroke="#fff" stroke-width="2"/></svg></div>
+        <div class="key" style="background: var(--teal)"><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf7a" stroke-width="2"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 20h8M12 16v4M8 10h8"/></svg></div>
+        <div class="key" style="background: var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 12h3l2-5 3 10 3-8 2 3h5"/></svg></div>
+        <div class="key empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+
+        <div class="key" style="background: var(--red)"><svg viewBox="0 0 24 24" fill="#fff"><rect x="4" y="10" width="16" height="4" rx="1"/></svg></div>
+        <div class="key" style="background: var(--blue)"><svg viewBox="0 0 24 24" fill="#fff"><rect x="7" y="3" width="6" height="11" rx="3"/><path d="M4 11a6 6 0 0 0 12 0" stroke="#fff" stroke-width="2" fill="none"/><path d="M15 9h6" stroke="#fff" stroke-width="2"/></svg></div>
+        <div class="key" style="background: var(--purple)"><svg viewBox="0 0 24 24" fill="#fff"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 19a6 6 0 0 1 12 0zM10 19a6 6 0 0 1 12 0z"/></svg></div>
+        <div class="key empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="key empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+      </div>
+    </div>
+
+    <div class="pages">Pages: <b class="on">1</b><b>2</b><b>+</b></div>
+  </main>
+
+  <aside class="right">
+    <section class="card">
+      <h2>Pair a device</h2>
+      <p>Scan with your phone's camera, or open <strong style="color:#fff">leverdeck.local</strong> and type the code.</p>
+      <div class="qr"><svg id="qr" viewBox="0 0 25 25" shape-rendering="crispEdges"></svg></div>
+      <div class="code"><span>4</span><span>7</span><span>2</span><span>9</span><span>1</span><span>5</span></div>
+      <p class="addr">Code expires in <strong>4:32</strong></p>
+    </section>
+
+    <section class="card">
+      <h2>Paired devices</h2>
+      <div class="device">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
+        <div>Pixel 8<div class="meta">Wi-Fi</div></div>
+        <span class="state"><i style="background: var(--green)"></i>Connected</span>
+      </div>
+      <div class="device">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M11 17h2"/></svg>
+        <div>iPad Air<div class="meta">Last seen 2 h ago</div></div>
+        <span class="state"><i style="background: #6a6a6a"></i>Offline</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Selected key</h2>
+      <div class="field-row"><span>Action</span><span>OBS scene</span></div>
+      <div class="field-row"><span>Scene</span><span>Just Chatting</span></div>
+      <div class="field-row"><span>Color</span><span style="color: var(--orange)">● Orange</span></div>
+    </section>
+  </aside>
+
+  <script>
+    // Fake QR pattern for the mock: finder squares plus deterministic noise.
+    const qr = document.getElementById('qr');
+    const n = 25;
+    const cells = [];
+    const finder = (x, y) => {
+      cells.push(`<rect x="${x}" y="${y}" width="7" height="7"/>`,
+        `<rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff"/>`,
+        `<rect x="${x + 2}" y="${y + 2}" width="3" height="3"/>`);
+    };
+    const inFinder = (x, y) => (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
+    let seed = 7;
+    const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        if (!inFinder(x, y) && rand() > 0.52) cells.push(`<rect x="${x}" y="${y}" width="1" height="1"/>`);
+      }
+    }
+    finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
+    qr.innerHTML = cells.join('');
+  </script>
+</body>
+</html>

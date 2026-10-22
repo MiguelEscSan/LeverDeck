@@ -62,6 +62,11 @@ A calm, dark charcoal surface where the only loud things are big, rounded, satur
 
 ![Login mock](assets/mock-login.png)
 
+- Desktop (PC-side) view — profiles sidebar, deck grid editor, pairing QR/code, paired devices and selected key:
+  [mocks/desktop.html](mocks/desktop.html), rendered as [assets/mock-desktop.png](assets/mock-desktop.png).
+
+![Desktop mock](assets/mock-desktop.png)
+
 ## Example: prompt for a login / connect screen
 
 Use this as the base prompt when generating a mock image of the pairing or login screen:
