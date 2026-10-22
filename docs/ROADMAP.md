@@ -328,7 +328,8 @@ generated folder is never edited.
 
 ## Phase 7 — Make it usable
 
-- [ ] Desktop editor: profiles sidebar, grid editor, selected-key panel, paired devices with revoke.
+- [x] Desktop editor: profiles sidebar, grid editor, selected-key panel, paired devices with revoke. The PC edits,
+      devices only read (see `odd/tasks/phase-7-make-it-usable.md`).
 - [ ] More actions: launch app, OBS scene (confirm OBS client AOT compatibility), then Steam/Epic games.
 - [ ] Multiple pages per profile; grid size setting (decide the default — still open in PRODUCT.md).
 - [ ] Tray icon, start with Windows, firewall rule on the private profile.
