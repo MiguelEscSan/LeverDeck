@@ -1,6 +1,6 @@
 using LeverDeck.Domain.Pairing;
 
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Pairing.Ports;
 
 /// <summary>Cryptographically random secrets.</summary>
 public interface ITokenGenerator

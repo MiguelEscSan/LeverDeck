@@ -1,4 +1,4 @@
-using LeverDeck.Application.Ports;
+using LeverDeck.Application.Actions.Ports;
 using LeverDeck.Domain.Common;
 using DomainAction = LeverDeck.Domain.Actions.Action;
 

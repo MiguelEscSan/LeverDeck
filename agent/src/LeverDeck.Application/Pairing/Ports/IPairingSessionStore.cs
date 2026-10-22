@@ -1,6 +1,6 @@
 using LeverDeck.Domain.Pairing;
 
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Pairing.Ports;
 
 /// <summary>Holds the single current pairing session in memory; it is never persisted.</summary>
 public interface IPairingSessionStore

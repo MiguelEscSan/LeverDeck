@@ -1,6 +1,6 @@
 using LeverDeck.Domain.Profiles;
 
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Profiles.Ports;
 
 public interface IProfileRepository
 {

@@ -1,5 +1,5 @@
 using System.Globalization;
-using LeverDeck.Application.Ports;
+using LeverDeck.Application.Pairing.Ports;
 using LeverDeck.Domain.Pairing;
 
 namespace LeverDeck.Application.Tests.Fakes;
