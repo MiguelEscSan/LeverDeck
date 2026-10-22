@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/LeverDeck.Infrastructure/LeverDeck.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
