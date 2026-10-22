@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Grid Specimen</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#f4f4f1;color:#0b0b0b;font-family:"Archivo",Helvetica,Arial,sans-serif;position:relative}
+.grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(31,91,255,.16) 1px,transparent 1px),linear-gradient(to bottom,rgba(31,91,255,.16) 1px,transparent 1px);background-size:120px 120px}
+.top{position:absolute;left:0;right:0;top:0;height:120px;display:flex;align-items:center;gap:24px;padding:0 40px;background:#f4f4f1}
+.word{font-weight:800;font-size:22px;letter-spacing:.02em;text-transform:uppercase}
+.tabs{display:flex;gap:0;margin-left:auto}
+.tabs span{padding:14px 22px;border:2px solid #0b0b0b;margin-left:-2px;font-weight:700;font-size:16px}
+.tabs span.on{background:#1f5bff;color:#f4f4f1;border-color:#1f5bff}
+.name{position:absolute;left:40px;top:150px;font-size:210px;line-height:.82;font-weight:800;letter-spacing:-.04em;font-stretch:condensed}
+.name em{font-style:normal;color:#1f5bff}
+.keys{position:absolute;left:40px;right:40px;top:520px;display:grid;grid-template-columns:repeat(8,1fr);gap:0;border-top:2px solid #0b0b0b;border-left:2px solid #0b0b0b}
+.key{height:160px;border-right:2px solid #0b0b0b;border-bottom:2px solid #0b0b0b;padding:14px;display:flex;flex-direction:column;justify-content:space-between;background:#f4f4f1}
+.key b{font-size:20px;font-weight:700}
+.key small{font-size:14px;letter-spacing:.04em;color:#444}
+.key.on{background:#1f5bff;color:#f4f4f1}
+.key.on small{color:#f4f4f1}
+.status{position:absolute;left:40px;bottom:36px;font-size:16px;letter-spacing:.04em}
+</style></head>
+<body>
+<div class="grid"></div>
+<div class="top"><div class="word">LeverDeck</div><div class="tabs"><span class="on">Streaming</span><span>Editing</span><span>Media</span><span>Games</span></div></div>
+<div class="name">Stream<em>.</em>Deck</div>
+<div class="keys">
+  <div class="key"><b>Mute mic</b><small>CTRL+SHIFT+M</small></div>
+  <div class="key on"><b>Camera</b><small>ON</small></div>
+  <div class="key"><b>Starting soon</b><small>OBS SCENE</small></div>
+  <div class="key on"><b>Live</b><small>OBS SCENE</small></div>
+  <div class="key"><b>Be right back</b><small>OBS SCENE</small></div>
+  <div class="key"><b>Clip 30 s</b><small>ALT+F10</small></div>
+  <div class="key"><b>Deafen</b><small>CTRL+SHIFT+D</small></div>
+  <div class="key"><b>Play / pause</b><small>MEDIA</small></div>
+</div>
+<div class="status">CONNECTED · MIGUEL-PC · 9 MS</div>
+</body></html>
