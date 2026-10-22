@@ -11,6 +11,24 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
+# Web (Angular): 2 spaces (default above), single quotes, 100 columns like web/.prettierrc
+[*.{ts,mts,cts,js,mjs,cjs}]
+quote_type = single
+max_line_length = 100
+ij_typescript_use_double_quotes = false
+ij_javascript_use_double_quotes = false
+
+[*.html]
+quote_type = double
+max_line_length = 100
+
+[*.{scss,css}]
+quote_type = single
+max_line_length = 100
+
+[*.{json,webmanifest}]
+max_line_length = off
+
 [*.{cs,csx}]
 indent_size = 4
 

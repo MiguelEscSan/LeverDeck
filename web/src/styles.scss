@@ -1,0 +1,164 @@
+// Global styles: design tokens (docs/VISUAL-REFERENCE.md, docs/mocks/*.html) and the mobile baseline.
+// Dark first; the light theme keeps the same saturated keys on a light neutral surface.
+
+:root {
+  color-scheme: dark;
+
+  // Surfaces
+  --ld-color-background: #2b2b2b;
+  --ld-color-surface: #242424;
+  --ld-color-panel: #3a3a3a;
+  --ld-color-field: #232323;
+  --ld-color-border: #151515;
+  --ld-color-line: #3f3f3f;
+  --ld-color-field-border: #444444;
+
+  // Text (both AA on every surface above)
+  --ld-color-text: #ffffff;
+  --ld-color-muted: #a0a0a0;
+
+  // Keys: the closed palette of KeyColor, identical in both themes
+  --ld-key-red: #e8315a;
+  --ld-key-blue: #1f4fe0;
+  --ld-key-orange: #f26b3a;
+  --ld-key-purple: #8a5cd6;
+  --ld-key-teal: #2f5b4e;
+  --ld-key-dark: #1e1e1e;
+  --ld-key-border: #151515;
+  --ld-key-icon: #ffffff;
+
+  // States
+  --ld-color-success: #3ccf7a;
+  --ld-color-warning: #f26b3a;
+  --ld-color-idle: #8a8a8a;
+  --ld-color-focus: #ffffff;
+
+  // Radii
+  --ld-radius-sm: 10px;
+  --ld-radius-md: 14px;
+  --ld-radius-lg: 18px;
+  --ld-radius-xl: 22px;
+  --ld-radius-pill: 999px;
+  --ld-radius-key: 20%; // of the key size
+
+  // Spacing (4 px scale)
+  --ld-space-1: 4px;
+  --ld-space-2: 8px;
+  --ld-space-3: 12px;
+  --ld-space-4: 16px;
+  --ld-space-5: 20px;
+  --ld-space-6: 24px;
+  --ld-space-7: 28px;
+  --ld-space-8: 32px;
+
+  // Sizes
+  --ld-touch-target: 48px;
+
+  // Typography
+  --ld-font-family: 'Segoe UI', Inter, system-ui, -apple-system, Roboto, sans-serif;
+  --ld-font-size-xs: 12px;
+  --ld-font-size-sm: 13px;
+  --ld-font-size-md: 15px;
+  --ld-font-size-base: 16px;
+  --ld-font-size-lg: 17px;
+  --ld-font-size-title: 26px;
+  --ld-font-weight-regular: 400;
+  --ld-font-weight-semibold: 600;
+  --ld-font-weight-bold: 700;
+  --ld-font-weight-heavy: 800;
+  --ld-line-height: 1.4;
+
+  // Elevation and motion
+  --ld-shadow-key: inset 0 -4px 0 rgb(0 0 0 / 18%);
+  --ld-shadow-menu: 0 12px 32px rgb(0 0 0 / 45%);
+  --ld-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ld-duration-press: 120ms;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --ld-color-background: #f2f2f2;
+    --ld-color-surface: #ffffff;
+    --ld-color-panel: #e4e4e4;
+    --ld-color-field: #ffffff;
+    --ld-color-border: #c4c4c4;
+    --ld-color-line: #d6d6d6;
+    --ld-color-field-border: #b8b8b8;
+
+    --ld-color-text: #151515;
+    --ld-color-muted: #595959;
+
+    --ld-color-success: #1a7f45;
+    --ld-color-warning: #b8461c;
+    --ld-color-idle: #6e6e6e;
+    --ld-color-focus: #151515;
+
+    --ld-shadow-menu: 0 12px 32px rgb(0 0 0 / 18%);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent; // no grey flash on tap; controls style :active instead
+  -webkit-text-size-adjust: 100%; // no font inflation in landscape
+  text-size-adjust: 100%;
+  overscroll-behavior: none; // an app, not a document: no pull-to-refresh
+  background: var(--ld-color-background);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--ld-color-background);
+  color: var(--ld-color-text);
+  font-family: var(--ld-font-family);
+  font-size: var(--ld-font-size-base);
+  line-height: var(--ld-line-height);
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+// iOS zooms into inputs under 16 px; never fix that by disabling zoom.
+input,
+textarea,
+select {
+  font: inherit;
+  font-size: max(16px, 1em);
+}
+
+button,
+a,
+[role='button'] {
+  touch-action: manipulation; // no double-tap-zoom delay
+  user-select: none; // long-press must not select a control label
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ld-color-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
