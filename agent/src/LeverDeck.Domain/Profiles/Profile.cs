@@ -1,4 +1,5 @@
 using LeverDeck.Domain.Errors;
+using DomainAction = LeverDeck.Domain.Actions.Action;
 
 namespace LeverDeck.Domain.Profiles;
 
@@ -111,12 +112,12 @@ public sealed class Profile
     }
 
     /// <summary>Places a new button on a free position and returns its id.</summary>
-    public ButtonId PlaceButton(int pageIndex, GridPosition position, ButtonAppearance appearance)
+    public ButtonId PlaceButton(int pageIndex, GridPosition position, ButtonAppearance appearance, DomainAction action)
     {
         var page = PageAt(pageIndex);
         EnsurePlaceable(page, position);
 
-        var button = new Button(ButtonId.New(), position, appearance);
+        var button = new Button(ButtonId.New(), position, appearance, action);
         page.Add(button);
         return button.Id;
     }
@@ -125,6 +126,13 @@ public sealed class Profile
     {
         ArgumentNullException.ThrowIfNull(appearance);
         RequireButton(buttonId).Button.Appearance = appearance;
+    }
+
+    /// <summary>Replaces what a button does. A <see cref="Actions.SwitchProfile"/> to this same profile is allowed.</summary>
+    public void ChangeButtonAction(ButtonId buttonId, DomainAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        RequireButton(buttonId).Button.Action = action;
     }
 
     public void RemoveButton(ButtonId buttonId)

@@ -1,17 +1,20 @@
+using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Errors;
 using LeverDeck.Domain.Profiles;
+using DomainAction = LeverDeck.Domain.Actions.Action;
 
 namespace LeverDeck.Domain.Tests.Profiles;
 
 public sealed class PageTests
 {
     private static readonly ButtonAppearance _appearance = new("Mute", KeyColor.Red, new IconId("mic"));
+    private static readonly DomainAction _action = new MediaKey(MediaKeyKind.Mute);
 
     [Fact]
     public void Constructor_DistinctPositions_KeepsButtons()
     {
-        var first = new Button(ButtonId.New(), new GridPosition(0, 0), _appearance);
-        var second = new Button(ButtonId.New(), new GridPosition(0, 1), _appearance);
+        var first = new Button(ButtonId.New(), new GridPosition(0, 0), _appearance, _action);
+        var second = new Button(ButtonId.New(), new GridPosition(0, 1), _appearance, _action);
 
         var page = new Page(2, [first, second]);
 
@@ -28,7 +31,9 @@ public sealed class PageTests
 
         DomainAssert.Violates(
             DomainErrorCode.PositionOccupied,
-            () => _ = new Page(0, [new Button(ButtonId.New(), position, _appearance), new Button(ButtonId.New(), position, _appearance)]));
+            () => _ = new Page(
+                0,
+                [new Button(ButtonId.New(), position, _appearance, _action), new Button(ButtonId.New(), position, _appearance, _action)]));
     }
 
     [Fact]
@@ -38,7 +43,9 @@ public sealed class PageTests
 
         DomainAssert.Violates(
             DomainErrorCode.ValidationFailed,
-            () => _ = new Page(0, [new Button(id, new GridPosition(0, 0), _appearance), new Button(id, new GridPosition(0, 1), _appearance)]));
+            () => _ = new Page(
+                0,
+                [new Button(id, new GridPosition(0, 0), _appearance, _action), new Button(id, new GridPosition(0, 1), _appearance, _action)]));
     }
 
     [Fact]
@@ -50,6 +57,20 @@ public sealed class PageTests
     [Fact]
     public void Button_NullAppearance_ThrowsArgumentNull()
     {
-        Assert.Throws<ArgumentNullException>(() => new Button(ButtonId.New(), new GridPosition(0, 0), null!));
+        Assert.Throws<ArgumentNullException>(() => new Button(ButtonId.New(), new GridPosition(0, 0), null!, _action));
+    }
+
+    [Fact]
+    public void Button_NullAction_ThrowsArgumentNull()
+    {
+        Assert.Throws<ArgumentNullException>(() => new Button(ButtonId.New(), new GridPosition(0, 0), _appearance, null!));
+    }
+
+    [Fact]
+    public void Button_Constructor_KeepsAction()
+    {
+        var button = new Button(ButtonId.New(), new GridPosition(0, 0), _appearance, _action);
+
+        Assert.Equal(_action, button.Action);
     }
 }

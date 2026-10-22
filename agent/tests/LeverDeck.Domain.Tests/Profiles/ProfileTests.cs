@@ -1,5 +1,7 @@
+using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Errors;
 using LeverDeck.Domain.Profiles;
+using DomainAction = LeverDeck.Domain.Actions.Action;
 
 namespace LeverDeck.Domain.Tests.Profiles;
 
@@ -7,6 +9,8 @@ public sealed class ProfileTests
 {
     private static readonly ButtonAppearance _mute = new("Mute", KeyColor.Red, new IconId("mic"));
     private static readonly ButtonAppearance _scene = new("Scene", KeyColor.Purple, new IconId("obs"));
+    private static readonly DomainAction _mic = new MediaKey(MediaKeyKind.Mute);
+    private static readonly DomainAction _obs = new ObsScene("Gameplay");
 
     private static Profile NewProfile(GridSize? gridSize = null) =>
         Profile.Create(new ProfileName("Streaming"), KeyColor.Blue, gridSize ?? GridSize.FiveByThree);
@@ -50,7 +54,7 @@ public sealed class ProfileTests
     public void Restore_ValidPages_KeepsState()
     {
         var id = ProfileId.New();
-        var button = new Button(ButtonId.New(), new GridPosition(3, 7), _mute);
+        var button = new Button(ButtonId.New(), new GridPosition(3, 7), _mute, _mic);
 
         var profile = Restore(id, GridSize.EightByFour, new Page(0, []), new Page(1, [button]));
 
@@ -96,7 +100,7 @@ public sealed class ProfileTests
     [Fact]
     public void Restore_ButtonOutsideGrid_ThrowsPositionOutOfGrid()
     {
-        var button = new Button(ButtonId.New(), new GridPosition(3, 0), _mute);
+        var button = new Button(ButtonId.New(), new GridPosition(3, 0), _mute, _mic);
 
         DomainAssert.Violates(
             DomainErrorCode.PositionOutOfGrid,
@@ -113,8 +117,8 @@ public sealed class ProfileTests
             () => Restore(
                 ProfileId.New(),
                 GridSize.ThreeByThree,
-                new Page(0, [new Button(id, new GridPosition(0, 0), _mute)]),
-                new Page(1, [new Button(id, new GridPosition(0, 0), _mute)])));
+                new Page(0, [new Button(id, new GridPosition(0, 0), _mute, _mic)]),
+                new Page(1, [new Button(id, new GridPosition(0, 0), _mute, _mic)])));
     }
 
     // Rename / ChangeColor
@@ -172,7 +176,7 @@ public sealed class ProfileTests
     public void RemovePage_MiddlePage_ReindexesRemainingPages()
     {
         var profile = ProfileWithPages(3);
-        var buttonId = profile.PlaceButton(2, new GridPosition(0, 0), _mute);
+        var buttonId = profile.PlaceButton(2, new GridPosition(0, 0), _mute, _mic);
 
         profile.RemovePage(1);
 
@@ -207,30 +211,37 @@ public sealed class ProfileTests
         var profile = NewProfile();
         var position = new GridPosition(2, 4);
 
-        var id = profile.PlaceButton(0, position, _mute);
+        var id = profile.PlaceButton(0, position, _mute, _mic);
 
         var button = Assert.Single(profile.Pages[0].Buttons);
         Assert.Equal(id, button.Id);
         Assert.Equal(position, button.Position);
         Assert.Equal(_mute, button.Appearance);
+        Assert.Equal(_mic, button.Action);
+    }
+
+    [Fact]
+    public void PlaceButton_NullAction_ThrowsArgumentNull()
+    {
+        Assert.Throws<ArgumentNullException>(() => NewProfile().PlaceButton(0, new GridPosition(0, 0), _mute, null!));
     }
 
     [Fact]
     public void PlaceButton_OccupiedPosition_ThrowsPositionOccupied()
     {
         var profile = NewProfile();
-        profile.PlaceButton(0, new GridPosition(1, 1), _mute);
+        profile.PlaceButton(0, new GridPosition(1, 1), _mute, _mic);
 
-        DomainAssert.Violates(DomainErrorCode.PositionOccupied, () => profile.PlaceButton(0, new GridPosition(1, 1), _scene));
+        DomainAssert.Violates(DomainErrorCode.PositionOccupied, () => profile.PlaceButton(0, new GridPosition(1, 1), _scene, _mic));
     }
 
     [Fact]
     public void PlaceButton_SamePositionOnAnotherPage_IsAccepted()
     {
         var profile = ProfileWithPages(2);
-        profile.PlaceButton(0, new GridPosition(1, 1), _mute);
+        profile.PlaceButton(0, new GridPosition(1, 1), _mute, _mic);
 
-        profile.PlaceButton(1, new GridPosition(1, 1), _scene);
+        profile.PlaceButton(1, new GridPosition(1, 1), _scene, _mic);
 
         Assert.Single(profile.Pages[1].Buttons);
     }
@@ -242,7 +253,7 @@ public sealed class ProfileTests
     {
         var profile = NewProfile(GridSize.FiveByThree);
 
-        DomainAssert.Violates(DomainErrorCode.PositionOutOfGrid, () => profile.PlaceButton(0, new GridPosition(row, column), _mute));
+        DomainAssert.Violates(DomainErrorCode.PositionOutOfGrid, () => profile.PlaceButton(0, new GridPosition(row, column), _mute, _mic));
     }
 
     [Fact]
@@ -250,14 +261,14 @@ public sealed class ProfileTests
     {
         var profile = NewProfile();
 
-        DomainAssert.Violates(DomainErrorCode.ValidationFailed, () => profile.PlaceButton(1, new GridPosition(0, 0), _mute));
+        DomainAssert.Violates(DomainErrorCode.ValidationFailed, () => profile.PlaceButton(1, new GridPosition(0, 0), _mute, _mic));
     }
 
     [Fact]
     public void ChangeButtonAppearance_ExistingButton_ReplacesAppearance()
     {
         var profile = NewProfile();
-        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute);
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
 
         profile.ChangeButtonAppearance(id, _scene);
 
@@ -271,16 +282,56 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void ChangeButtonAction_ExistingButton_ReplacesActionAndKeepsAppearance()
+    {
+        var profile = NewProfile();
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
+
+        profile.ChangeButtonAction(id, _obs);
+
+        var button = profile.FindButton(id)!;
+        Assert.Equal(_obs, button.Action);
+        Assert.Equal(_mute, button.Appearance);
+    }
+
+    [Fact]
+    public void ChangeButtonAction_SwitchToOwnProfile_IsAccepted()
+    {
+        var profile = NewProfile();
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
+
+        profile.ChangeButtonAction(id, new SwitchProfile(profile.Id));
+
+        Assert.Equal(new SwitchProfile(profile.Id), profile.FindButton(id)!.Action);
+    }
+
+    [Fact]
+    public void ChangeButtonAction_UnknownButton_ThrowsButtonNotFound()
+    {
+        DomainAssert.Violates(DomainErrorCode.ButtonNotFound, () => NewProfile().ChangeButtonAction(ButtonId.New(), _obs));
+    }
+
+    [Fact]
+    public void ChangeButtonAction_NullAction_ThrowsArgumentNull()
+    {
+        var profile = NewProfile();
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
+
+        Assert.Throws<ArgumentNullException>(() => profile.ChangeButtonAction(id, null!));
+        Assert.Equal(_mic, profile.FindButton(id)!.Action);
+    }
+
+    [Fact]
     public void RemoveButton_ExistingButton_FreesPosition()
     {
         var profile = NewProfile();
-        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute);
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
 
         profile.RemoveButton(id);
 
         Assert.Empty(profile.Pages[0].Buttons);
         Assert.Null(profile.FindButton(id));
-        profile.PlaceButton(0, new GridPosition(0, 0), _scene);
+        profile.PlaceButton(0, new GridPosition(0, 0), _scene, _mic);
     }
 
     [Fact]
@@ -293,7 +344,7 @@ public sealed class ProfileTests
     public void MoveButton_FreePosition_MovesButton()
     {
         var profile = NewProfile();
-        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute);
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
 
         profile.MoveButton(id, new GridPosition(2, 4));
 
@@ -305,7 +356,7 @@ public sealed class ProfileTests
     public void MoveButton_SamePosition_IsNoOp()
     {
         var profile = NewProfile();
-        var id = profile.PlaceButton(0, new GridPosition(1, 1), _mute);
+        var id = profile.PlaceButton(0, new GridPosition(1, 1), _mute, _mic);
 
         profile.MoveButton(id, new GridPosition(1, 1));
 
@@ -316,8 +367,8 @@ public sealed class ProfileTests
     public void MoveButton_OccupiedPosition_ThrowsPositionOccupiedAndKeepsBoth()
     {
         var profile = NewProfile();
-        var moving = profile.PlaceButton(0, new GridPosition(0, 0), _mute);
-        var other = profile.PlaceButton(0, new GridPosition(0, 1), _scene);
+        var moving = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
+        var other = profile.PlaceButton(0, new GridPosition(0, 1), _scene, _mic);
 
         DomainAssert.Violates(DomainErrorCode.PositionOccupied, () => profile.MoveButton(moving, new GridPosition(0, 1)));
         Assert.Equal(new GridPosition(0, 0), profile.FindButton(moving)!.Position);
@@ -328,7 +379,7 @@ public sealed class ProfileTests
     public void MoveButton_OutsideGrid_ThrowsPositionOutOfGrid()
     {
         var profile = NewProfile(GridSize.ThreeByThree);
-        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute);
+        var id = profile.PlaceButton(0, new GridPosition(0, 0), _mute, _mic);
 
         DomainAssert.Violates(DomainErrorCode.PositionOutOfGrid, () => profile.MoveButton(id, new GridPosition(0, 3)));
     }
@@ -345,7 +396,7 @@ public sealed class ProfileTests
     public void ChangeGridSize_Grow_IsAccepted()
     {
         var profile = NewProfile(GridSize.ThreeByThree);
-        profile.PlaceButton(0, new GridPosition(2, 2), _mute);
+        profile.PlaceButton(0, new GridPosition(2, 2), _mute, _mic);
 
         profile.ChangeGridSize(GridSize.EightByFour);
 
@@ -356,7 +407,7 @@ public sealed class ProfileTests
     public void ChangeGridSize_ShrinkWithAllButtonsInside_IsAccepted()
     {
         var profile = NewProfile(GridSize.EightByFour);
-        profile.PlaceButton(0, new GridPosition(2, 2), _mute);
+        profile.PlaceButton(0, new GridPosition(2, 2), _mute, _mic);
 
         profile.ChangeGridSize(GridSize.ThreeByThree);
 
@@ -367,7 +418,7 @@ public sealed class ProfileTests
     public void ChangeGridSize_ButtonWouldFallOutside_ThrowsGridTooSmallAndKeepsSize()
     {
         var profile = ProfileWithPages(2);
-        profile.PlaceButton(1, new GridPosition(0, 4), _mute);
+        profile.PlaceButton(1, new GridPosition(0, 4), _mute, _mic);
 
         DomainAssert.Violates(DomainErrorCode.GridTooSmall, () => profile.ChangeGridSize(GridSize.ThreeByThree));
         Assert.Equal(GridSize.FiveByThree, profile.GridSize);

@@ -1,3 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/LeverDeck.Domain/LeverDeck.Domain.csproj" />
+  </ItemGroup>
 </Project>
