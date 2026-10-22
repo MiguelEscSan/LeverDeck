@@ -1,0 +1,71 @@
+<Project>
+
+  <!--
+    Embeds the PWA into leverdeck.exe as embedded resources under "wwwroot/", served by WebUi.cs through a
+    ManifestEmbeddedFileProvider.
+
+    - Source: the Angular production build in web/dist/leverdeck/browser (run `npm ci` and `npm run build` in web/).
+    - Missing build (fresh clone, agent-only work): the agent still builds and embeds WebUiFallback/index.html, a page
+      that says the web app was not built. The build prints a message; nothing fails.
+    - -p:BuildWebUi=true runs `npm ci` and `npm run build` in web/ first. It is opt-in for release builds; a normal
+      `dotnet build` never runs npm.
+    - -p:RequireWebUi=true fails the build instead of falling back (CI and release publish use it).
+
+    The embedded source ("angular" or "fallback") is recorded as [AssemblyMetadata("LeverDeck.WebUi", ...)].
+    Items are added inside a target, not at evaluation time, so a build made by BuildWebUi in the same run is picked up.
+  -->
+
+  <PropertyGroup>
+    <WebUiProjectDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', '..', 'web'))</WebUiProjectDir>
+    <WebUiDistDir>$([MSBuild]::NormalizeDirectory('$(WebUiProjectDir)', 'dist', 'leverdeck', 'browser'))</WebUiDistDir>
+    <WebUiFallbackDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'WebUiFallback'))</WebUiFallbackDir>
+    <BuildWebUi Condition="'$(BuildWebUi)' == ''">false</BuildWebUi>
+    <RequireWebUi Condition="'$(RequireWebUi)' == ''">false</RequireWebUi>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The fallback page is embedded only by the target below, never as a regular item. -->
+    <None Remove="WebUiFallback/**" />
+    <Content Remove="WebUiFallback/**" />
+    <EmbeddedResource Remove="WebUiFallback/**" />
+  </ItemGroup>
+
+  <Target Name="BuildWebUi" Condition="'$(BuildWebUi)' == 'true'">
+    <Message Importance="high" Text="LeverDeck: building the web app in $(WebUiProjectDir)" />
+    <Exec Command="npm ci" WorkingDirectory="$(WebUiProjectDir)" />
+    <Exec Command="npm run build" WorkingDirectory="$(WebUiProjectDir)" />
+  </Target>
+
+  <Target Name="EmbedWebUi" BeforeTargets="BeforeBuild" DependsOnTargets="BuildWebUi">
+    <PropertyGroup>
+      <_LeverDeckWebUi Condition="Exists('$(WebUiDistDir)index.html')">angular</_LeverDeckWebUi>
+      <_LeverDeckWebUi Condition="'$(_LeverDeckWebUi)' == ''">fallback</_LeverDeckWebUi>
+    </PropertyGroup>
+
+    <Error
+      Condition="'$(RequireWebUi)' == 'true' AND '$(_LeverDeckWebUi)' != 'angular'"
+      Text="LeverDeck: the web app build is missing ($(WebUiDistDir)index.html). Run `npm ci` and `npm run build` in web/, or build with -p:BuildWebUi=true." />
+
+    <Message
+      Condition="'$(_LeverDeckWebUi)' == 'fallback'"
+      Importance="high"
+      Text="LeverDeck: web/dist/leverdeck/browser not found; embedding the fallback page. Run `npm ci` and `npm run build` in web/ (or build with -p:BuildWebUi=true) to embed the PWA." />
+
+    <ItemGroup Condition="'$(_LeverDeckWebUi)' == 'angular'">
+      <_LeverDeckWebUiFile Include="$(WebUiDistDir)**\*" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(_LeverDeckWebUi)' == 'fallback'">
+      <_LeverDeckWebUiFile Include="$(WebUiFallbackDir)**\*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Qualified metadata: inside a target, unqualified %(...) would batch over EmbeddedResource instead. -->
+      <EmbeddedResource
+        Include="@(_LeverDeckWebUiFile)"
+        Link="wwwroot\%(_LeverDeckWebUiFile.RecursiveDir)%(_LeverDeckWebUiFile.Filename)%(_LeverDeckWebUiFile.Extension)" />
+      <AssemblyMetadata Include="LeverDeck.WebUi" Value="$(_LeverDeckWebUi)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

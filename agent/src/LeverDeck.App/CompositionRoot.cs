@@ -61,6 +61,7 @@ internal static class CompositionRoot
             app.MapDebugEndpoints();
         }
 #endif
+        app.UseLeverDeckWebUi();
         return app;
     }
 }
