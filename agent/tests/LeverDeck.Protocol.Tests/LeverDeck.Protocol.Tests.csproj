@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/LeverDeck.Protocol/LeverDeck.Protocol.csproj" />
+    <ProjectReference Include="../../tools/LeverDeck.ProtocolGen/LeverDeck.ProtocolGen.csproj" />
+  </ItemGroup>
+</Project>

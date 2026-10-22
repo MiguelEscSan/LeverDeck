@@ -164,22 +164,26 @@ from the domain in `Infrastructure`; domain types never go on the wire.
 |---|---|
 | `POST /api/pairing/redeem` (HTTP, no auth) | `PairDevice` — the only call made before the device has a token |
 | `GET /ws` (WebSocket) | Everything else. The first message must be `connectDevice`; anything else first closes the socket |
-| `GET /admin/ws` (WebSocket) | Desktop editor. Admin-scoped commands and queries are accepted only here (see open decisions) |
+| `GET /admin/ws` (WebSocket) | Desktop editor. Requires the persistent admin token (see ARCHITECTURE.md, Pairing and authentication); admin-scoped commands and queries are accepted only here |
 
 ### 3.2 Envelope
 
 Every WebSocket message is one JSON object with a `kind` and a `type` discriminator:
 
 ```json
-{ "kind": "command", "requestId": "c0f1…", "type": "executeAction", "payload": { … } }
+{ "kind": "command", "type": "executeAction", "requestId": "c0f1…", "payload": { … } }
 ```
+
+The agent writes `kind` first and `type` second; readers accept the fields in any order. System.Text.Json cannot
+nest two discriminators, so `MessageConverter` handles `kind` and each kind's base record handles `type` with
+`[JsonPolymorphic]`.
 
 | `kind` | Direction | Fields |
 |---|---|---|
 | `command` | client → agent | `requestId`, `type`, `payload` |
 | `query` | client → agent | `requestId`, `type`, `payload` |
-| `ack` | agent → client | `requestId`, optional `payload` (only for `pairDevice`) |
-| `error` | agent → client | `requestId`, `code`, `message` |
+| `ack` | agent → client | `requestId`, optional `payload` (only `registerApp`: `{ appId }`; omitted otherwise) |
+| `error` | agent → client | `requestId` (`null` when the request could not be read), `code`, `message` |
 | `queryResult` | agent → client | `requestId`, `type`, `payload` |
 | `event` | agent → client | `type`, `payload` (no `requestId`) |
 
@@ -198,11 +202,12 @@ Every WebSocket message is one JSON object with a `kind` and a `type` discrimina
 | `startPairing` / `cancelPairing` | `{}` |
 | `renameDevice` | `{ deviceId, name }` |
 | `revokeDevice` | `{ deviceId }` |
-| `updateSettings` | `{ settings: SettingsDto }` |
+| `updateSettings` | `{ settings: SettingsUpdateDto }` |
 | `registerApp` | `{ displayName, path }` |
 | `unregisterApp` | `{ appId }` |
 
-HTTP `POST /api/pairing/redeem`: request `{ code, deviceName }` → `200 { deviceId, deviceToken }` or `400 ErrorDto`.
+HTTP `POST /api/pairing/redeem`: `PairDeviceRequest { code, deviceName }` → `200 PairDeviceResponse { deviceId, deviceToken }`
+or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result is not an `ack`.
 
 **Queries → results**
 
@@ -235,28 +240,38 @@ HTTP `POST /api/pairing/redeem`: request `{ code, deviceName }` → `200 { devic
 | `ProfileDto` | `id`, `name`, `color`, `grid: { columns, rows }`, `pages: PageDto[]` |
 | `PageDto` | `index`, `buttons: ButtonDto[]` |
 | `ButtonDto` | `id`, `row`, `column`, `label`, `color`, `iconId`, `action: ActionDto` |
-| `ActionDto` | Discriminated by `type`: `hotkey { modifiers[], key }`, `mediaKey { key }`, `launchApp { appId }`, `openUrl { url }`, `obsScene { sceneName }`, `launchGame { store, gameId }`, `changePage { target }`, `switchProfile { profileId }` |
+| `ActionDto` | Discriminated by `type`: `hotkey { modifiers[], key }`, `mediaKey { key }`, `launchApp { appId }`, `openUrl { url }`, `obsScene { sceneName }`, `launchGame { store, gameId }`, `changePage { target: next \| previous \| specific, pageIndex }` (`pageIndex` only for `specific`, otherwise `null`), `switchProfile { profileId }` |
 | `DeviceDto` | `id`, `name`, `pairedAt`, `lastSeenAt`, `connected`, `revoked` |
 | `PairingSessionDto` | `code`, `qrUrl`, `fallbackUrl`, `expiresAt` |
 | `SettingsDto` | `startWithWindows`, `defaultGrid`, `obs: { host, port, hasPassword } \| null`, `apps: { appId, displayName, path }[]` |
+| `SettingsUpdateDto` | `startWithWindows`, `defaultGrid`, `obs: { host, port, password } \| null` — apps are managed by `registerApp`/`unregisterApp`; `password: null` keeps the stored one, `""` clears it |
 | `ErrorDto` | `code`, `message` |
 
-Dates are ISO 8601 UTC strings. The OBS password is write-only: `updateSettings` may set it, results only expose
-`hasPassword`.
+Ids are GUID strings. Dates are ISO 8601 UTC strings with milliseconds (`2026-10-22T08:30:00.125Z`). Enum values
+are camelCase strings (`pageUp`, `volumeUp`); integers are rejected. The OBS password is write-only: `updateSettings`
+may set it (`SettingsUpdateDto`), results only expose `hasPassword`. Reads are strict: missing constructor fields,
+`null` in non-nullable fields, unknown `kind`/`type` values and unknown action types fail with a `JsonException`.
 
 **Error codes:** `unauthorized`, `forbidden` (wrong scope), `protocolMismatch`, `validationFailed`, `notFound`,
 `pairingCodeInvalid`, `pairingCodeExpired`, `deviceRevoked`, `actionFailed`, `internal`.
 
+Domain codes map onto them in `Infrastructure/ProtocolMapping/ErrorMapper`: every invariant failure
+(`DuplicateProfileName`, `LastProfileCannotBeDeleted`, `Position*`, `GridTooSmall`) is `validationFailed`;
+`ProfileNotFound`/`DeviceNotFound`/`ButtonNotFound` are `notFound`; `ActionNotExecutable` and `ActionFailed` are
+`actionFailed`; anything unexpected is `internal` with a generic message.
+
 ### 3.4 Tasks
 
-- [ ] All records above in `LeverDeck.Protocol` with a source-generated `JsonSerializerContext`.
-- [ ] Polymorphic (de)serialization for the envelope and `ActionDto` via `type` discriminators.
-- [ ] Mappers DTO ⇄ domain in `Infrastructure`, with tests (invalid DTOs become `validationFailed`, never exceptions).
-- [ ] Confirm TypeGen (or pick an alternative) and generate `web/src/app/core/protocol/*.ts` on build, including the
-      discriminated unions.
-- [ ] Contract tests: JSON round-trip for every message and a snapshot of the generated TypeScript.
+- [x] All records above in `LeverDeck.Protocol` with a source-generated `JsonSerializerContext`.
+- [x] Polymorphic (de)serialization for the envelope (`kind` + `type`) and `ActionDto` via `type` discriminators.
+- [x] Mappers DTO ⇄ domain in `Infrastructure`, with tests (invalid DTOs become `validationFailed`, never exceptions).
+- [x] Confirm TypeGen (or pick an alternative) and generate `web/src/app/core/protocol/*.ts`, including the
+      discriminated unions. TypeGen 7.0.0 was rejected (no literal `type` fields or unions, `Date` for ISO strings,
+      numeric enums); `agent/tools/LeverDeck.ProtocolGen` generates the files from the serializer contract. It runs
+      on demand (command in CLAUDE.md), and a test fails the build pipeline when the committed files are stale.
+- [x] Contract tests: JSON round-trip for every message and a snapshot of the generated TypeScript.
 
-**Done when:** every message in 3.3 round-trips; changing a record and building updates the generated TypeScript; the
+**Done when:** every message in 3.3 round-trips; changing a record without regenerating fails `dotnet test`; the
 generated folder is never edited.
 
 ## Phase 4 — Windows adapters
@@ -308,8 +323,8 @@ generated folder is never edited.
 
 | Decision | Settle by |
 |---|---|
-| TypeGen vs alternative for TS generation | Phase 3 |
-| How the desktop editor proves it is the PC: with `adb reverse`, a phone also connects from loopback, so "localhost = admin" is not safe. Candidate: an admin token created at startup and opened from the tray | Phase 3 |
+| ~~TypeGen vs alternative for TS generation~~ — decided: own generator in `agent/tools/LeverDeck.ProtocolGen` (see 3.4) | Phase 3 |
+| ~~How the desktop editor proves it is the PC~~ — decided: a persistent admin token (ARCHITECTURE.md, Pairing and authentication) | Phase 3 |
 | Native AOT vs single-file publish | Phase 1 spike |
 | Default grid size and max profiles shown | Phase 7 |
 | Light theme beyond system preference | Phase 7 |
