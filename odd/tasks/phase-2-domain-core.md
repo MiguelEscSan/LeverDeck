@@ -13,13 +13,14 @@ fake ports. No adapters.
 - Caller scope (`Device` / `Admin`) is a use-case parameter; how the admin authenticates is decided in Phase 3.
 - Grid sizes 3×3, 5×3, 8×4; max 10 pages per profile.
 - Domain and Application reference no packages (enforced by the architecture tests).
-- Delivery: **stacked PRs to main**, merged in order. ~400 authored lines per PR as a planning heuristic.
+- Delivery: **stacked PRs to main**, merged in order, **one PR per domain entity/feature** (user decision: line count is
+  not a slicing criterion).
 
 ## Tasks
 
 | ID | Slice / PR | Route | Status |
 |---|---|---|---|
-| P2-1 | `Result`, `DomainException`, profiles, pages, buttons, grid, appearance | delegated writer (2+ non-trivial files) | in progress |
+| P2-1 | `Result`, `DomainException`, profiles, pages, buttons, grid, appearance | delegated writer (2+ non-trivial files) | done — 4e54a07, 9f6b8ba; 105 tests green |
 | P2-2 | `Action` hierarchy + whitelist architecture test | delegated writer | pending |
 | P2-3 | Devices, pairing session, agent settings | delegated writer | pending |
 | P2-4 | Ports, fakes, commands and queries with scope checks | delegated writer | pending |
@@ -33,3 +34,6 @@ fake ports. No adapters.
 ## Progress
 
 - 2026-10-22: decisions above confirmed by the user; document created.
+- 2026-10-22: P2-1 done. Errors: one `InvariantViolationException` carrying a `DomainErrorCode`; `Profile.Restore`
+  validates every aggregate invariant (entry point for `SaveProfile`). `Button` has no action yet (added in P2-2).
+  `MoveButton` rejects occupied targets instead of swapping.
