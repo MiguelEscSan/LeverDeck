@@ -6,8 +6,9 @@ using LeverDeck.Domain.Errors;
 namespace LeverDeck.Domain.Pairing;
 
 /// <summary>
-/// A single-use pairing code valid for <see cref="Lifetime"/>. Keeping only one active session at a time is the
-/// job of the session store and the pairing use case, not of this entity.
+/// A single-use pairing code valid for <see cref="Lifetime"/> that allows at most <see cref="MaxFailedAttempts"/>
+/// wrong guesses. Keeping only one active session at a time is the job of the session store and the pairing use case,
+/// not of this entity.
 /// </summary>
 public sealed class PairingSession
 {
@@ -17,6 +18,8 @@ public sealed class PairingSession
         StartedAt = startedAt;
         ExpiresAt = startedAt + Lifetime;
     }
+
+    public const int MaxFailedAttempts = 5;
 
     public static TimeSpan Lifetime { get; } = TimeSpan.FromMinutes(5);
 
@@ -29,23 +32,30 @@ public sealed class PairingSession
 
     public DateTimeOffset? RedeemedAt { get; private set; }
 
+    /// <summary>Wrong guesses so far; once it reaches <see cref="MaxFailedAttempts"/> the session is exhausted.</summary>
+    public int FailedAttempts { get; private set; }
+
+    public bool IsExhausted => FailedAttempts >= MaxFailedAttempts;
+
     public static PairingSession Start(PairingCode code, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(code);
         return new PairingSession(code, now);
     }
 
-    public bool IsActive(DateTimeOffset now) => RedeemedAt is null && now < ExpiresAt;
+    public bool IsActive(DateTimeOffset now) => RedeemedAt is null && !IsExhausted && now < ExpiresAt;
 
     /// <summary>
     /// Redeems the session with a candidate code. Checks run in this order, so the outcome for a used or expired
     /// session never depends on whether the candidate was right:
     /// <list type="number">
-    /// <item>already redeemed → <see cref="DomainErrorCode.PairingCodeInvalid"/> (single use);</item>
+    /// <item>already redeemed or exhausted → <see cref="DomainErrorCode.PairingCodeInvalid"/> (single use, attempt limit);</item>
     /// <item>expired (<paramref name="now"/> ≥ <see cref="ExpiresAt"/>) → <see cref="DomainErrorCode.PairingCodeExpired"/>;</item>
-    /// <item>code mismatch (constant-time comparison) → <see cref="DomainErrorCode.PairingCodeInvalid"/>.</item>
+    /// <item>code mismatch (constant-time comparison) → <see cref="DomainErrorCode.PairingCodeInvalid"/>, counted in
+    /// <see cref="FailedAttempts"/>.</item>
     /// </list>
-    /// A failure changes nothing, so a wrong guess does not burn the session; limiting attempts is a use-case concern.
+    /// Only a mismatch on a live session changes state: the <see cref="MaxFailedAttempts"/>th one exhausts the session,
+    /// so every later call fails with <see cref="DomainErrorCode.PairingCodeInvalid"/>, even with the right code.
     /// </summary>
     public Result Redeem(PairingCode candidate, DateTimeOffset now)
     {
@@ -54,7 +64,7 @@ public sealed class PairingSession
             Encoding.ASCII.GetBytes(Code.Value),
             Encoding.ASCII.GetBytes(candidate.Value));
 
-        if (RedeemedAt is not null)
+        if (RedeemedAt is not null || IsExhausted)
         {
             return Failure(DomainErrorCode.PairingCodeInvalid, "Pairing code is invalid.");
         }
@@ -66,6 +76,7 @@ public sealed class PairingSession
 
         if (!codeMatches)
         {
+            FailedAttempts++;
             return Failure(DomainErrorCode.PairingCodeInvalid, "Pairing code is invalid.");
         }
 

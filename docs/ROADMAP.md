@@ -138,12 +138,18 @@ issued device token, because it can be delivered only once. **Scope** says who m
 
 ### 2.4 Tasks
 
-- [ ] Domain types and invariants above, each with unit tests written first.
-- [ ] Architecture test: every `Action` subtype is handled by the executor routing and present in the whitelist.
-- [ ] Ports as interfaces in Application, plus in-memory fakes in the test projects.
-- [ ] Every command and query as one class with one `Execute` method, RED → GREEN against the fakes.
-- [ ] Tests for the security rules: revoked device rejected, expired/reused code rejected, `ExecuteAction` ignores any
-      action not stored in the profile, admin use cases unreachable from device scope.
+- [x] Domain types and invariants above, each with unit tests written first.
+- [x] Architecture test: every `Action` subtype is sealed and present in the whitelist (`ActionCatalog`).
+      The "handled by the executor" half moves to Phase 4, when the Windows executor exists.
+- [x] Ports as interfaces in Application, plus in-memory fakes in the test projects.
+- [x] Every command and query as one class with one `ExecuteAsync` method, RED → GREEN against the fakes.
+- [x] Tests for the security rules: revoked device rejected, expired/reused/brute-forced (5 wrong guesses) code
+      rejected, `ExecuteAction` ignores any action not stored in the profile, admin use cases unreachable from device
+      scope.
+
+Open points carried to Phase 3: device-scoped use cases rely on the transport closing a revoked device's connection
+(no re-check per call); there is no `ActionFailed` code yet (executor failures pass through); queries return domain
+aggregates, mapped to DTOs in Phase 3.
 
 **Done when:** every use case in 2.3 passes against fakes; no adapter code yet.
 

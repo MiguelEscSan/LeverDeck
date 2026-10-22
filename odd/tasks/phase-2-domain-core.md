@@ -23,7 +23,7 @@ fake ports. No adapters.
 | P2-1 | `Result`, `DomainException`, profiles, pages, buttons, grid, appearance | delegated writer (2+ non-trivial files) | done — 4e54a07, 9f6b8ba; 105 tests green |
 | P2-2 | `Action` hierarchy + whitelist architecture test | delegated writer | done — 180 tests green |
 | P2-3 | Devices, pairing session, agent settings | delegated writer | done — 305 tests green |
-| P2-4 | Ports, fakes, commands and queries with scope checks | delegated writer | pending |
+| P2-4 | Ports, fakes, commands and queries with scope checks | delegated writer | done — 471 tests green |
 
 ## Acceptance
 
@@ -46,3 +46,7 @@ fake ports. No adapters.
   constant-time comparison always run first so the result never reveals whether a guess was right; failed guesses do
   not burn the session (attempt limiting is a P2-4 concern). `AgentSettings.CreateDefault()` instead of a static
   `Default`; app paths use `Path.IsPathFullyQualified`; secret-bearing records override `ToString`.
+- 2026-10-22: P2-4 done. 10 ports, 18 use cases (`ExecuteAsync(Caller, …)`), scopes ordered Public < Device < Admin
+  (public asking for more → `Unauthorized`, device asking for admin → `Forbidden`). Pairing limited to 5 wrong guesses
+  per session. `ConnectDevice`, `PairDevice` and `RegisterApp` are the documented commands that return a value.
+  Mutation checks (scope guard, LaunchApp registration) made tests fail as expected. Phase 2 complete.

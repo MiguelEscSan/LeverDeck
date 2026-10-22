@@ -16,4 +16,7 @@ public enum DomainErrorCode
     DeviceRevoked,
     ButtonNotFound,
     ActionNotExecutable,
+    Unauthorized,
+    Forbidden,
+    ProtocolMismatch,
 }

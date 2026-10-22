@@ -140,6 +140,111 @@ public sealed class PairingSessionTests
         AssertFails(DomainErrorCode.PairingCodeExpired, session.Redeem(new PairingCode(candidate), AtExpiry));
     }
 
+    // Attempt limit
+
+    [Fact]
+    public void MaxFailedAttempts_IsFive()
+    {
+        Assert.Equal(5, PairingSession.MaxFailedAttempts);
+    }
+
+    [Fact]
+    public void Redeem_WrongCode_IncrementsFailedAttempts()
+    {
+        var session = NewSession();
+
+        session.Redeem(_wrongCode, _startedAt.AddMinutes(1));
+        session.Redeem(_wrongCode, _startedAt.AddMinutes(1));
+
+        Assert.Equal(2, session.FailedAttempts);
+    }
+
+    [Fact]
+    public void Redeem_RightCodeAfterFewerThanMaxWrongGuesses_Succeeds()
+    {
+        var session = NewSession();
+        var now = _startedAt.AddMinutes(1);
+        for (var attempt = 1; attempt < PairingSession.MaxFailedAttempts; attempt++)
+        {
+            session.Redeem(_wrongCode, now);
+        }
+
+        Assert.True(session.Redeem(_code, now).IsSuccess);
+    }
+
+    [Fact]
+    public void Redeem_RightCodeAfterMaxWrongGuesses_FailsWithInvalid()
+    {
+        var session = NewSession();
+        var now = _startedAt.AddMinutes(1);
+        for (var attempt = 0; attempt < PairingSession.MaxFailedAttempts; attempt++)
+        {
+            AssertFails(DomainErrorCode.PairingCodeInvalid, session.Redeem(_wrongCode, now));
+        }
+
+        AssertFails(DomainErrorCode.PairingCodeInvalid, session.Redeem(_code, now));
+        Assert.Null(session.RedeemedAt);
+    }
+
+    [Fact]
+    public void IsActive_AfterMaxWrongGuesses_IsFalse()
+    {
+        var session = NewSession();
+        var now = _startedAt.AddMinutes(1);
+        for (var attempt = 0; attempt < PairingSession.MaxFailedAttempts; attempt++)
+        {
+            session.Redeem(_wrongCode, now);
+        }
+
+        Assert.False(session.IsActive(now));
+    }
+
+    [Fact]
+    public void Redeem_ExhaustedAndExpired_FailsWithInvalid()
+    {
+        var session = NewSession();
+        for (var attempt = 0; attempt < PairingSession.MaxFailedAttempts; attempt++)
+        {
+            session.Redeem(_wrongCode, _startedAt.AddMinutes(1));
+        }
+
+        AssertFails(DomainErrorCode.PairingCodeInvalid, session.Redeem(_code, AtExpiry.AddMinutes(1)));
+    }
+
+    [Fact]
+    public void Redeem_ExhaustedSession_StopsCountingAttempts()
+    {
+        var session = NewSession();
+        var now = _startedAt.AddMinutes(1);
+        for (var attempt = 0; attempt < PairingSession.MaxFailedAttempts + 3; attempt++)
+        {
+            session.Redeem(_wrongCode, now);
+        }
+
+        Assert.Equal(PairingSession.MaxFailedAttempts, session.FailedAttempts);
+    }
+
+    [Fact]
+    public void Redeem_WrongCodeOnExpiredSession_DoesNotCountAnAttempt()
+    {
+        var session = NewSession();
+
+        session.Redeem(_wrongCode, AtExpiry);
+
+        Assert.Equal(0, session.FailedAttempts);
+    }
+
+    [Fact]
+    public void Redeem_WrongCodeOnRedeemedSession_DoesNotCountAnAttempt()
+    {
+        var session = NewSession();
+        session.Redeem(_code, _startedAt.AddMinutes(1));
+
+        session.Redeem(_wrongCode, _startedAt.AddMinutes(2));
+
+        Assert.Equal(0, session.FailedAttempts);
+    }
+
     [Fact]
     public void Redeem_NullCandidate_ThrowsArgumentNull()
     {

@@ -72,7 +72,9 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 Full phased plan: [ROADMAP.md](ROADMAP.md).
 
 Phases 0 and 1 are done: the agent solution is scaffolded, the dependency rule is tested, and the Native AOT spike
-passed (~9.5 MB `leverdeck.exe`, no AOT warnings). Next is Phase 2: domain and use cases, test-first.
+passed (~9.5 MB `leverdeck.exe`, no AOT warnings). Phase 2 is done: the whole domain and all 18 use cases, test-first
+against fakes (see `odd/tasks/phase-2-domain-core.md`). Next is Phase 3: wire contract and TypeScript generation, and
+the admin authentication decision.
 
 ## Working preferences
 
