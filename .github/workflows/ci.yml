@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  agent:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: agent/global.json
+
+      - name: Restore
+        run: dotnet restore LeverDeck.slnx
+
+      - name: Build
+        run: dotnet build LeverDeck.slnx --no-restore -c Release
+
+      - name: Test
+        run: dotnet test LeverDeck.slnx --no-build -c Release
+
+      - name: Publish (Native AOT)
+        run: dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: leverdeck-win-x64
+          path: artifacts/leverdeck/leverdeck.exe

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <AssemblyName>leverdeck</AssemblyName>
+    <RootNamespace>LeverDeck.App</RootNamespace>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../LeverDeck.Infrastructure/LeverDeck.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

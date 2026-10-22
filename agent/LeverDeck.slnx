@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LeverDeck.App/LeverDeck.App.csproj" />
+    <Project Path="src/LeverDeck.Application/LeverDeck.Application.csproj" />
+    <Project Path="src/LeverDeck.Domain/LeverDeck.Domain.csproj" />
+    <Project Path="src/LeverDeck.Infrastructure/LeverDeck.Infrastructure.csproj" />
+    <Project Path="src/LeverDeck.Protocol/LeverDeck.Protocol.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LeverDeck.App.Tests/LeverDeck.App.Tests.csproj" />
+    <Project Path="tests/LeverDeck.Application.Tests/LeverDeck.Application.Tests.csproj" />
+    <Project Path="tests/LeverDeck.Architecture.Tests/LeverDeck.Architecture.Tests.csproj" />
+    <Project Path="tests/LeverDeck.Domain.Tests/LeverDeck.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

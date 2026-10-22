@@ -83,18 +83,18 @@ so every paired device sees the same configuration.
 
 ## Agent (.NET) — hexagonal solution
 
-One project per layer in `LeverDeck.sln`, so dependency rules are enforced by project references:
+One project per layer in `LeverDeck.slnx`, so dependency rules are enforced by project references:
 
 ```
 agent/
-├── LeverDeck.sln
+├── LeverDeck.slnx
 ├── src/
 │   ├── LeverDeck.Domain/          entities and pure rules: Profile, Button, Action, Device
 │   ├── LeverDeck.Application/     commands, queries and ports (interfaces)
 │   ├── LeverDeck.Protocol/        wire messages (C# records, System.Text.Json source generators)
 │   ├── LeverDeck.Infrastructure/  adapters: Kestrel/WebSockets, mDNS, input injection, OBS, JSON files
 │   └── LeverDeck.App/             Program.cs — composition root, wires adapters into use cases
-└── tests/                         xUnit test projects
+└── tests/                         xUnit: Domain, Application, Architecture (dependency rule), App (endpoints)
 ```
 
 **Dependency rule** (arrows point to what a project may reference):

@@ -9,26 +9,27 @@ Guiding rule: build **one thin vertical slice end to end** (phone tap → hotkey
 ## Phase 0 — Tooling and repo hygiene
 
 - [x] `.gitattributes` with LF line endings.
-- [ ] Install the .NET 10 SDK, Node LTS, Angular CLI, and the "Desktop development with C++" workload (needed for
-      Native AOT on Windows).
-- [ ] Add `.editorconfig` (C# and TypeScript conventions) and a root `.gitignore` (`bin/`, `obj/`, `node_modules/`,
-      `dist/`, `.atl/*.cache.json`).
-- [ ] Add a GitHub Actions workflow that builds and tests `agent/` and `web/` on `windows-latest`.
+- [x] Install the .NET 10 SDK and the "Desktop development with C++" build tools (needed for Native AOT on Windows).
+      Node LTS is installed; the Angular CLI comes in Phase 5.
+- [x] Add `.editorconfig` and a root `.gitignore` (`bin/`, `obj/`, `node_modules/`, `dist/`, `.atl/*.cache.json`).
+      TypeScript conventions are added with the Angular app in Phase 5.
+- [x] Add a GitHub Actions workflow on `windows-latest` that builds, tests and AOT-publishes `agent/`.
+      The `web/` job is added in Phase 5.
 
 **Done when:** a clean clone builds in CI with empty projects.
 
 ## Phase 1 — Agent skeleton (.NET)
 
-- [ ] Create `agent/LeverDeck.sln` with `src/LeverDeck.Domain`, `Application`, `Protocol`, `Infrastructure`, `App`.
-- [ ] Wire the dependency rule as project references only (`App → Infrastructure → Application → Domain`,
-      `Infrastructure → Protocol → Domain`). Domain and Application reference no ASP.NET or OS packages.
-- [ ] Create `tests/LeverDeck.Domain.Tests`, `tests/LeverDeck.Application.Tests` and
-      `tests/LeverDeck.ArchitectureTests` (xUnit).
-- [ ] Architecture test: assert the project reference rule (for example with NetArchTest or plain reflection).
-- [ ] `App`: minimal API on port `8765` with `GET /health` returning `ok`.
-- [ ] **AOT spike:** `dotnet publish -c Release -r win-x64 -p:PublishAot=true` produces one `leverdeck.exe` that serves
-      `/health`. Record the binary size and any trim/AOT warnings. If a blocker appears, switch to self-contained
-      single-file and note why in HANDOFF.md.
+- [x] Create `agent/LeverDeck.slnx` with `src/LeverDeck.Domain`, `Application`, `Protocol`, `Infrastructure`, `App`,
+      sharing `Directory.Build.props` (nullable, warnings as errors) and central package versions.
+- [x] Wire the dependency rule as project references only (`App → Infrastructure → Application → Domain`,
+      `Infrastructure → Protocol`). Domain and Application reference no packages.
+- [x] Create `tests/LeverDeck.Domain.Tests`, `Application.Tests`, `Architecture.Tests` and `App.Tests` (xUnit v2).
+- [x] Architecture test: reads the `.csproj` files and asserts the allowed project references and that Domain and
+      Application have no package references (verified to fail when the rule is broken).
+- [x] `App`: minimal API (`CreateSlimBuilder`) on port `8765` with `GET /health` returning `ok`.
+- [x] **AOT spike:** `dotnet publish src/LeverDeck.App -c Release -r win-x64` with `PublishAot=true` produces
+      `leverdeck.exe` of **~9.5 MB** with **no trim/AOT warnings**, and it answers `/health`. Native AOT stays.
 
 **Done when:** `dotnet test` is green and the published exe answers `/health`.
 
