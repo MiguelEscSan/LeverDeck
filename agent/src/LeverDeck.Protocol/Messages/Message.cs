@@ -29,6 +29,8 @@ public abstract record Message
 [JsonDerivedType(typeof(UpdateSettingsCommand), "updateSettings")]
 [JsonDerivedType(typeof(RegisterAppCommand), "registerApp")]
 [JsonDerivedType(typeof(UnregisterAppCommand), "unregisterApp")]
+[JsonDerivedType(typeof(SaveIconCommand), "saveIcon")]
+[JsonDerivedType(typeof(DeleteIconCommand), "deleteIcon")]
 public abstract record CommandMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>A query from a client; answered with a <see cref="QueryResultMessage"/> or an <see cref="ErrorMessage"/>.</summary>
@@ -40,6 +42,7 @@ public abstract record CommandMessage([property: JsonPropertyOrder(-1)] string R
 [JsonDerivedType(typeof(GetSettingsQuery), "getSettings")]
 [JsonDerivedType(typeof(GetAgentStatusQuery), "getAgentStatus")]
 [JsonDerivedType(typeof(GetInstalledGamesQuery), "getInstalledGames")]
+[JsonDerivedType(typeof(GetIconsQuery), "getIcons")]
 public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>The answer to a query, correlated by <see cref="RequestId"/>.</summary>
@@ -51,6 +54,7 @@ public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string Req
 [JsonDerivedType(typeof(SettingsResult), "settings")]
 [JsonDerivedType(typeof(AgentStatusResult), "agentStatus")]
 [JsonDerivedType(typeof(InstalledGamesResult), "installedGames")]
+[JsonDerivedType(typeof(IconsResult), "icons")]
 public abstract record QueryResultMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>Pushed by the agent to keep clients in sync; it answers no request, so it has no request id.</summary>
@@ -62,6 +66,7 @@ public abstract record QueryResultMessage([property: JsonPropertyOrder(-1)] stri
 [JsonDerivedType(typeof(PairingSessionChangedEvent), "pairingSessionChanged")]
 [JsonDerivedType(typeof(SettingsUpdatedEvent), "settingsUpdated")]
 [JsonDerivedType(typeof(ObsSceneChangedEvent), "obsSceneChanged")]
+[JsonDerivedType(typeof(IconsChangedEvent), "iconsChanged")]
 public abstract record EventMessage : Message;
 
 /// <summary>A command succeeded. Only <c>registerApp</c> carries a payload: the id of the new app.</summary>

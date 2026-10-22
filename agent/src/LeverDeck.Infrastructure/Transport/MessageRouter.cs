@@ -1,6 +1,7 @@
 using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
 using LeverDeck.Application.Games;
+using LeverDeck.Application.Icons;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Security;
@@ -35,6 +36,8 @@ public sealed partial class MessageRouter(
     UnregisterApp unregisterApp,
     GetAgentStatus getAgentStatus,
     GetInstalledGames getInstalledGames,
+    SaveIcon saveIcon,
+    DeleteIcon deleteIcon,
     TransportPayloads payloads,
     ILogger<MessageRouter> logger)
 {
@@ -132,6 +135,15 @@ public sealed partial class MessageRouter(
                 return await BindAsync(id, IdMapper.ToAppId(unregister.Payload.AppId), async appId =>
                     Ack(id, await unregisterApp.ExecuteAsync(caller, appId, ct).ConfigureAwait(false))).ConfigureAwait(false);
 
+            case SaveIconCommand save:
+                return await BindAsync(id, IconMapper.ToIconId(save.Payload.IconId), icon =>
+                    BindAsync(id, IconMapper.ToImage(save.Payload.Data), async image =>
+                        Ack(id, await saveIcon.ExecuteAsync(caller, icon, image, ct).ConfigureAwait(false)))).ConfigureAwait(false);
+
+            case DeleteIconCommand delete:
+                return await BindAsync(id, IconMapper.ToIconId(delete.Payload.IconId), async icon =>
+                    Ack(id, await deleteIcon.ExecuteAsync(caller, icon, ct).ConfigureAwait(false))).ConfigureAwait(false);
+
             default:
                 return Invalid(id, $"Unknown command {command.GetType().Name}.");
         }
@@ -178,6 +190,12 @@ public sealed partial class MessageRouter(
                     id,
                     await getAgentStatus.ExecuteAsync(caller, ct).ConfigureAwait(false),
                     status => new AgentStatusResult(id, StatusMapper.ToPayload(status, obsConnected: false)));
+
+            case GetIconsQuery:
+                return ResponseMapper.ToResponse(
+                    id,
+                    await payloads.IconsAsync(caller, ct).ConfigureAwait(false),
+                    payload => new IconsResult(id, payload));
 
             case GetInstalledGamesQuery:
                 return ResponseMapper.ToResponse(

@@ -2,6 +2,7 @@ using LeverDeck.Application.Actions.Ports;
 using LeverDeck.Application.Common.Ports;
 using LeverDeck.Application.Devices.Ports;
 using LeverDeck.Application.Games.Ports;
+using LeverDeck.Application.Icons.Ports;
 using LeverDeck.Application.Pairing.Ports;
 using LeverDeck.Application.Profiles.Ports;
 using LeverDeck.Application.Settings.Ports;
@@ -9,6 +10,7 @@ using LeverDeck.Infrastructure.Common;
 using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.Discovery;
 using LeverDeck.Infrastructure.Games;
+using LeverDeck.Infrastructure.Icons;
 using LeverDeck.Infrastructure.Input;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
@@ -41,6 +43,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IProfileRepository, JsonProfileRepository>();
         services.AddSingleton<IDeviceRepository, JsonDeviceRepository>();
         services.AddSingleton<ISettingsRepository, JsonSettingsRepository>();
+        services.AddSingleton<FileIconStore>();
+        services.AddSingleton<IIconStore>(provider => provider.GetRequiredService<FileIconStore>());
         services.AddSingleton<IPairingSessionStore, InMemoryPairingSessionStore>();
 
         services.AddSingleton<ITokenGenerator, SecureTokenGenerator>();

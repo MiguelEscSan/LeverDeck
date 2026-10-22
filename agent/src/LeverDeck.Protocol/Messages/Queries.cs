@@ -45,3 +45,10 @@ public sealed record SettingsResult(string RequestId, SettingsPayload Payload) :
 public sealed record AgentStatusResult(string RequestId, AgentStatusPayload Payload) : QueryResultMessage(RequestId);
 
 public sealed record InstalledGamesResult(string RequestId, InstalledGamesPayload Payload) : QueryResultMessage(RequestId);
+
+public sealed record GetIconsQuery(string RequestId) : QueryMessage(RequestId)
+{
+    public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;
+}
+
+public sealed record IconsResult(string RequestId, IconsPayload Payload) : QueryResultMessage(RequestId);

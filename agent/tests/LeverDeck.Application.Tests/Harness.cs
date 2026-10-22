@@ -1,6 +1,7 @@
 using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
 using LeverDeck.Application.Games;
+using LeverDeck.Application.Icons;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
@@ -32,8 +33,10 @@ internal sealed class Harness
 
     public FakeGameLibrary Games { get; } = new();
 
+    public InMemoryIconStore Icons { get; } = new();
+
     /// <summary>Total writes to every repository and the pairing store, to prove a call had no side effects.</summary>
-    public int RepositoryWrites => Profiles.Writes + Devices.Writes + Settings.Writes;
+    public int RepositoryWrites => Profiles.Writes + Devices.Writes + Settings.Writes + Icons.Writes;
 
     public ConnectDevice ConnectDevice() => new(Devices, Hasher, Clock, Events);
 
@@ -72,4 +75,10 @@ internal sealed class Harness
     public static GetAgentStatus GetAgentStatus() => new();
 
     public GetInstalledGames GetInstalledGames() => new(Games);
+
+    public SaveIcon SaveIcon() => new(Icons, Events);
+
+    public DeleteIcon DeleteIcon() => new(Icons, Profiles, Events);
+
+    public GetIcons GetIcons() => new(Icons);
 }

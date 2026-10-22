@@ -24,6 +24,7 @@ public sealed class ErrorAndResponseMapperTests
         { DomainErrorCode.DeviceNotFound, ErrorCodeDto.NotFound },
         { DomainErrorCode.DeviceRevoked, ErrorCodeDto.DeviceRevoked },
         { DomainErrorCode.ButtonNotFound, ErrorCodeDto.NotFound },
+        { DomainErrorCode.IconNotFound, ErrorCodeDto.NotFound },
         { DomainErrorCode.ActionNotExecutable, ErrorCodeDto.ActionFailed },
         { DomainErrorCode.Unauthorized, ErrorCodeDto.Unauthorized },
         { DomainErrorCode.Forbidden, ErrorCodeDto.Forbidden },

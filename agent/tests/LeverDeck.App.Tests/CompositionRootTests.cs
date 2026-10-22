@@ -19,7 +19,7 @@ public sealed class CompositionRootTests(DevelopmentAppFactory factory) : IClass
     public static TheoryData<string> UseCaseNames => [.. UseCases.Select(type => type.FullName!)];
 
     [Fact]
-    public void Application_Has19UseCases() => Assert.Equal(19, UseCases.Length);
+    public void Application_Has22UseCases() => Assert.Equal(22, UseCases.Length);
 
     [Theory]
     [MemberData(nameof(UseCaseNames))]

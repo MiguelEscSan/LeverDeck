@@ -1,4 +1,5 @@
 using LeverDeck.Application.Devices;
+using LeverDeck.Application.Icons;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Security;
@@ -19,6 +20,7 @@ public sealed class TransportPayloads(
     GetDevices getDevices,
     GetPairingSession getPairingSession,
     GetSettings getSettings,
+    GetIcons getIcons,
     ConnectionRegistry registry,
     PairingLinks links)
 {
@@ -43,6 +45,11 @@ public sealed class TransportPayloads(
         Map(
             await getSettings.ExecuteAsync(caller, cancellationToken).ConfigureAwait(false),
             settings => new SettingsPayload(SettingsMapper.ToDto(settings)));
+
+    public async Task<Result<IconsPayload>> IconsAsync(Caller caller, CancellationToken cancellationToken) =>
+        Map(
+            await getIcons.ExecuteAsync(caller, cancellationToken).ConfigureAwait(false),
+            icons => new IconsPayload([.. icons.Select(icon => icon.Value)]));
 
     private static Result<TOut> Map<TIn, TOut>(Result<TIn> result, Func<TIn, TOut> map) =>
         result.IsSuccess ? Result.Success(map(result.Value)) : Result.Failure<TOut>(result.Error!);

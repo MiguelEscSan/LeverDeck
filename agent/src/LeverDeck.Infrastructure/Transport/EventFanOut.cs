@@ -108,6 +108,14 @@ public sealed partial class EventFanOut(
 
                 break;
 
+            case IconsChanged:
+                if (Loaded(await payloads.IconsAsync(Caller.Admin, cancellationToken).ConfigureAwait(false)) is { } icons)
+                {
+                    await SendAsync(registry.Admins(), new IconsChangedEvent(icons)).ConfigureAwait(false);
+                }
+
+                break;
+
             default:
                 LogUnhandled(applicationEvent.GetType().Name);
                 break;

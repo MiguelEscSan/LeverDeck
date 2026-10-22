@@ -54,6 +54,12 @@ public sealed class ScopeTests
             await h.GetSettings().ExecuteAsync(c, CancellationToken.None)),
         ["GetInstalledGames"] = (CallerScope.Admin, async (h, c) =>
             await h.GetInstalledGames().ExecuteAsync(c, CancellationToken.None)),
+        ["SaveIcon"] = (CallerScope.Admin, (h, c) =>
+            h.SaveIcon().ExecuteAsync(c, new IconId("custom-0123456789abcdef0123456789abcdef"), Icons.IconUseCaseTests.Image(), CancellationToken.None)),
+        ["DeleteIcon"] = (CallerScope.Admin, (h, c) =>
+            h.DeleteIcon().ExecuteAsync(c, new IconId("custom-0123456789abcdef0123456789abcdef"), CancellationToken.None)),
+        ["GetIcons"] = (CallerScope.Admin, async (h, c) =>
+            await h.GetIcons().ExecuteAsync(c, CancellationToken.None)),
     };
 
     private static readonly Dictionary<CallerScope, Caller> Callers = new()

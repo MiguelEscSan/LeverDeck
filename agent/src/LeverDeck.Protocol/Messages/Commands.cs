@@ -28,3 +28,8 @@ public sealed record UpdateSettingsCommand(string RequestId, UpdateSettingsPaylo
 public sealed record RegisterAppCommand(string RequestId, RegisterAppPayload Payload) : CommandMessage(RequestId);
 
 public sealed record UnregisterAppCommand(string RequestId, AppIdPayload Payload) : CommandMessage(RequestId);
+
+/// <summary>Uploads an icon: a new <c>custom-</c> id chosen by the editor and the PNG image, base64-encoded.</summary>
+public sealed record SaveIconCommand(string RequestId, SaveIconPayload Payload) : CommandMessage(RequestId);
+
+public sealed record DeleteIconCommand(string RequestId, IconIdPayload Payload) : CommandMessage(RequestId);

@@ -20,3 +20,5 @@ public sealed record DeviceRevoked(DeviceId DeviceId) : ApplicationEvent;
 public sealed record PairingSessionChanged : ApplicationEvent;
 
 public sealed record SettingsUpdated : ApplicationEvent;
+
+public sealed record IconsChanged : ApplicationEvent;

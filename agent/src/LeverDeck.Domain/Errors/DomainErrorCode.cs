@@ -15,6 +15,7 @@ public enum DomainErrorCode
     DeviceNotFound,
     DeviceRevoked,
     ButtonNotFound,
+    IconNotFound,
     ActionNotExecutable,
     Unauthorized,
     Forbidden,

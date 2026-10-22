@@ -45,3 +45,11 @@ public sealed record AgentStatusPayload(string AgentVersion, int ProtocolVersion
 public sealed record ObsSceneChangedPayload(string SceneName);
 
 public sealed record InstalledGamesPayload(IReadOnlyList<InstalledGameDto> Games);
+
+/// <summary><see cref="Data"/> is the PNG image in base64 (at most 256 KiB once decoded).</summary>
+public sealed record SaveIconPayload(string IconId, string Data);
+
+public sealed record IconIdPayload(string IconId);
+
+/// <summary>The uploaded icons' ids; each is served as <c>/api/icons/&lt;id&gt;.png</c>.</summary>
+public sealed record IconsPayload(IReadOnlyList<string> Icons);

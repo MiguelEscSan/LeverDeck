@@ -18,3 +18,5 @@ public sealed record SettingsUpdatedEvent(SettingsPayload Payload) : EventMessag
 
 /// <summary>Phase 7.</summary>
 public sealed record ObsSceneChangedEvent(ObsSceneChangedPayload Payload) : EventMessage;
+
+public sealed record IconsChangedEvent(IconsPayload Payload) : EventMessage;

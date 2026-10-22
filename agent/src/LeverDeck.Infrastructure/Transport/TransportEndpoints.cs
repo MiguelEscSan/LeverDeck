@@ -1,3 +1,4 @@
+using LeverDeck.Infrastructure.Icons;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -29,6 +30,8 @@ public static class TransportEndpoints
 
         app.MapPost(PairingRedeemEndpoint.Path, (RequestDelegate)(context =>
             context.RequestServices.GetRequiredService<PairingRedeemEndpoint>().HandleAsync(context)));
+        app.MapGet(IconEndpoint.Route, (RequestDelegate)(context =>
+            context.RequestServices.GetRequiredService<IconEndpoint>().HandleAsync(context)));
         app.Map(DevicePath, (RequestDelegate)(context =>
             context.RequestServices.GetRequiredService<WebSocketSessions>().HandleDeviceAsync(context)));
         app.Map(AdminPath, (RequestDelegate)(context =>
@@ -46,6 +49,7 @@ public static class TransportEndpoints
         services.AddSingleton<MessageRouter>();
         services.AddSingleton<WebSocketSessions>();
         services.AddSingleton<PairingRedeemEndpoint>();
+        services.AddSingleton<IconEndpoint>();
         services.AddSingleton<EventFanOut>();
         services.AddHostedService(provider => provider.GetRequiredService<EventFanOut>());
         return services;

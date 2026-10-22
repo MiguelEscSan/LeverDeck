@@ -39,6 +39,8 @@ internal static class Samples
 
     public static InstalledGameDto Game { get; } = new(GameStoreDto.Steam, "570", "Dota 2");
 
+    public const string IconId = "custom-0123456789abcdef0123456789abcdef";
+
     public static IReadOnlyList<ActionDto> Actions { get; } =
     [
         Hotkey,
@@ -64,6 +66,8 @@ internal static class Samples
         new UpdateSettingsCommand("r9", new UpdateSettingsPayload(SettingsUpdate)),
         new RegisterAppCommand("r10", new RegisterAppPayload("Notepad", @"C:\Windows\notepad.exe")),
         new UnregisterAppCommand("r11", new AppIdPayload(AppId)),
+        new SaveIconCommand("r12", new SaveIconPayload(IconId, "iVBORw0KGgo=")),
+        new DeleteIconCommand("r13", new IconIdPayload(IconId)),
         new GetProfilesQuery("q1"),
         new GetProfileQuery("q2", new ProfileIdPayload(ProfileId)),
         new GetDevicesQuery("q3"),
@@ -71,6 +75,7 @@ internal static class Samples
         new GetSettingsQuery("q5"),
         new GetAgentStatusQuery("q6"),
         new GetInstalledGamesQuery("q7"),
+        new GetIconsQuery("q8"),
         new ProfilesResult("q1", new ProfilesPayload([Summary])),
         new ProfileResult("q2", new ProfilePayload(Profile)),
         new DevicesResult("q3", new DevicesPayload([Device])),
@@ -78,6 +83,7 @@ internal static class Samples
         new SettingsResult("q5", new SettingsPayload(Settings)),
         new AgentStatusResult("q6", new AgentStatusPayload("1.0.0", ProtocolInfo.ProtocolVersion, false)),
         new InstalledGamesResult("q7", new InstalledGamesPayload([Game])),
+        new IconsResult("q8", new IconsPayload([IconId])),
         new AckMessage("r1"),
         new AckMessage("r10", new AppRegisteredPayload(AppId)),
         new ErrorMessage("r2", ErrorCodeDto.NotFound, "Profile does not exist."),
@@ -88,6 +94,7 @@ internal static class Samples
         new PairingSessionChangedEvent(new PairingSessionPayload(null)),
         new SettingsUpdatedEvent(new SettingsPayload(Settings)),
         new ObsSceneChangedEvent(new ObsSceneChangedPayload("Gameplay")),
+        new IconsChangedEvent(new IconsPayload([IconId])),
     ];
 
     /// <summary>Every DTO and payload on its own, plus the HTTP pairing bodies.</summary>
@@ -126,6 +133,9 @@ internal static class Samples
         new AgentStatusPayload("1.0.0", 1, true),
         new ObsSceneChangedPayload("Gameplay"),
         Game,
+        new SaveIconPayload(IconId, "iVBORw0KGgo="),
+        new IconIdPayload(IconId),
+        new IconsPayload([IconId]),
         new InstalledGamesPayload([Game, new InstalledGameDto(GameStoreDto.Epic, "Fortnite", "Fortnite")]),
     ];
 

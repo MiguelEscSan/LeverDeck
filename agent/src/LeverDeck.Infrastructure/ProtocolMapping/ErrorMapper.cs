@@ -21,7 +21,8 @@ public static class ErrorMapper
             or DomainErrorCode.GridTooSmall => ErrorCodeDto.ValidationFailed,
         DomainErrorCode.ProfileNotFound
             or DomainErrorCode.DeviceNotFound
-            or DomainErrorCode.ButtonNotFound => ErrorCodeDto.NotFound,
+            or DomainErrorCode.ButtonNotFound
+            or DomainErrorCode.IconNotFound => ErrorCodeDto.NotFound,
         DomainErrorCode.PairingCodeInvalid => ErrorCodeDto.PairingCodeInvalid,
         DomainErrorCode.PairingCodeExpired => ErrorCodeDto.PairingCodeExpired,
         DomainErrorCode.DeviceRevoked => ErrorCodeDto.DeviceRevoked,
