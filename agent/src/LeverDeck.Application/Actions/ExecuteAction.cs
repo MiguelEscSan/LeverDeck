@@ -1,5 +1,7 @@
 using LeverDeck.Application.Common;
-using LeverDeck.Application.Ports;
+using LeverDeck.Application.Actions.Ports;
+using LeverDeck.Application.Profiles.Ports;
+using LeverDeck.Application.Settings.Ports;
 using LeverDeck.Application.Security;
 using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Common;

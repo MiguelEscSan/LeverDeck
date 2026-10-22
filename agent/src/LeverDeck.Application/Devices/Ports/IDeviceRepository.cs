@@ -1,6 +1,6 @@
 using LeverDeck.Domain.Devices;
 
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Devices.Ports;
 
 public interface IDeviceRepository
 {

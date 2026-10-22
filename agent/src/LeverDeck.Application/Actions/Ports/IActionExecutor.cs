@@ -1,7 +1,7 @@
 using LeverDeck.Domain.Common;
 using DomainAction = LeverDeck.Domain.Actions.Action;
 
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Actions.Ports;
 
 /// <summary>
 /// Runs an agent-side action on the PC. It only receives actions resolved from a stored profile; a

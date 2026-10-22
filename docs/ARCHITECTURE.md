@@ -108,6 +108,10 @@ App ──▶ Infrastructure ──▶ Application ──▶ Domain
 - `Domain` depends on nothing but the base class library.
 - `Application` depends only on `Domain`. It defines the ports:
   `ActionExecutor`, `ProfileRepository`, `DeviceRepository`, `TokenGenerator`, `EventPublisher`.
+- Application is organized by entity (`Profiles/`, `Devices/`, `Pairing/`, `Settings/`, `Actions/`), like Domain.
+  Each entity folder owns its ports in a `Ports/` subfolder; cross-cutting ports (`IClock`, `IEventPublisher`,
+  `IServiceAdvertiser`) live in `Common/Ports/`. A use case may depend on another entity's port, never on another
+  use case.
 - `Domain` and `Application` reference no ASP.NET Core or OS-specific packages.
 - `Infrastructure` implements the ports. It is the **only** project that knows about Windows, the network or the file system.
 - `App` contains no logic: it builds the adapters, injects them into use cases and starts the server.

@@ -1,4 +1,4 @@
-using LeverDeck.Application.Ports;
+using LeverDeck.Application.Profiles.Ports;
 using LeverDeck.Domain.Profiles;
 
 namespace LeverDeck.Application.Tests.Fakes;

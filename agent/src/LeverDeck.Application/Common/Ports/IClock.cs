@@ -1,4 +1,4 @@
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Common.Ports;
 
 public interface IClock
 {

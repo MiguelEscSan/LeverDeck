@@ -1,6 +1,6 @@
 using LeverDeck.Application.Events;
 
-namespace LeverDeck.Application.Ports;
+namespace LeverDeck.Application.Common.Ports;
 
 /// <summary>Pushes application events to the connected clients.</summary>
 public interface IEventPublisher
