@@ -4,10 +4,16 @@
       <ng-container *ngTemplateOutlet="brand" />
       <app-profile-list
         [profiles]="editor.profiles()"
-        [activeId]="editor.profile()?.id ?? null"
         [disabled]="editor.loading()"
-        (selected)="editor.selectProfile($event)"
-        (create)="editor.createProfile()"
+        [activeId]="view() === 'keys' ? (editor.profile()?.id ?? null) : null"
+        (selected)="openProfile($event)"
+        (create)="createProfile()"
+      />
+      <app-library-nav
+        [current]="librarySection()"
+        [appCount]="library.apps().length"
+        [iconCount]="library.icons().length"
+        (selected)="view.set($event)"
       />
       <div class="side-footer">
         <span class="status" role="status" aria-live="polite" [attr.data-status]="admin.status()">
@@ -24,7 +30,44 @@
           <button type="button" class="dismiss" aria-label="Dismiss" (click)="editor.dismissError()">×</button>
         </p>
       }
-      @if (editor.profile(); as profile) {
+      @if (view() === 'apps') {
+        <header class="view-header">
+          <h1 class="view-title">Apps</h1>
+          <p class="sub">The programs keys may launch. A phone can only start apps registered here.</p>
+        </header>
+        @if (library.error(); as error) {
+          <p class="banner" role="alert">
+            <span class="ld-error">{{ error }}</span>
+            <button type="button" class="dismiss" aria-label="Dismiss" (click)="library.dismissError()">×</button>
+          </p>
+        }
+        <app-app-list
+          #appList
+          class="card"
+          [apps]="library.apps()"
+          [busy]="library.busy()"
+          (register)="registerApp($event, appList)"
+          (remove)="library.unregisterApp($event)"
+        />
+      } @else if (view() === 'icons') {
+        <header class="view-header">
+          <h1 class="view-title">Icons</h1>
+          <p class="sub">Your own pictures for keys. They show on every paired device.</p>
+        </header>
+        @if (library.error(); as error) {
+          <p class="banner" role="alert">
+            <span class="ld-error">{{ error }}</span>
+            <button type="button" class="dismiss" aria-label="Dismiss" (click)="library.dismissError()">×</button>
+          </p>
+        }
+        <app-icon-gallery
+          [icons]="library.icons()"
+          [busy]="library.busy()"
+          [uploading]="library.uploading()"
+          (upload)="uploadIcon($event)"
+          (remove)="library.deleteIcon($event)"
+        />
+      } @else if (editor.profile(); as profile) {
         <app-profile-toolbar
           [profile]="profile"
           [canDelete]="editor.canDeleteProfile()"
@@ -59,7 +102,7 @@
     </main>
 
     <aside class="panel">
-      @if (editor.profile(); as profile) {
+      @if (view() === 'keys' && editor.profile(); as profile) {
         <app-key-inspector
           class="card"
           [button]="selectedKey()"
@@ -70,27 +113,24 @@
           [apps]="library.apps()"
           [games]="library.games()"
           [gamesLoading]="library.gamesLoading()"
+          [customIcons]="library.icons()"
+          [uploading]="library.uploading()"
           (changed)="editor.updateKey($event)"
           (actionChanged)="editor.changeAction($event.action, $event.name, $event.previousName)"
           (refreshGames)="library.refreshGames()"
+          (uploadIcon)="uploadKeyIcon($event)"
           (add)="editor.addKey()"
           (remove)="editor.removeKey()"
         />
       }
-      @if (library.error(); as error) {
-        <p class="banner" role="alert">
-          <span class="ld-error">{{ error }}</span>
-          <button type="button" class="dismiss" aria-label="Dismiss" (click)="library.dismissError()">×</button>
-        </p>
+      @if (view() === 'keys') {
+        @if (library.error(); as error) {
+          <p class="banner" role="alert">
+            <span class="ld-error">{{ error }}</span>
+            <button type="button" class="dismiss" aria-label="Dismiss" (click)="library.dismissError()">×</button>
+          </p>
+        }
       }
-      <app-app-list
-        #appList
-        class="card"
-        [apps]="library.apps()"
-        [busy]="library.busy()"
-        (register)="registerApp($event, appList)"
-        (remove)="library.unregisterApp($event)"
-      />
       @if (admin.error(); as error) {
         <p class="ld-error error" role="alert">{{ error }}</p>
       }

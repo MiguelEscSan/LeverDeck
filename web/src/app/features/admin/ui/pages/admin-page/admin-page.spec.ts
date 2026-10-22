@@ -117,7 +117,20 @@ class FakeLibrary {
   readonly gamesLoading = signal(false);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
+  readonly icons = signal<string[]>([]);
+  readonly uploading = signal(false);
   readonly calls: string[] = [];
+
+  async uploadIcon(file: File): Promise<string | null> {
+    this.calls.push(`upload ${file.name}`);
+    const id = 'custom-0123456789abcdef0123456789abcdef';
+    this.icons.set([id]);
+    return id;
+  }
+
+  async deleteIcon(iconId: string): Promise<void> {
+    this.calls.push(`delete ${iconId}`);
+  }
 
   async registerApp(displayName: string, path: string): Promise<string | null> {
     this.calls.push(`register ${displayName} ${path}`);
@@ -239,8 +252,11 @@ describe('AdminPage', () => {
     expect(element.querySelector('.banner')).toBeNull();
   });
 
-  it('registers an app from the apps card and clears the form', async () => {
+  it('registers an app from the Apps section and clears the form', async () => {
     const { fixture, element } = await render();
+    [...element.querySelectorAll<HTMLButtonElement>('app-library-nav button')].find((b) => b.textContent?.includes('Apps'))?.click();
+    await fixture.whenStable();
+    expect(element.querySelector('app-editor-grid')).toBeNull();
     const path = element.querySelector('#app-path') as HTMLInputElement;
     path.value = '"C:\\Program Files\\OBS\\obs64.exe"';
     path.dispatchEvent(new Event('input'));
@@ -253,6 +269,34 @@ describe('AdminPage', () => {
     expect(library.calls).toEqual(['register obs64 C:\\Program Files\\OBS\\obs64.exe']);
     expect(element.querySelector('app-app-list .name')?.textContent).toBe('obs64');
     expect((element.querySelector('#app-path') as HTMLInputElement).value).toBe('');
+  });
+
+  it('uploads an icon from the Icons section', async () => {
+    const { fixture, element } = await render();
+    [...element.querySelectorAll<HTMLButtonElement>('app-library-nav button')].find((b) => b.textContent?.includes('Icons'))?.click();
+    await fixture.whenStable();
+    const field = element.querySelector('app-icon-gallery input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(field, 'files', { value: [new File(['x'], 'steam.png', { type: 'image/png' })] });
+    field.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    expect(library.calls).toEqual(['upload steam.png']);
+    expect(element.querySelector('app-icon-gallery img')?.getAttribute('src')).toBe(
+      '/api/icons/custom-0123456789abcdef0123456789abcdef.png',
+    );
+  });
+
+  it('uploads an icon from the key panel and puts it on the key', async () => {
+    const { fixture, element } = await render();
+    (element.querySelectorAll('app-editor-grid .cell')[0] as HTMLButtonElement).click();
+    await fixture.whenStable();
+    const field = element.querySelector('app-key-inspector input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(field, 'files', { value: [new File(['x'], 'spotify.png', { type: 'image/png' })] });
+    field.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    expect(library.calls).toEqual(['upload spotify.png']);
+    expect(editor.calls).toEqual(['select 0:0', 'update {"iconId":"custom-0123456789abcdef0123456789abcdef"}']);
   });
 
   it('shows the facade error above the cards', async () => {

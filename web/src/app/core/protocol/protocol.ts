@@ -123,7 +123,9 @@ export type CommandMessage =
   | RevokeDeviceCommand
   | UpdateSettingsCommand
   | RegisterAppCommand
-  | UnregisterAppCommand;
+  | UnregisterAppCommand
+  | SaveIconCommand
+  | DeleteIconCommand;
 
 export type EventMessage =
   | ProfileUpdatedEvent
@@ -132,7 +134,8 @@ export type EventMessage =
   | DeviceRevokedEvent
   | PairingSessionChangedEvent
   | SettingsUpdatedEvent
-  | ObsSceneChangedEvent;
+  | ObsSceneChangedEvent
+  | IconsChangedEvent;
 
 export type Message = CommandMessage | QueryMessage | AckMessage | ErrorMessage | QueryResultMessage | EventMessage;
 
@@ -143,7 +146,8 @@ export type QueryMessage =
   | GetPairingSessionQuery
   | GetSettingsQuery
   | GetAgentStatusQuery
-  | GetInstalledGamesQuery;
+  | GetInstalledGamesQuery
+  | GetIconsQuery;
 
 export type QueryResultMessage =
   | ProfilesResult
@@ -152,7 +156,8 @@ export type QueryResultMessage =
   | PairingSessionResult
   | SettingsResult
   | AgentStatusResult
-  | InstalledGamesResult;
+  | InstalledGamesResult
+  | IconsResult;
 
 export interface AckMessage {
   kind: 'ack';
@@ -214,6 +219,13 @@ export interface ConnectDeviceCommand {
 export interface ConnectDevicePayload {
   token: string;
   protocolVersion: number;
+}
+
+export interface DeleteIconCommand {
+  kind: 'command';
+  type: 'deleteIcon';
+  requestId: string;
+  payload: IconIdPayload;
 }
 
 export interface DeleteProfileCommand {
@@ -300,6 +312,13 @@ export interface GetDevicesQuery {
   payload: EmptyPayload;
 }
 
+export interface GetIconsQuery {
+  kind: 'query';
+  type: 'getIcons';
+  requestId: string;
+  payload: EmptyPayload;
+}
+
 export interface GetInstalledGamesQuery {
   kind: 'query';
   type: 'getInstalledGames';
@@ -344,6 +363,27 @@ export interface HotkeyActionDto {
   type: 'hotkey';
   modifiers: KeyModifierDto[];
   key: VirtualKeyDto;
+}
+
+export interface IconIdPayload {
+  iconId: string;
+}
+
+export interface IconsChangedEvent {
+  kind: 'event';
+  type: 'iconsChanged';
+  payload: IconsPayload;
+}
+
+export interface IconsPayload {
+  icons: string[];
+}
+
+export interface IconsResult {
+  kind: 'queryResult';
+  type: 'icons';
+  requestId: string;
+  payload: IconsPayload;
 }
 
 export interface InstalledGameDto {
@@ -537,6 +577,18 @@ export interface RevokeDeviceCommand {
   type: 'revokeDevice';
   requestId: string;
   payload: DeviceIdPayload;
+}
+
+export interface SaveIconCommand {
+  kind: 'command';
+  type: 'saveIcon';
+  requestId: string;
+  payload: SaveIconPayload;
+}
+
+export interface SaveIconPayload {
+  iconId: string;
+  data: string;
 }
 
 export interface SaveProfileCommand {

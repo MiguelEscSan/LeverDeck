@@ -32,6 +32,21 @@
   }
 }
 
+.view-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-space-1);
+}
+
+.view-title {
+  font-size: var(--ld-font-size-title);
+}
+
+.sub {
+  color: var(--ld-color-muted);
+  font-size: var(--ld-font-size-sm);
+}
+
 .side-footer {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AdminFacade } from '../../../application/admin.facade';
 import { LibraryFacade } from '../../../application/library.facade';
 import { ProfileEditorFacade } from '../../../application/profile-editor.facade';
@@ -7,11 +7,16 @@ import { gridLabel } from '../../../domain/profile-editing';
 import { AppList, type AppRegistration } from '../../components/app-list/app-list';
 import { DeviceList } from '../../components/device-list/device-list';
 import { EditorGrid } from '../../components/editor-grid/editor-grid';
+import { IconGallery } from '../../components/icon-gallery/icon-gallery';
 import { KeyInspector } from '../../components/key-inspector/key-inspector';
+import { LibraryNav, type LibrarySection } from '../../components/library-nav/library-nav';
 import { PageBar } from '../../components/page-bar/page-bar';
 import { PairingCard } from '../../components/pairing-card/pairing-card';
 import { ProfileList } from '../../components/profile-list/profile-list';
 import { ProfileToolbar } from '../../components/profile-toolbar/profile-toolbar';
+
+/** What the middle column shows: the open profile's keys, or one of the library sections. */
+export type EditorView = 'keys' | LibrarySection;
 
 const STATUS_LABELS = {
   connected: 'Agent connected',
@@ -27,7 +32,19 @@ const STATUS_LABELS = {
 @Component({
   selector: 'app-admin-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, AppList, DeviceList, EditorGrid, KeyInspector, PageBar, PairingCard, ProfileList, ProfileToolbar],
+  imports: [
+    NgTemplateOutlet,
+    AppList,
+    DeviceList,
+    EditorGrid,
+    IconGallery,
+    KeyInspector,
+    LibraryNav,
+    PageBar,
+    PairingCard,
+    ProfileList,
+    ProfileToolbar,
+  ],
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.scss',
 })
@@ -36,6 +53,11 @@ export class AdminPage {
   protected readonly editor = inject(ProfileEditorFacade);
   protected readonly library = inject(LibraryFacade);
 
+  protected readonly view = signal<EditorView>('keys');
+  protected readonly librarySection = computed(() => {
+    const view = this.view();
+    return view === 'keys' ? null : view;
+  });
   protected readonly statusLabel = computed(() => STATUS_LABELS[this.admin.status()]);
   protected readonly selectedKey = computed(() => {
     const selection = this.editor.selection();
@@ -61,6 +83,28 @@ export class AdminPage {
 
   constructor() {
     this.admin.start();
+  }
+
+  protected openProfile(profileId: string): void {
+    this.view.set('keys');
+    void this.editor.selectProfile(profileId);
+  }
+
+  protected createProfile(): void {
+    this.view.set('keys');
+    this.editor.createProfile();
+  }
+
+  /** Uploads a picture and puts it on the selected key. */
+  protected async uploadKeyIcon(file: File): Promise<void> {
+    const iconId = await this.library.uploadIcon(file);
+    if (iconId) {
+      this.editor.updateKey({ iconId });
+    }
+  }
+
+  protected async uploadIcon(file: File): Promise<void> {
+    await this.library.uploadIcon(file);
   }
 
   protected async registerApp(registration: AppRegistration, form: AppList): Promise<void> {

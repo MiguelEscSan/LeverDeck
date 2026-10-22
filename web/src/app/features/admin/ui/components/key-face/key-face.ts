@@ -1,5 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { keyIconPath, keyMonogram } from '../../../../../core/keys/domain/key-icons';
+import {
+  customIconUrl,
+  isCustomIconId,
+  keyIconPath,
+  keyMonogram,
+} from '../../../../../core/keys/domain/key-icons';
 import type { ButtonDto } from '../../../../../core/protocol';
 
 /**
@@ -12,7 +17,9 @@ import type { ButtonDto } from '../../../../../core/protocol';
   host: { 'aria-hidden': 'true', '[attr.data-color]': 'button().color' },
   template: `
     <span class="face">
-      @if (path(); as d) {
+      @if (imageUrl(); as src) {
+        <img class="glyph image" [src]="src" alt="" draggable="false" />
+      } @else if (path(); as d) {
         <svg class="glyph" viewBox="0 0 24 24"><path fill-rule="evenodd" [attr.d]="d" /></svg>
       } @else {
         <span class="glyph monogram">{{ monogram() }}</span>
@@ -75,6 +82,12 @@ import type { ButtonDto } from '../../../../../core/protocol';
       margin-bottom: 8%;
     }
 
+    .image {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
+    }
+
     svg {
       fill: var(--ld-key-icon);
       filter: drop-shadow(0 2px 0 rgb(0 0 0 / 55%));
@@ -107,6 +120,9 @@ import type { ButtonDto } from '../../../../../core/protocol';
 export class KeyFace {
   readonly button = input.required<Pick<ButtonDto, 'label' | 'color' | 'iconId'>>();
 
+  protected readonly imageUrl = computed(() =>
+    isCustomIconId(this.button().iconId) ? customIconUrl(this.button().iconId) : null,
+  );
   protected readonly path = computed(() => keyIconPath(this.button().iconId));
   protected readonly monogram = computed(() => keyMonogram(this.button().label, this.button().iconId));
 }

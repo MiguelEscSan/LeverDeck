@@ -5,6 +5,8 @@ import { AdminConnectionFacade } from '../../../core/connection/application/conn
 import type { ConnectionStatus } from '../../../core/connection/domain/connection-status';
 import { RequestError } from '../../../core/connection/domain/request-error';
 import type { EventMessage, RegisteredAppDto, SettingsDto } from '../../../core/protocol';
+import { IconEncoder } from './icon-encoder.port';
+import { IdSource } from './id-source.port';
 import { LibraryFacade } from './library.facade';
 
 const settings = (apps: RegisteredAppDto[]): SettingsDto => ({
@@ -22,14 +24,21 @@ class FakeAgent {
   readonly events = new Subject<EventMessage>();
   readonly commands: { type: string; payload: unknown }[] = [];
   apps: RegisteredAppDto[] = [];
+  icons: string[] = ['custom-00000000000000000000000000000001'];
   games = [{ store: 'steam' as const, gameId: '570', name: 'Dota 2' }];
   fail: RequestError | null = null;
 
   async query(type: string): Promise<unknown> {
+    if (type === 'getIcons') {
+      return { icons: this.icons };
+    }
     return type === 'getSettings' ? { settings: settings(this.apps) } : { games: this.games };
   }
 
-  async command(type: string, payload: { displayName?: string; path?: string; appId?: string }): Promise<unknown> {
+  async command(
+    type: string,
+    payload: { displayName?: string; path?: string; appId?: string; iconId?: string; data?: string },
+  ): Promise<unknown> {
     this.commands.push({ type, payload });
     if (this.fail) {
       throw this.fail;
@@ -39,6 +48,10 @@ class FakeAgent {
       this.events.next({ kind: 'event', type: 'settingsUpdated', payload: { settings: settings(this.apps) } });
       return { kind: 'ack', requestId: 'x', payload: { appId: 'a1' } };
     }
+    if (type === 'saveIcon') {
+      this.icons = [...this.icons, payload.iconId!];
+      this.events.next({ kind: 'event', type: 'iconsChanged', payload: { icons: this.icons } });
+    }
     return { kind: 'ack', requestId: 'x' };
   }
 }
@@ -46,6 +59,15 @@ class FakeAgent {
 describe('LibraryFacade', () => {
   let agent: FakeAgent;
   let library: LibraryFacade;
+  const encoder = {
+    fail: null as string | null,
+    async encode(): Promise<string> {
+      if (encoder.fail) {
+        throw new Error(encoder.fail);
+      }
+      return 'iVBORw==';
+    },
+  };
 
   const settle = async () => {
     TestBed.tick();
@@ -56,8 +78,15 @@ describe('LibraryFacade', () => {
 
   beforeEach(async () => {
     agent = new FakeAgent();
+    encoder.fail = null;
     agent.apps = [{ appId: 'a0', displayName: 'Notepad', path: 'C:\\Windows\\notepad.exe' }];
-    TestBed.configureTestingModule({ providers: [{ provide: AdminConnectionFacade, useValue: agent }] });
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AdminConnectionFacade, useValue: agent },
+        { provide: IdSource, useValue: { next: () => '0123abcd-89ab-4def-8123-456789abcdef' } },
+        { provide: IconEncoder, useValue: encoder },
+      ],
+    });
     library = TestBed.inject(LibraryFacade);
     agent.state.set('connected');
     await settle();
@@ -100,5 +129,43 @@ describe('LibraryFacade', () => {
 
     expect(library.apps()).toEqual([]);
     expect(library.games()).toEqual([]);
+  });
+
+  describe('icons', () => {
+    it('loads the uploaded icons once connected', () => {
+      expect(library.icons()).toEqual(['custom-00000000000000000000000000000001']);
+    });
+
+    it('encodes a picture, uploads it under a new id and lists it', async () => {
+      const id = await library.uploadIcon(new Blob(['picture']));
+
+      expect(id).toBe('custom-0123abcd89ab4def8123456789abcdef');
+      expect(agent.commands).toEqual([
+        { type: 'saveIcon', payload: { iconId: 'custom-0123abcd89ab4def8123456789abcdef', data: 'iVBORw==' } },
+      ]);
+      expect(library.icons()).toContain('custom-0123abcd89ab4def8123456789abcdef');
+    });
+
+    it('shows why a picture could not be read, without uploading', async () => {
+      encoder.fail = "That file isn't a picture this browser can read.";
+
+      expect(await library.uploadIcon(new Blob(['x']))).toBeNull();
+      expect(library.error()).toBe("That file isn't a picture this browser can read.");
+      expect(agent.commands).toEqual([]);
+    });
+
+    it('explains an icon that a key still shows', async () => {
+      agent.fail = new RequestError('validationFailed', 'Icon x is still used by a key.');
+
+      await library.deleteIcon('custom-00000000000000000000000000000001');
+
+      expect(library.error()).toBe('A key still shows this icon. Give that key another icon first.');
+    });
+
+    it('follows iconsChanged', () => {
+      agent.events.next({ kind: 'event', type: 'iconsChanged', payload: { icons: [] } });
+
+      expect(library.icons()).toEqual([]);
+    });
   });
 });

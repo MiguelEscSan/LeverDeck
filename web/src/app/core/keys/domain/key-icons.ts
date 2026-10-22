@@ -94,3 +94,14 @@ export function keyMonogram(label: string, iconId: string): string {
   const source = (label.trim() || iconId).replace(/[^\p{L}\p{N}]/gu, '');
   return source.slice(0, 2).toUpperCase() || '•';
 }
+
+/** Uploaded icons are `custom-` plus 32 lowercase hex digits, as the agent requires. */
+const CUSTOM_ICON = /^custom-[0-9a-f]{32}$/;
+
+export const isCustomIconId = (iconId: string): boolean => CUSTOM_ICON.test(iconId);
+
+/** Where the agent serves an uploaded icon (same origin, cached forever: an id's image never changes). */
+export const customIconUrl = (iconId: string): string => `/api/icons/${iconId}.png`;
+
+/** A new uploaded-icon id from a UUID. */
+export const customIconId = (uuid: string): string => `custom-${uuid.replace(/-/g, '').toLowerCase()}`;

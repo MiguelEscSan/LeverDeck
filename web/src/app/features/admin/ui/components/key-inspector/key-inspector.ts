@@ -44,6 +44,18 @@ import { KeyFace } from '../key-face/key-face';
 
       <span class="ld-label" id="key-icon-label">Icon</span>
       <div class="icons" role="radiogroup" aria-labelledby="key-icon-label">
+        @for (icon of customIcons(); track icon) {
+          <button
+            type="button"
+            role="radio"
+            class="icon"
+            [attr.aria-checked]="icon === button.iconId"
+            aria-label="Your icon"
+            (click)="changed.emit({ iconId: icon })"
+          >
+            <app-key-face [button]="{ label: '', color: button.color, iconId: icon }" />
+          </button>
+        }
         @for (icon of icons; track icon.id) {
           <button
             type="button"
@@ -58,6 +70,17 @@ import { KeyFace } from '../key-face/key-face';
           </button>
         }
       </div>
+
+      <label class="link upload" [class.disabled]="uploading()">
+        <input
+          class="visually-hidden"
+          type="file"
+          accept="image/*"
+          [disabled]="uploading()"
+          (change)="onFile($event)"
+        />
+        {{ uploading() ? 'Uploading…' : 'Upload your own icon…' }}
+      </label>
 
       <app-action-editor
         [action]="button.action"
@@ -130,6 +153,33 @@ import { KeyFace } from '../key-face/key-face';
       font-size: var(--ld-font-size-sm);
     }
 
+    .link {
+      align-self: flex-start;
+      color: var(--ld-color-muted-on-panel);
+      font-size: var(--ld-font-size-sm);
+      text-decoration: underline;
+      cursor: pointer;
+
+      &.disabled {
+        cursor: default;
+        opacity: 0.55;
+      }
+
+      &:focus-within {
+        outline: 3px solid var(--ld-color-focus);
+        outline-offset: 2px;
+      }
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
     .remove {
       margin-top: var(--ld-space-3);
     }
@@ -145,10 +195,15 @@ export class KeyInspector {
   readonly apps = input<readonly RegisteredAppDto[]>([]);
   readonly games = input<readonly InstalledGameDto[]>([]);
   readonly gamesLoading = input(false);
+  /** Uploaded icon ids, offered before the bundled icons. */
+  readonly customIcons = input<readonly string[]>([]);
+  readonly uploading = input(false);
 
   readonly changed = output<Omit<ButtonChange, 'action'>>();
   readonly actionChanged = output<ActionChoice>();
   readonly refreshGames = output();
+  /** A picture to upload as an icon for this key. */
+  readonly uploadIcon = output<File>();
   readonly add = output();
   readonly remove = output();
 
@@ -161,6 +216,15 @@ export class KeyInspector {
 
   protected onColor(color: KeyColorDto): void {
     this.changed.emit({ color });
+  }
+
+  protected onFile(event: Event): void {
+    const field = event.target as HTMLInputElement;
+    const file = field.files?.[0];
+    field.value = '';
+    if (file) {
+      this.uploadIcon.emit(file);
+    }
   }
 
   protected blur(event: Event): void {

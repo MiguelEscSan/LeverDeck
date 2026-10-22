@@ -20,4 +20,11 @@ describe('KeyGlyph', () => {
     expect((await render('obs-scene', 'Just chatting')).textContent?.trim()).toBe('JU');
     expect((await render('obs-scene')).textContent?.trim()).toBe('OB');
   });
+
+  it('shows an uploaded icon from the agent', async () => {
+    const image = (await render('custom-0123456789abcdef0123456789abcdef', 'Steam')).querySelector('img');
+
+    expect(image?.getAttribute('src')).toBe('/api/icons/custom-0123456789abcdef0123456789abcdef.png');
+    expect(image?.getAttribute('alt')).toBe('');
+  });
 });

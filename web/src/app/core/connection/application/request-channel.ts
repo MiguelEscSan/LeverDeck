@@ -5,6 +5,7 @@ import type {
   CommandMessage,
   DevicesResult,
   EventMessage,
+  IconsResult,
   InstalledGamesResult,
   PairingSessionResult,
   ProfileResult,
@@ -27,6 +28,7 @@ export interface QueryResults {
   getSettings: SettingsResult;
   getAgentStatus: AgentStatusResult;
   getInstalledGames: InstalledGamesResult;
+  getIcons: IconsResult;
 }
 
 type PayloadOf<Union, Type> = Extract<Union, { type: Type }> extends { payload: infer P } ? P : never;

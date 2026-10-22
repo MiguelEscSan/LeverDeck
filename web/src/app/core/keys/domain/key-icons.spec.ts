@@ -1,4 +1,4 @@
-import { KEY_ICONS, keyIconPath, keyMonogram } from './key-icons';
+import { customIconId, customIconUrl, isCustomIconId, KEY_ICONS, keyIconPath, keyMonogram } from './key-icons';
 
 describe('KEY_ICONS', () => {
   it('has unique kebab-case ids, as the agent requires', () => {
@@ -26,5 +26,21 @@ describe('keyMonogram', () => {
     expect(keyMonogram('OBS scene', 'x')).toBe('OB');
     expect(keyMonogram('  ', 'my-icon')).toBe('MY');
     expect(keyMonogram('', '--')).toBe('•');
+  });
+});
+
+describe('custom icons', () => {
+  it('are named from a UUID and served by the agent', () => {
+    const id = customIconId('0123ABCD-89ab-4def-8123-456789abcdef');
+
+    expect(id).toBe('custom-0123abcd89ab4def8123456789abcdef');
+    expect(isCustomIconId(id)).toBe(true);
+    expect(customIconUrl(id)).toBe('/api/icons/custom-0123abcd89ab4def8123456789abcdef.png');
+  });
+
+  it('are told apart from bundled and malformed ids', () => {
+    expect(isCustomIconId('play-pause')).toBe(false);
+    expect(isCustomIconId('custom-123')).toBe(false);
+    expect(isCustomIconId('custom-0123abcd89ab4def8123456789abcdeg')).toBe(false);
   });
 });
