@@ -27,7 +27,7 @@ Device (browser / installed PWA)  ──HTTP──▶  leverdeck.exe  → serves
 macOS is not implemented for now, but the code must not make it harder later:
 
 - OS-specific code (input injection, app launching, autostart, config paths) lives only in `infrastructure`, behind ports.
-- Config paths are resolved with the `directories` crate, never hardcoded to `%APPDATA%`.
+- Config paths are resolved with `Environment.GetFolderPath` (known folders), never hardcoded to `%APPDATA%`.
 - When macOS is added, it gets its own adapters (Accessibility permission for input, `open -a` for apps, a LaunchAgent for autostart);
   `domain`, `application`, `protocol` and the PWA must not change.
 
@@ -35,11 +35,16 @@ macOS is not implemented for now, but the code must not make it harder later:
 
 | Component | Tech | Responsibility |
 |-----------|------|----------------|
-| `agent/` | Rust (axum, tokio, mdns-sd, rust-embed) | HTTP + WebSocket server, action execution, persistence, discovery |
+| `agent/` | .NET 10 (LTS), C# — ASP.NET Core minimal APIs on Kestrel, raw WebSockets | HTTP + WebSocket server, action execution, persistence, discovery |
 | `web/` | Angular (standalone, Signals, `@angular/pwa`) | Deck, profiles, settings and pairing UI |
-| `agent/protocol` | Rust + serde + ts-rs | Single source of truth for the wire contract; generates TypeScript types |
+| `agent/src/LeverDeck.Protocol` | C# records + System.Text.Json source generators | Single source of truth for the wire contract; TypeScript types are generated from it |
 
-The Angular build output (`web/dist/`) is embedded into the executable at compile time with `rust-embed`.
+The agent is published as one executable, `leverdeck.exe`: Native AOT preferred; if a dependency is not AOT-compatible,
+the fallback is a self-contained single-file publish. Serialization uses System.Text.Json source generators (required by AOT).
+WebSockets are raw ASP.NET Core WebSockets, not SignalR.
+
+The Angular build output (`web/dist/`) is embedded into the executable as embedded resources and served through
+`ManifestEmbeddedFileProvider`.
 
 ## Connectivity
 
@@ -76,32 +81,48 @@ so every paired device sees the same configuration.
 └── settings.json
 ```
 
-## Agent (Rust) — hexagonal workspace
+## Agent (.NET) — hexagonal solution
 
-One crate per layer, so dependency rules are enforced by `cargo`:
+One project per layer in `LeverDeck.sln`, so dependency rules are enforced by project references:
 
 ```
 agent/
-├── domain/          entities and pure rules: Profile, Button, Action, Device
-├── application/     commands, queries and ports (traits)
-├── protocol/        wire messages (serde + ts-rs)
-├── infrastructure/  adapters: axum, mdns-sd, input injection, OBS, JSON files
-└── app/             main.rs — composition root, wires adapters into use cases
+├── LeverDeck.sln
+├── src/
+│   ├── LeverDeck.Domain/          entities and pure rules: Profile, Button, Action, Device
+│   ├── LeverDeck.Application/     commands, queries and ports (interfaces)
+│   ├── LeverDeck.Protocol/        wire messages (C# records, System.Text.Json source generators)
+│   ├── LeverDeck.Infrastructure/  adapters: Kestrel/WebSockets, mDNS, input injection, OBS, JSON files
+│   └── LeverDeck.App/             Program.cs — composition root, wires adapters into use cases
+└── tests/                         xUnit test projects
 ```
 
-**Dependency rule** (arrows point to what a crate may depend on):
+**Dependency rule** (arrows point to what a project may reference):
 
 ```
-app ──▶ infrastructure ──▶ application ──▶ domain
+App ──▶ Infrastructure ──▶ Application ──▶ Domain
           │                    
-          └──▶ protocol ──▶ domain
+          └──▶ Protocol ──▶ Domain
 ```
 
-- `domain` depends on nothing but `std` (and `serde` derives, if needed).
-- `application` depends only on `domain`. It defines the ports:
+- `Domain` depends on nothing but the base class library.
+- `Application` depends only on `Domain`. It defines the ports:
   `ActionExecutor`, `ProfileRepository`, `DeviceRepository`, `TokenGenerator`, `EventPublisher`.
-- `infrastructure` implements the ports. It is the **only** crate that knows about Windows, the network or the file system.
-- `app` contains no logic: it builds the adapters, injects them into use cases and starts the server.
+- `Domain` and `Application` reference no ASP.NET Core or OS-specific packages.
+- `Infrastructure` implements the ports. It is the **only** project that knows about Windows, the network or the file system.
+- `App` contains no logic: it builds the adapters, injects them into use cases and starts the server.
+
+### Windows adapters (`Infrastructure`)
+
+| Port concern | Adapter |
+|--------------|---------|
+| Hotkeys, media keys | `SendInput` through CsWin32 |
+| Launch apps | `Process.Start` with `UseShellExecute` |
+| Steam/Epic games | Store URLs built from validated ids |
+| OBS | obs-websocket client (library to confirm AOT compatibility) |
+| mDNS | Native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via P/Invoke |
+| Persistence | JSON files |
+| Config paths | `Environment.GetFolderPath` / known folders |
 
 ## Light CQRS
 
@@ -112,7 +133,7 @@ no command bus or mediator, and no event sourcing.
   `ExecuteAction`, `SaveProfile`, `DeleteProfile`, `PairDevice`, `RevokeDevice`.
 - **Queries** read state and have no side effects: `GetProfiles`, `GetProfile`, `GetDevices`, `GetSettings`.
 - **Events** are pushed by the agent to keep every device in sync: `ProfileUpdated`, `DeviceRevoked`, `ObsSceneChanged`.
-- One struct per use case, one public `execute`/`handle` method.
+- One class per use case, one public `Execute`/`Handle` method.
 
 The WebSocket protocol mirrors this split: every message is a `Command`, a `Query`, a `QueryResult`,
 an `Ack`/`Error`, or an `Event`, correlated by a request id.
@@ -143,10 +164,14 @@ web/src/app/
 
 ## Rules
 
-1. **The contract lives in Rust.** TypeScript protocol types are generated by `ts-rs` and never edited by hand.
+1. **The contract lives in `LeverDeck.Protocol`.** TypeScript protocol types are generated from its C# records at build time
+   (tool: TypeGen, to confirm at scaffold time) and never edited by hand.
    A protocol change that the frontend does not handle must break the frontend build.
-2. **Whitelisted actions only.** `Action` is a closed enum (`Hotkey`, `MediaKey`, `LaunchApp`, `OpenUrl`, `ObsScene`, ...).
-   There is no "run arbitrary command" action, and action parameters are validated in the domain.
+2. **Whitelisted actions only.** `Action` is a closed set: an `abstract record Action` with one `sealed record` per action
+   (`Hotkey`, `MediaKey`, `LaunchApp`, `OpenUrl`, `ObsScene`, ...). There is no "run arbitrary command" action,
+   and action parameters are validated in the domain. C# does not check exhaustiveness over class hierarchies, so an
+   architecture test (reflection over all `Action` subtypes) asserts every subtype is handled by the executor and the
+   whitelist; the ExhaustiveMatching.Analyzer package may be added as well (to confirm).
 3. **Dependencies point inward.** Domain and application code never import framework, OS or network types.
 4. **Tests per layer.**
    - Domain and application: unit tests with fake ports, written test-first.

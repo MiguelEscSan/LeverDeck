@@ -15,30 +15,40 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 ## How (decided)
 
-- **One executable** `leverdeck.exe` in **Rust** (axum + tokio). It serves the PWA and executes the actions.
-  The PWA build is embedded into the binary with `rust-embed`.
+- **One executable** `leverdeck.exe` in **.NET 10 (LTS), C#**: ASP.NET Core minimal APIs on Kestrel, raw WebSockets
+  (not SignalR). It serves the PWA and executes the actions. Native AOT preferred; self-contained single-file publish
+  as fallback if a dependency is not AOT-compatible. System.Text.Json source generators for serialization.
+  The PWA build is embedded as embedded resources and served via `ManifestEmbeddedFileProvider`.
 - **Frontend:** **Angular** PWA (`@angular/pwa`), standalone, Signals, `OnPush`. The user knows Angular well,
   and the UI will grow beyond the grid (profiles, settings, button editor).
-- **Architecture:** hexagonal on both sides. Rust uses a cargo workspace with one crate per layer
-  (`domain`, `application`, `protocol`, `infrastructure`, `app`). Angular is feature-first
+- **Architecture:** hexagonal on both sides. The agent is a solution `agent/LeverDeck.sln` with one project per layer
+  (`LeverDeck.Domain`, `LeverDeck.Application`, `LeverDeck.Protocol`, `LeverDeck.Infrastructure`, `LeverDeck.App`)
+  under `src/` and xUnit tests under `tests/`; project references enforce the dependency rule. Angular is feature-first
   (`core`, `pairing`, `deck`, `profiles`, `settings`), each with `domain/application/infrastructure/ui`.
 - **Light CQRS:** commands vs queries vs pushed events. No buses, mediators, separate read models or event sourcing.
-- **Contract:** defined in Rust (`protocol` crate); TypeScript types generated with `ts-rs`.
+- **Contract:** defined as C# records in `LeverDeck.Protocol`; TypeScript types generated at build time
+  (TypeGen, to confirm at scaffold time), never edited by hand.
 - **Connectivity:** HTTP + WebSocket on port `8765`. LAN via mDNS name **`leverdeck.local`** (connect by name so the
   browser origin survives IP changes; the user cannot configure the router). USB on Android via `adb reverse`.
   Optional `mkcert` certificate for HTTPS over LAN.
 - **Pairing:** QR with a one-time code → long-lived device token stored in the browser; the agent keeps only a hash in
   `devices.json`. Pair once per origin (LAN and USB are separate origins).
 - **Persistence:** the PC is the source of truth (profiles/devices/settings JSON in the app config dir).
-- **Security:** `Action` is a closed whitelisted enum; never arbitrary commands.
+- **Security:** `Action` is a closed whitelist (`abstract record` + one `sealed record` per action); never arbitrary
+  commands. An architecture test guards exhaustiveness, since C# does not check it for class hierarchies.
 - **Platforms:** Windows agent in scope. macOS agent planned but **not to be implemented yet**; keep OS code behind
-  ports in `infrastructure` and resolve paths with the `directories` crate. Devices: anything with a modern browser.
+  ports in `Infrastructure` and resolve paths with `Environment.GetFolderPath` (known folders). Devices: anything with a
+  modern browser.
 - **Cost:** zero. No app stores, no paid certificates, no cloud.
 
 ## Rejected (and why)
 
 - **Docker** to host the PWA: containers cannot inject input into the Windows host, and Docker Desktop + WSL2 is far too heavy.
-- **Rust/WASM frontend** (Leptos, Yew): slower builds, bigger bundle, smaller ecosystem; type sharing is covered by `ts-rs`.
+- **Rust agent:** the original choice (axum + tokio, `ts-rs` for types). Replaced by .NET because the owner's main
+  stack is C#/.NET (maintainability and portfolio fit). Accepted trade-offs: a bigger executable (~15–30 MB vs ~5–10 MB)
+  and higher idle memory.
+- **WASM frontend** (Leptos, Yew): slower builds, bigger bundle, smaller ecosystem; type sharing is covered by generated
+  TypeScript types.
 - **Native mobile app:** iOS needs a Mac and a paid account to avoid 7-day re-signing; a PWA works everywhere for free.
 - **Full CQRS:** single user, JSON storage — no benefit.
 - **Fixing IP by MAC / router reservation:** the browser cannot see MACs, and the user has no router access. mDNS name instead.
@@ -48,7 +58,7 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 - **Launch Steam/Epic games:** `steam://rungameid/<appid>` and `com.epicgames.launcher://apps/<AppName>?action=launch&silent=true`
   (Epic URL format still to be verified). Installed games can be listed from Steam's `libraryfolders.vdf` / `appmanifest_*.acf`
-  and Epic's `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item`. Model as `Action::LaunchGame { store, id }` plus a
+  and Epic's `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item`. Model as a `LaunchGame(Store, Id)` action record plus a
   `GameLibrary` port; build the URL from a validated id, never accept a free-form URL.
 - **OBS integration** through OBS's built-in WebSocket server (v28+).
 - **Games that ignore simulated input:** some anti-cheat systems reject keystrokes flagged as injected by `SendInput`
@@ -60,10 +70,12 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 ## Next steps
 
 1. Add `.gitattributes` (`* text=auto eol=lf`) — Git currently warns about LF/CRLF on Windows.
-2. Scaffold the Rust workspace under `agent/` with the five crates and the dependency rule.
-3. Scaffold the Angular app under `web/` with `@angular/pwa` and `eslint-plugin-boundaries`.
-4. Fill the **Commands** section of `CLAUDE.md` with build, test and lint commands.
-5. First vertical slice: pairing + one `Hotkey` action end to end, test-first in `domain`/`application`.
+2. Scaffold `agent/LeverDeck.sln` with the five projects under `src/`, xUnit tests under `tests/`, and the dependency
+   rule as project references. Verify Native AOT publish early.
+3. Set up TypeScript type generation from `LeverDeck.Protocol` (confirm TypeGen).
+4. Scaffold the Angular app under `web/` with `@angular/pwa` and `eslint-plugin-boundaries`.
+5. Fill the **Commands** section of `CLAUDE.md` with build, test and lint commands.
+6. First vertical slice: pairing + one `Hotkey` action end to end, test-first in `domain`/`application`.
 
 ## Working preferences
 

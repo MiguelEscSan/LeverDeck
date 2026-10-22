@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Decided in docs/HANDOFF.md: Angular PWA in `web/` (standalone, Signals, OnPush) served by a Rust agent in `agent/` (axum + tokio). The PWA is embedded in the single executable.
+Decided in docs/HANDOFF.md: Angular PWA in `web/` (standalone, Signals, OnPush) served by a .NET 10 agent in `agent/` (ASP.NET Core minimal APIs on Kestrel). The PWA is embedded in the single executable.
 
 ## Users
 
