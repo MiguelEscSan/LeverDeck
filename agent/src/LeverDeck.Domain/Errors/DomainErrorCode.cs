@@ -19,4 +19,7 @@ public enum DomainErrorCode
     Unauthorized,
     Forbidden,
     ProtocolMismatch,
+
+    /// <summary>An action executor tried to run the action and failed (for example, the OS rejected the input).</summary>
+    ActionFailed,
 }

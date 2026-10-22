@@ -26,6 +26,9 @@ Agent (run from `agent/`):
 - Build: `dotnet build LeverDeck.slnx`
 - Test: `dotnet test LeverDeck.slnx`
 - Run: `dotnet run --project src/LeverDeck.App` (listens on `http://0.0.0.0:8765`, `GET /health`)
+- Regenerate the TypeScript protocol types after changing `LeverDeck.Protocol`:
+  `dotnet run --project tools/LeverDeck.ProtocolGen -- ../web/src/app/core/protocol`
+  (`TypeScriptSnapshotTests` fails while the committed files are out of date).
 - Publish: `dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck` (Native AOT).
   Needs the MSVC build tools; if the linker reports `vswhere.exe` not found, add
   `C:\Program Files (x86)\Microsoft Visual Studio\Installer` to `PATH`.

@@ -69,6 +69,22 @@ The Angular build output (`web/dist/`) is embedded into the executable as embedd
 Browser storage is per origin: `leverdeck.local:8765` and `localhost:8765` are different origins, so USB and LAN
 are paired separately (once each). On iOS the PWA must be added to the home screen, otherwise Safari may evict its storage.
 
+### Desktop editor (admin)
+
+The editor on the PC uses `GET /admin/ws`, the only channel that accepts admin-scoped commands and queries.
+
+- **Localhost is not trusted.** With `adb reverse tcp:8765 tcp:8765` a phone reaches the agent from loopback too, so
+  "the connection comes from 127.0.0.1" proves nothing about who is on the other side.
+- **Persistent admin token.** The agent generates one high-entropy admin token the first time it runs and stores it
+  under `%APPDATA%\LeverDeck\` (resolved with `Environment.GetFolderPath`), protected with DPAPI when that is
+  AOT-compatible, otherwise as a plain file in the user profile. It is reused across restarts, so a bookmarked editor
+  keeps working.
+- **`/admin/ws` requires it.** A connection without the right token (compared in constant time) is rejected before
+  any message is read.
+- **The editor URL carries it.** The tray (Phase 7) opens the editor with the token in the URL; the editor keeps it for
+  its connection. Anyone who can read the user's profile folder can already control the PC, so the token adds no new
+  exposure there.
+
 ## Persistence
 
 The PC is the source of truth. Profiles, buttons and settings live on the agent, not in the browser,
@@ -78,7 +94,8 @@ so every paired device sees the same configuration.
 %APPDATA%\LeverDeck\
 ├── profiles.json
 ├── devices.json     (token hashes, names, pairing dates)
-└── settings.json
+├── settings.json
+└── admin token      (generated once; see Desktop editor)
 ```
 
 ## Agent (.NET) — hexagonal solution
@@ -94,15 +111,18 @@ agent/
 │   ├── LeverDeck.Protocol/        wire messages (C# records, System.Text.Json source generators)
 │   ├── LeverDeck.Infrastructure/  adapters: Kestrel/WebSockets, mDNS, input injection, OBS, JSON files
 │   └── LeverDeck.App/             Program.cs — composition root, wires adapters into use cases
-└── tests/                         xUnit: Domain, Application, Architecture (dependency rule), App (endpoints)
+├── tools/
+│   └── LeverDeck.ProtocolGen/     generates web/src/app/core/protocol/*.ts from LeverDeck.Protocol
+└── tests/                         xUnit: Domain, Application, Protocol (contract), Infrastructure (mappers),
+                                   Architecture (dependency rule), App (endpoints)
 ```
 
 **Dependency rule** (arrows point to what a project may reference):
 
 ```
 App ──▶ Infrastructure ──▶ Application ──▶ Domain
-          │                    
-          └──▶ Protocol ──▶ Domain
+          │
+          └──▶ Protocol (references nothing: wire DTOs only)
 ```
 
 - `Domain` depends on nothing but the base class library.
@@ -113,6 +133,9 @@ App ──▶ Infrastructure ──▶ Application ──▶ Domain
   `IServiceAdvertiser`) live in `Common/Ports/`. A use case may depend on another entity's port, never on another
   use case.
 - `Domain` and `Application` reference no ASP.NET Core or OS-specific packages.
+- `Protocol` holds wire DTOs only and references no other project; domain types never go on the wire.
+  `Infrastructure/ProtocolMapping` maps DTOs to and from the domain, and every invalid DTO becomes a
+  `validationFailed` result instead of an exception.
 - `Infrastructure` implements the ports. It is the **only** project that knows about Windows, the network or the file system.
 - `App` contains no logic: it builds the adapters, injects them into use cases and starts the server.
 
@@ -169,8 +192,9 @@ web/src/app/
 
 ## Rules
 
-1. **The contract lives in `LeverDeck.Protocol`.** TypeScript protocol types are generated from its C# records at build time
-   (tool: TypeGen, to confirm at scaffold time) and never edited by hand.
+1. **The contract lives in `LeverDeck.Protocol`.** TypeScript protocol types are generated from its serializer contract by
+   `agent/tools/LeverDeck.ProtocolGen` (TypeGen was evaluated and rejected: it cannot emit discriminated unions) and
+   never edited by hand; a test fails when the committed files are out of date.
    A protocol change that the frontend does not handle must break the frontend build.
 2. **Whitelisted actions only.** `Action` is a closed set: an `abstract record Action` with one `sealed record` per action
    (`Hotkey`, `MediaKey`, `LaunchApp`, `OpenUrl`, `ObsScene`, ...). There is no "run arbitrary command" action,
