@@ -22,7 +22,7 @@ fake ports. No adapters.
 |---|---|---|---|
 | P2-1 | `Result`, `DomainException`, profiles, pages, buttons, grid, appearance | delegated writer (2+ non-trivial files) | done — 4e54a07, 9f6b8ba; 105 tests green |
 | P2-2 | `Action` hierarchy + whitelist architecture test | delegated writer | done — 180 tests green |
-| P2-3 | Devices, pairing session, agent settings | delegated writer | pending |
+| P2-3 | Devices, pairing session, agent settings | delegated writer | done — 305 tests green |
 | P2-4 | Ports, fakes, commands and queries with scope checks | delegated writer | pending |
 
 ## Acceptance
@@ -41,3 +41,8 @@ fake ports. No adapters.
   record's copy constructor must be protected (CS8878). `ActionCatalog.All` is the whitelist; architecture tests check
   every subtype is sealed and listed. `using DomainAction = …` avoids the clash with `System.Action`. `Button` now
   requires an action; `ChangePage` exposes `Destination` (not `Target`, which is the execution target).
+- 2026-10-22: P2-3 done. Expected outcomes return `Result` from the domain itself (`Device.Connect`,
+  `PairingSession.Redeem`); construction errors throw. `Redeem` checks redeemed → expired → code, with the
+  constant-time comparison always run first so the result never reveals whether a guess was right; failed guesses do
+  not burn the session (attempt limiting is a P2-4 concern). `AgentSettings.CreateDefault()` instead of a static
+  `Default`; app paths use `Path.IsPathFullyQualified`; secret-bearing records override `ToString`.
