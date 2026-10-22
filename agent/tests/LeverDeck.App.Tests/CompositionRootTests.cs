@@ -41,8 +41,15 @@ public sealed class CompositionRootTests(DevelopmentAppFactory factory) : IClass
     }
 
     [Fact]
-    public void Advertiser_IsTheNativeOne() =>
-        Assert.IsType<DnsServiceAdvertiser>(factory.Services.GetRequiredService<IServiceAdvertiser>());
+    public void Advertiser_AnswersForTheHostNameAndRegistersTheService()
+    {
+        var advertiser = Assert.IsType<CompositeServiceAdvertiser>(factory.Services.GetRequiredService<IServiceAdvertiser>());
+
+        Assert.Collection(
+            advertiser.Advertisers,
+            first => Assert.IsType<MdnsHostNameResponder>(first),
+            second => Assert.IsType<DnsServiceAdvertiser>(second));
+    }
 
     [Fact]
     public void AdminToken_IsCreatedInTheTestDataDirectory()

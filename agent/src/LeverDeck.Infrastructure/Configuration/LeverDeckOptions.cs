@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
 namespace LeverDeck.Infrastructure.Configuration;
@@ -13,6 +14,8 @@ public sealed record LeverDeckOptions
 
     public const string MdnsEnabledKey = "LeverDeck:Mdns:Enabled";
 
+    public const string ConnectTimeoutKey = "LeverDeck:Transport:ConnectTimeout";
+
     /// <summary>HTTP and WebSocket port (docs/ARCHITECTURE.md, Connectivity).</summary>
     public const int Port = 8765;
 
@@ -21,6 +24,11 @@ public sealed record LeverDeckOptions
 
     /// <summary>Whether the agent advertises itself as <c>leverdeck.local</c>. Tests turn it off.</summary>
     public bool MdnsEnabled { get; init; } = true;
+
+    /// <summary>How long a new <c>/ws</c> connection may take to send <c>connectDevice</c> before it is closed.</summary>
+    public TimeSpan ConnectTimeout { get; init; } = DefaultConnectTimeout;
+
+    public static TimeSpan DefaultConnectTimeout { get; } = TimeSpan.FromSeconds(10);
 
     /// <summary><c>%APPDATA%\LeverDeck</c>, resolved through the known folder rather than hardcoded.</summary>
     public static string DefaultDataDirectory()
@@ -52,6 +60,7 @@ public sealed record LeverDeckOptions
         {
             DataDirectory = dataDirectory,
             MdnsEnabled = ReadFlag(configuration, MdnsEnabledKey, defaultValue: true),
+            ConnectTimeout = ReadDuration(configuration, ConnectTimeoutKey, DefaultConnectTimeout),
         };
     }
 
@@ -66,5 +75,18 @@ public sealed record LeverDeckOptions
         return bool.TryParse(raw, out var value)
             ? value
             : throw new InvalidOperationException($"{key} must be 'true' or 'false', got '{raw}'.");
+    }
+
+    private static TimeSpan ReadDuration(IConfiguration configuration, string key, TimeSpan defaultValue)
+    {
+        var raw = configuration[key];
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return defaultValue;
+        }
+
+        return TimeSpan.TryParse(raw, CultureInfo.InvariantCulture, out var value) && value > TimeSpan.Zero
+            ? value
+            : throw new InvalidOperationException($"{key} must be a positive duration such as '00:00:10', got '{raw}'.");
     }
 }
