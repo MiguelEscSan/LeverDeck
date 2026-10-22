@@ -26,9 +26,9 @@ Specs: [docs/ROADMAP.md](../../docs/ROADMAP.md) Phases 3 and 4.
 
 | ID | Task | Route | Status |
 |---|---|---|---|
-| P3-1 | Protocol DTOs, envelope, JSON source generation, contract round-trip tests | delegated writer | pending |
-| P3-2 | DTO ⇄ domain mappers in Infrastructure, `ActionFailed` code | delegated writer | pending |
-| P3-3 | TypeScript generation + snapshot test; admin-auth decision in ARCHITECTURE.md | delegated writer | pending |
+| P3-1 | Protocol DTOs, envelope, JSON source generation, contract round-trip tests | delegated writer | done |
+| P3-2 | DTO ⇄ domain mappers in Infrastructure, `ActionFailed` code | delegated writer | done |
+| P3-3 | TypeScript generation + snapshot test; admin-auth decision in ARCHITECTURE.md | delegated writer | done |
 | P4-1 | JSON repositories, in-memory pairing store, token generator/hasher, clock, admin token store | delegated writer | pending |
 | P4-2 | `SendInput` executor (Hotkey, MediaKey) via CsWin32 + executor-coverage architecture test | delegated writer | pending |
 | P4-3 | mDNS advertiser via `DnsServiceRegister`; DI wiring in App; Development-only debug endpoint | delegated writer | pending |
@@ -42,3 +42,13 @@ Specs: [docs/ROADMAP.md](../../docs/ROADMAP.md) Phases 3 and 4.
 ## Progress
 
 - 2026-10-22: document created; decisions recorded.
+- 2026-10-22: Phase 3 done, 686 tests green, AOT publish clean (9.97 MB, no warnings — Protocol not yet reachable from
+  App, so trimming coverage comes with Phase 4 wiring).
+  - **TypeGen rejected:** 7.0.0 emits empty base interfaces without literal `type` fields, maps `DateTimeOffset` to
+    `Date` and enums to numbers. Replaced by `agent/tools/LeverDeck.ProtocolGen`, which reads the source-generated
+    `ProtocolJsonContext` metadata so the TypeScript cannot drift from the wire; a snapshot test fails if it is stale.
+  - **Two discriminators:** System.Text.Json cannot nest polymorphic hierarchies, so `kind` is handled by a custom
+    `MessageConverter` and `type` by `[JsonPolymorphic]` on each kind base.
+  - **ROADMAP deviations (documented there):** ack payload only for `registerApp`; `pairDevice` is HTTP-only;
+    `error.requestId` may be null; `updateSettings` uses `SettingsUpdateDto` (password: null keeps, "" clears).
+  - Architecture test tightened: Protocol references no project.
