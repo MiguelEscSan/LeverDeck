@@ -1,8 +1,16 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { ConnectionStatus } from '../../../../../core/connection/domain/connection-status';
-import type { ButtonDto, DeviceDto, PairingSessionDto, ProfileDto } from '../../../../../core/protocol';
+import type {
+  ButtonDto,
+  DeviceDto,
+  InstalledGameDto,
+  PairingSessionDto,
+  ProfileDto,
+  RegisteredAppDto,
+} from '../../../../../core/protocol';
 import { type AdminAccess, AdminFacade } from '../../../application/admin.facade';
+import { LibraryFacade } from '../../../application/library.facade';
 import { type EditorCell, type EditorSelection, ProfileEditorFacade } from '../../../application/profile-editor.facade';
 import { AdminPage } from './admin-page';
 
@@ -103,17 +111,47 @@ class FakeEditor {
   }
 }
 
+class FakeLibrary {
+  readonly apps = signal<RegisteredAppDto[]>([]);
+  readonly games = signal<InstalledGameDto[]>([]);
+  readonly gamesLoading = signal(false);
+  readonly busy = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly calls: string[] = [];
+
+  async registerApp(displayName: string, path: string): Promise<string | null> {
+    this.calls.push(`register ${displayName} ${path}`);
+    this.apps.set([{ appId: 'a1', displayName, path }]);
+    return 'a1';
+  }
+
+  async unregisterApp(appId: string): Promise<void> {
+    this.calls.push(`unregister ${appId}`);
+  }
+
+  async refreshGames(): Promise<void> {
+    this.calls.push('refreshGames');
+  }
+
+  dismissError(): void {
+    this.error.set(null);
+  }
+}
+
 describe('AdminPage', () => {
   let admin: FakeAdmin;
   let editor: FakeEditor;
+  let library: FakeLibrary;
 
   beforeEach(() => {
     admin = new FakeAdmin();
     editor = new FakeEditor();
+    library = new FakeLibrary();
     TestBed.configureTestingModule({
       providers: [
         { provide: AdminFacade, useValue: admin },
         { provide: ProfileEditorFacade, useValue: editor },
+        { provide: LibraryFacade, useValue: library },
       ],
     });
   });
@@ -199,6 +237,22 @@ describe('AdminPage', () => {
     await fixture.whenStable();
 
     expect(element.querySelector('.banner')).toBeNull();
+  });
+
+  it('registers an app from the apps card and clears the form', async () => {
+    const { fixture, element } = await render();
+    const path = element.querySelector('#app-path') as HTMLInputElement;
+    path.value = '"C:\\Program Files\\OBS\\obs64.exe"';
+    path.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+
+    expect((element.querySelector('#app-name') as HTMLInputElement).value).toBe('obs64');
+    (element.querySelector('app-app-list form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    expect(library.calls).toEqual(['register obs64 C:\\Program Files\\OBS\\obs64.exe']);
+    expect(element.querySelector('app-app-list .name')?.textContent).toBe('obs64');
+    expect((element.querySelector('#app-path') as HTMLInputElement).value).toBe('');
   });
 
   it('shows the facade error above the cards', async () => {

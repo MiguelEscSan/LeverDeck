@@ -1,19 +1,45 @@
 import type {
   ActionDto,
+  GameStoreDto,
+  InstalledGameDto,
   KeyModifierDto,
   MediaKeyDto,
   PageTargetDto,
   ProfileSummaryDto,
+  RegisteredAppDto,
   VirtualKeyDto,
 } from '../../../core/protocol';
 
 /**
- * The actions the editor can configure for now. The others (launch app, open URL, OBS scene, launch game) need their
- * own pickers and arrive later in Phase 7; a key that already has one keeps it and shows it read-only.
+ * The actions the editor can configure. OBS scenes need an OBS connection and arrive later; a key that already has
+ * one keeps it and shows it read-only.
  */
-export type EditableActionType = 'hotkey' | 'mediaKey' | 'changePage' | 'switchProfile';
+export type EditableActionType =
+  | 'hotkey'
+  | 'mediaKey'
+  | 'openUrl'
+  | 'launchApp'
+  | 'launchGame'
+  | 'changePage'
+  | 'switchProfile';
 
-export const EDITABLE_ACTION_TYPES: readonly EditableActionType[] = ['hotkey', 'mediaKey', 'changePage', 'switchProfile'];
+export const EDITABLE_ACTION_TYPES: readonly EditableActionType[] = [
+  'hotkey',
+  'mediaKey',
+  'openUrl',
+  'launchApp',
+  'launchGame',
+  'changePage',
+  'switchProfile',
+];
+
+/** What picking an action needs to know: the key's profile, the other profiles, the registered apps and games. */
+export interface ActionContext {
+  readonly profileId: string;
+  readonly profiles: readonly ProfileSummaryDto[];
+  readonly apps: readonly RegisteredAppDto[];
+  readonly games: readonly InstalledGameDto[];
+}
 
 /** Every action type by name. A `Record` over the generated union, so a new action breaks the build until named. */
 export const ACTION_TYPE_NAMES: Readonly<Record<ActionDto['type'], string>> = {
@@ -151,28 +177,82 @@ export function toggleModifier(
 }
 
 /**
- * The action a key gets when its type changes. A profile switch targets another profile when there is one, else the
- * key's own profile (which the agent allows).
+ * The action a key gets when its type changes, or `null` when it needs input first (a URL, or an app or game when
+ * none is registered or installed). A profile switch targets another profile when there is one, else the key's own
+ * profile (which the agent allows).
  */
-export function defaultAction(
-  type: EditableActionType,
-  profileId: string,
-  profiles: readonly ProfileSummaryDto[],
-): ActionDto {
+export function defaultAction(type: EditableActionType, context: ActionContext): ActionDto | null {
   switch (type) {
     case 'hotkey':
       return { type: 'hotkey', modifiers: ['ctrl'], key: 'c' };
     case 'mediaKey':
       return { type: 'mediaKey', key: 'playPause' };
+    case 'openUrl':
+      return null;
+    case 'launchApp': {
+      const app = context.apps[0];
+      return app ? { type: 'launchApp', appId: app.appId } : null;
+    }
+    case 'launchGame': {
+      const game = context.games[0];
+      return game ? { type: 'launchGame', store: game.store, gameId: game.gameId } : null;
+    }
     case 'changePage':
       return { type: 'changePage', target: 'next', pageIndex: null };
-    case 'switchProfile':
-      return { type: 'switchProfile', profileId: profiles.find((p) => p.id !== profileId)?.id ?? profileId };
+    case 'switchProfile': {
+      const other = context.profiles.find((profile) => profile.id !== context.profileId);
+      return { type: 'switchProfile', profileId: other?.id ?? context.profileId };
+    }
   }
 }
 
+export const GAME_STORE_NAMES: Readonly<Record<GameStoreDto, string>> = {
+  steam: 'Steam',
+  epic: 'Epic Games',
+};
+
+export const GAME_STORES = Object.keys(GAME_STORE_NAMES) as GameStoreDto[];
+
+export const URL_MAX_LENGTH = 2048;
+
+/**
+ * Reads what the owner typed as a link: an absolute http or https URL of at most 2048 characters, as the agent
+ * requires. A bare address ("example.com/page") gets `https://`. Returns the normalized URL or why it is refused.
+ */
+export function parseUrl(text: string): { readonly url: string } | { readonly error: string } {
+  const trimmed = text.trim();
+  if (trimmed.length === 0) {
+    return { error: 'Type the address of the page.' };
+  }
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  let url: URL;
+  try {
+    url = new URL(withScheme);
+  } catch {
+    return { error: 'That is not a valid address.' };
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return { error: 'Only http and https links can be opened.' };
+  }
+  if (!url.hostname) {
+    return { error: 'That is not a valid address.' };
+  }
+  if (url.href.length > URL_MAX_LENGTH) {
+    return { error: `Use at most ${URL_MAX_LENGTH} characters.` };
+  }
+  return { url: url.href };
+}
+
+/** Why a store id would be refused, or `null`: Steam ids are 1–10 digits, Epic ids 1–64 letters or digits. */
+export function gameIdError(store: GameStoreDto, gameId: string): string | null {
+  if (store === 'steam') {
+    return /^[0-9]{1,10}$/.test(gameId) ? null : 'A Steam app id is 1–10 digits, like 570.';
+  }
+  return /^[A-Za-z0-9]{1,64}$/.test(gameId) ? null : 'An Epic app name is 1–64 letters or digits.';
+}
+
 /** One line describing what a key does, for the editor. */
-export function actionSummary(action: ActionDto, profiles: readonly ProfileSummaryDto[]): string {
+export function actionSummary(action: ActionDto, context: Pick<ActionContext, 'profiles' | 'apps' | 'games'>): string {
   switch (action.type) {
     case 'hotkey':
       return [...action.modifiers.map((modifier) => MODIFIER_NAMES[modifier]), VIRTUAL_KEY_NAMES[action.key]].join(' + ');
@@ -181,17 +261,21 @@ export function actionSummary(action: ActionDto, profiles: readonly ProfileSumma
     case 'changePage':
       return action.target === 'specific' ? `Go to page ${(action.pageIndex ?? 0) + 1}` : PAGE_TARGET_NAMES[action.target];
     case 'switchProfile': {
-      const target = profiles.find((profile) => profile.id === action.profileId);
+      const target = context.profiles.find((profile) => profile.id === action.profileId);
       return target ? `Switch to ${target.name}` : 'Switch to a missing profile';
     }
-    case 'launchApp':
-      return 'Launch an app';
+    case 'launchApp': {
+      const app = context.apps.find((candidate) => candidate.appId === action.appId);
+      return app ? `Launch ${app.displayName}` : 'Launch an app that is no longer registered';
+    }
     case 'openUrl':
       return `Open ${action.url}`;
     case 'obsScene':
       return `OBS scene ${action.sceneName}`;
-    case 'launchGame':
-      return `Launch a ${action.store === 'steam' ? 'Steam' : 'Epic'} game`;
+    case 'launchGame': {
+      const game = context.games.find((candidate) => candidate.store === action.store && candidate.gameId === action.gameId);
+      return `Play ${game?.name ?? action.gameId} (${GAME_STORE_NAMES[action.store]})`;
+    }
   }
 }
 
@@ -221,7 +305,8 @@ export function suggestedIcon(action: ActionDto): string {
     case 'launchGame':
       return 'gamepad';
     case 'launchApp':
+      return 'window';
     case 'openUrl':
-      return 'lightning';
+      return 'globe';
   }
 }

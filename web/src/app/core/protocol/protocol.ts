@@ -142,7 +142,8 @@ export type QueryMessage =
   | GetDevicesQuery
   | GetPairingSessionQuery
   | GetSettingsQuery
-  | GetAgentStatusQuery;
+  | GetAgentStatusQuery
+  | GetInstalledGamesQuery;
 
 export type QueryResultMessage =
   | ProfilesResult
@@ -150,7 +151,8 @@ export type QueryResultMessage =
   | DevicesResult
   | PairingSessionResult
   | SettingsResult
-  | AgentStatusResult;
+  | AgentStatusResult
+  | InstalledGamesResult;
 
 export interface AckMessage {
   kind: 'ack';
@@ -298,6 +300,13 @@ export interface GetDevicesQuery {
   payload: EmptyPayload;
 }
 
+export interface GetInstalledGamesQuery {
+  kind: 'query';
+  type: 'getInstalledGames';
+  requestId: string;
+  payload: EmptyPayload;
+}
+
 export interface GetPairingSessionQuery {
   kind: 'query';
   type: 'getPairingSession';
@@ -335,6 +344,23 @@ export interface HotkeyActionDto {
   type: 'hotkey';
   modifiers: KeyModifierDto[];
   key: VirtualKeyDto;
+}
+
+export interface InstalledGameDto {
+  store: GameStoreDto;
+  gameId: string;
+  name: string;
+}
+
+export interface InstalledGamesPayload {
+  games: InstalledGameDto[];
+}
+
+export interface InstalledGamesResult {
+  kind: 'queryResult';
+  type: 'installedGames';
+  requestId: string;
+  payload: InstalledGamesPayload;
 }
 
 export interface LaunchAppActionDto {

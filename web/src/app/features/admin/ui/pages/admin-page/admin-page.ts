@@ -1,8 +1,10 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AdminFacade } from '../../../application/admin.facade';
+import { LibraryFacade } from '../../../application/library.facade';
 import { ProfileEditorFacade } from '../../../application/profile-editor.facade';
 import { gridLabel } from '../../../domain/profile-editing';
+import { AppList, type AppRegistration } from '../../components/app-list/app-list';
 import { DeviceList } from '../../components/device-list/device-list';
 import { EditorGrid } from '../../components/editor-grid/editor-grid';
 import { KeyInspector } from '../../components/key-inspector/key-inspector';
@@ -25,13 +27,14 @@ const STATUS_LABELS = {
 @Component({
   selector: 'app-admin-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, DeviceList, EditorGrid, KeyInspector, PageBar, PairingCard, ProfileList, ProfileToolbar],
+  imports: [NgTemplateOutlet, AppList, DeviceList, EditorGrid, KeyInspector, PageBar, PairingCard, ProfileList, ProfileToolbar],
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.scss',
 })
 export class AdminPage {
   protected readonly admin = inject(AdminFacade);
   protected readonly editor = inject(ProfileEditorFacade);
+  protected readonly library = inject(LibraryFacade);
 
   protected readonly statusLabel = computed(() => STATUS_LABELS[this.admin.status()]);
   protected readonly selectedKey = computed(() => {
@@ -58,5 +61,11 @@ export class AdminPage {
 
   constructor() {
     this.admin.start();
+  }
+
+  protected async registerApp(registration: AppRegistration, form: AppList): Promise<void> {
+    if (await this.library.registerApp(registration.displayName, registration.path)) {
+      form.reset();
+    }
   }
 }

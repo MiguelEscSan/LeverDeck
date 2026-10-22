@@ -1,8 +1,14 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { KEY_ICONS } from '../../../../../core/keys/domain/key-icons';
-import type { ActionDto, ButtonDto, KeyColorDto, ProfileSummaryDto } from '../../../../../core/protocol';
+import type {
+  ButtonDto,
+  InstalledGameDto,
+  KeyColorDto,
+  ProfileSummaryDto,
+  RegisteredAppDto,
+} from '../../../../../core/protocol';
 import { type ButtonChange, LABEL_MAX_LENGTH } from '../../../domain/profile-editing';
-import { ActionEditor } from '../action-editor/action-editor';
+import { type ActionChoice, ActionEditor } from '../action-editor/action-editor';
 import { ColorSwatches } from '../color-swatches/color-swatches';
 import type { GridPosition } from '../editor-grid/editor-grid';
 import { KeyFace } from '../key-face/key-face';
@@ -58,7 +64,11 @@ import { KeyFace } from '../key-face/key-face';
         [profileId]="profileId()"
         [profiles]="profiles()"
         [pageCount]="pageCount()"
+        [apps]="apps()"
+        [games]="games()"
+        [gamesLoading]="gamesLoading()"
         (changed)="actionChanged.emit($event)"
+        (refreshGames)="refreshGames.emit()"
       />
 
       <button class="ld-btn ld-btn--danger remove" type="button" (click)="remove.emit()">Remove key</button>
@@ -132,9 +142,13 @@ export class KeyInspector {
   readonly profileId = input.required<string>();
   readonly profiles = input.required<readonly ProfileSummaryDto[]>();
   readonly pageCount = input.required<number>();
+  readonly apps = input<readonly RegisteredAppDto[]>([]);
+  readonly games = input<readonly InstalledGameDto[]>([]);
+  readonly gamesLoading = input(false);
 
   readonly changed = output<Omit<ButtonChange, 'action'>>();
-  readonly actionChanged = output<ActionDto>();
+  readonly actionChanged = output<ActionChoice>();
+  readonly refreshGames = output();
   readonly add = output();
   readonly remove = output();
 

@@ -169,6 +169,25 @@ describe('ProfileEditorFacade', () => {
       });
     });
 
+    it('labels a key after the app or game it launches until the owner labels it', async () => {
+      editor.selectCell(1, 1);
+      editor.addKey();
+      editor.changeAction({ type: 'launchGame', store: 'steam', gameId: '1091500' }, 'Cyberpunk 2077: Phantom');
+      expect(editor.selection()).toMatchObject({
+        kind: 'key',
+        button: { label: 'Cyberpunk 20', iconId: 'gamepad', action: { type: 'launchGame', gameId: '1091500' } },
+      });
+
+      editor.changeAction({ type: 'launchApp', appId: 'a1' }, 'OBS Studio', 'Cyberpunk 2077: Phantom');
+      expect(editor.selection()).toMatchObject({ kind: 'key', button: { label: 'OBS Studio', iconId: 'window' } });
+
+      editor.updateKey({ label: 'Stream' });
+      editor.changeAction({ type: 'launchApp', appId: 'a2' }, 'Discord', 'OBS Studio');
+      await settle();
+
+      expect(editor.selection()).toMatchObject({ kind: 'key', button: { label: 'Stream' } });
+    });
+
     it('removes the selected key and leaves its position selected', async () => {
       editor.selectCell(0, 0);
       editor.removeKey();

@@ -20,6 +20,7 @@ import {
   type EditResult,
   findButton,
   GRID_SIZES,
+  LABEL_MAX_LENGTH,
   newProfile,
   nextProfileColor,
   nextProfileName,
@@ -47,6 +48,9 @@ export type EditorSelection =
   | { readonly kind: 'empty'; readonly row: number; readonly column: number };
 
 const FALLBACK_GRID: GridDto = GRID_SIZES[1];
+
+/** A key label from an app or game name: trimmed and cut to the label limit. */
+const suggestedLabel = (name: string): string => name.trim().slice(0, LABEL_MAX_LENGTH).trim();
 
 /**
  * The desktop editor's grid editing (Phase 7): profiles, pages and keys. The PC is the only place a layout changes;
@@ -277,16 +281,27 @@ export class ProfileEditorFacade {
     }
   }
 
-  /** Changes what the selected key does; an icon that still matched the old action follows the new one. */
-  changeAction(action: ActionDto): void {
+  /**
+   * Changes what the selected key does. An icon that still matched the old action follows the new one, and so does a
+   * label that is empty or still the suggested name of the old app or game: it becomes the name of the new one, cut
+   * to the label limit.
+   */
+  changeAction(action: ActionDto, name?: string, previousName?: string): void {
     const profile = this.profileState();
     const selection = this.selection();
     if (!profile || selection?.kind !== 'key') {
       return;
     }
     const { button } = selection;
-    const iconFollows = button.iconId === suggestedIcon(button.action);
-    this.apply(updateButton(profile, button.id, iconFollows ? { action, iconId: suggestedIcon(action) } : { action }));
+    const change: ButtonChange = { action };
+    if (button.iconId === suggestedIcon(button.action)) {
+      change.iconId = suggestedIcon(action);
+    }
+    const label = button.label.trim();
+    if (name && (label === '' || (previousName !== undefined && label === suggestedLabel(previousName)))) {
+      change.label = suggestedLabel(name);
+    }
+    this.apply(updateButton(profile, button.id, change));
   }
 
   removeKey(): void {

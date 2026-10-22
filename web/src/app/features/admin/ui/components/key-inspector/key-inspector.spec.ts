@@ -47,7 +47,7 @@ describe('KeyInspector', () => {
       { label: 'Pause' },
       { color: 'orange' },
       { iconId: 'star' },
-      { type: 'mediaKey', key: 'mute' },
+      { action: { type: 'mediaKey', key: 'mute' }, name: undefined, previousName: undefined },
       'remove',
     ]);
     expect(element.querySelector('.icon[aria-label="Play/Pause"]')?.getAttribute('aria-checked')).toBe('true');

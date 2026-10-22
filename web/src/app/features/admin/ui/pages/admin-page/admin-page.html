@@ -65,12 +65,30 @@
           [profileId]="profile.id"
           [profiles]="editor.profiles()"
           [pageCount]="editor.pageCount()"
+          [apps]="library.apps()"
+          [games]="library.games()"
+          [gamesLoading]="library.gamesLoading()"
           (changed)="editor.updateKey($event)"
-          (actionChanged)="editor.changeAction($event)"
+          (actionChanged)="editor.changeAction($event.action, $event.name, $event.previousName)"
+          (refreshGames)="library.refreshGames()"
           (add)="editor.addKey()"
           (remove)="editor.removeKey()"
         />
       }
+      @if (library.error(); as error) {
+        <p class="banner" role="alert">
+          <span class="ld-error">{{ error }}</span>
+          <button type="button" class="dismiss" aria-label="Dismiss" (click)="library.dismissError()">×</button>
+        </p>
+      }
+      <app-app-list
+        #appList
+        class="card"
+        [apps]="library.apps()"
+        [busy]="library.busy()"
+        (register)="registerApp($event, appList)"
+        (remove)="library.unregisterApp($event)"
+      />
       @if (admin.error(); as error) {
         <p class="ld-error error" role="alert">{{ error }}</p>
       }
