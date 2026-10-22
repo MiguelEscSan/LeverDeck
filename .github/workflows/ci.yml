@@ -9,6 +9,32 @@ permissions:
   contents: read
 
 jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
   agent:
     runs-on: windows-latest
     defaults:
@@ -17,21 +43,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: agent/global.json
+
+      # The agent embeds web/dist; RequireWebUi=true fails the build instead of embedding the fallback page.
+      - name: Build web app
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
 
       - name: Restore
         run: dotnet restore LeverDeck.slnx
 
       - name: Build
-        run: dotnet build LeverDeck.slnx --no-restore -c Release
+        run: dotnet build LeverDeck.slnx --no-restore -c Release -p:RequireWebUi=true
 
       - name: Test
         run: dotnet test LeverDeck.slnx --no-build -c Release
 
       - name: Publish (Native AOT)
-        run: dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck
+        run: dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck -p:RequireWebUi=true
 
       - uses: actions/upload-artifact@v4
         with:

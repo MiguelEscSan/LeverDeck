@@ -12,9 +12,9 @@ Guiding rule: build **one thin vertical slice end to end** (phone tap → hotkey
 - [x] Install the .NET 10 SDK and the "Desktop development with C++" build tools (needed for Native AOT on Windows).
       Node LTS is installed; the Angular CLI comes in Phase 5.
 - [x] Add `.editorconfig` and a root `.gitignore` (`bin/`, `obj/`, `node_modules/`, `dist/`, `.atl/*.cache.json`).
-      TypeScript conventions are added with the Angular app in Phase 5.
+      TypeScript conventions were added with the Angular app in Phase 5.
 - [x] Add a GitHub Actions workflow on `windows-latest` that builds, tests and AOT-publishes `agent/`.
-      The `web/` job is added in Phase 5.
+      The `web/` job was added in Phase 5.
 
 **Done when:** a clean clone builds in CI with empty projects.
 
@@ -294,11 +294,18 @@ generated folder is never edited.
 
 ## Phase 5 — PWA skeleton (Angular)
 
-- [ ] `ng new web` (standalone, strict), `ng add @angular/pwa`, ESLint with `eslint-plugin-boundaries`
-      (features never import each other; shared code via `core/`).
-- [ ] `core/connection`: one WebSocket service with reconnect/backoff and a `connected | reconnecting | offline` signal.
-- [ ] Theme tokens from [VISUAL-REFERENCE.md](VISUAL-REFERENCE.md) as CSS custom properties.
-- [ ] Build output embedded in the agent with `ManifestEmbeddedFileProvider`.
+- [x] `ng new web` (standalone, strict), `ng add @angular/pwa`, ESLint with `eslint-plugin-boundaries`
+      (features never import each other; shared code via `core/`). Angular CLI 22, zoneless, Vitest; the boundaries
+      config also keeps presentational components away from facades and adapters.
+- [x] `core/connection`: one WebSocket service with reconnect/backoff and a `connected | reconnecting | offline` signal.
+      Port + WebSocket adapter + facade; backoff 0.5 s doubling to a 30 s cap with jitter; `offline` while the device
+      has no network. Same-origin `ws:`/`wss:` URL on `/ws` (the endpoint itself arrives in Phase 6).
+- [x] Theme tokens from [VISUAL-REFERENCE.md](VISUAL-REFERENCE.md) as CSS custom properties (dark first, light via
+      `prefers-color-scheme`), and an app shell showing "LeverDeck" and the connection status.
+- [x] Build output embedded in the agent with `ManifestEmbeddedFileProvider`, with an SPA fallback to `index.html`
+      (never under `/api`, `/ws`, `/admin/ws`, `/debug`, `/health`), `no-cache` for `index.html`, `ngsw*` and the
+      manifest, one-year `immutable` for hashed bundles. Without a web build the agent embeds a fallback page.
+- [ ] Manual (owner): open `http://leverdeck.local:8765` on the phone and see the shell load from the exe.
 
 **Done when:** opening `http://leverdeck.local:8765` on the phone loads the PWA from the exe.
 

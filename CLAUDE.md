@@ -37,6 +37,15 @@ Agent (run from `agent/`):
   (`TypeScriptSnapshotTests` fails while the committed files are out of date).
 - Publish: `dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck` (Native AOT).
   Needs the MSVC build tools; if the linker reports `vswhere.exe` not found, add
-  `C:\Program Files (x86)\Microsoft Visual Studio\Installer` to `PATH`.
+  `C:\Program Files (x86)\Microsoft Visual Studio\Installer` to `PATH`. Build `web/` first, or the exe embeds the
+  fallback page instead of the PWA.
+- Build with the PWA embedded in one step: `dotnet build src/LeverDeck.App -p:BuildWebUi=true` (runs npm in `web/`).
+  Without a web build the agent embeds a fallback page; `-p:RequireWebUi=true` makes that an error (CI does this).
 
-Web: not scaffolded yet (Phase 5).
+Web (run from `web/`, Node 24):
+
+- Install: `npm ci`
+- Lint (includes architecture boundaries): `npm run lint`
+- Test (Vitest, single run): `npm test`
+- Build (into `dist/leverdeck/browser`, embedded by the agent): `npm run build`
+- Dev server: `npm start` (`http://localhost:4200`; no agent behind it)

@@ -5,10 +5,18 @@
     <AssemblyName>leverdeck</AssemblyName>
     <RootNamespace>LeverDeck.App</RootNamespace>
     <PublishAot>true</PublishAot>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" />
+    <InternalsVisibleTo Include="LeverDeck.App.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../LeverDeck.Infrastructure/LeverDeck.Infrastructure.csproj" />
   </ItemGroup>
+
+  <Import Project="WebUi.targets" />
 
 </Project>

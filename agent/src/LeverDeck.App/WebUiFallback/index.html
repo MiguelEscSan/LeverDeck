@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="leverdeck-web-ui" content="fallback" />
+    <meta name="color-scheme" content="dark light" />
+    <title>LeverDeck</title>
+    <style>
+      :root { color-scheme: dark; --bg: #2b2b2b; --text: #ffffff; --muted: #a0a0a0; }
+      @media (prefers-color-scheme: light) {
+        :root { color-scheme: light; --bg: #f2f2f2; --text: #151515; --muted: #595959; }
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        box-sizing: border-box;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.5 "Segoe UI", Inter, system-ui, sans-serif;
+      }
+      main { max-width: 32rem; }
+      h1 { font-size: 26px; margin: 0 0 8px; }
+      p { color: var(--muted); margin: 0 0 8px; }
+      code { color: var(--text); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>LeverDeck</h1>
+      <p>The agent is running, but this build does not include the web app.</p>
+      <p>Run <code>npm ci</code> and <code>npm run build</code> in <code>web/</code>, then rebuild the agent.</p>
+    </main>
+  </body>
+</html>

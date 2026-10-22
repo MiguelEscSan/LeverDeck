@@ -43,8 +43,17 @@ The agent is published as one executable, `leverdeck.exe`: Native AOT preferred;
 the fallback is a self-contained single-file publish. Serialization uses System.Text.Json source generators (required by AOT).
 WebSockets are raw ASP.NET Core WebSockets, not SignalR.
 
-The Angular build output (`web/dist/`) is embedded into the executable as embedded resources and served through
-`ManifestEmbeddedFileProvider`.
+The Angular build output (`web/dist/leverdeck/browser`) is embedded into the executable as embedded resources and
+served through `ManifestEmbeddedFileProvider` (`LeverDeck.App/WebUi.targets` and `WebUi.cs`):
+
+- Static files come from the embedded manifest. Any other GET that is not an agent route (`/api`, `/ws`, `/admin/ws`,
+  `/debug`, `/health`) gets `index.html`, so client routes survive a reload; other methods get 404.
+- `Cache-Control`: hashed bundles (`main-7W3HWPXS.js`) are `public, max-age=31536000, immutable`; everything else
+  (`index.html`, `ngsw.json`, `ngsw-worker.js`, the manifest, icons) is `no-cache`, so the service worker sees updates.
+- Without a web build (fresh clone, agent-only work) the agent still builds and embeds a small fallback page that says
+  the web app was not built. `dotnet build` never runs npm; `-p:BuildWebUi=true` runs `npm ci` and `npm run build`
+  first, and `-p:RequireWebUi=true` (used by CI and release) fails instead of falling back. The embedded source is
+  recorded as `[AssemblyMetadata("LeverDeck.WebUi", "angular" | "fallback")]`.
 
 ## Connectivity
 
@@ -185,17 +194,25 @@ an `Ack`/`Error`, or an `Event`, correlated by a request id.
 
 ```
 web/src/app/
-├── core/               connection port, generated protocol types, DI tokens
-├── pairing/
-├── deck/
-├── profiles/
-└── settings/
-    ├── domain/          models and rules of the feature
-    ├── application/     facade: Signals for queries, methods for commands
-    ├── infrastructure/  adapters implementing core ports
-    └── ui/
-        ├── pages/       containers — inject the facade
-        └── components/  presentational — input()/output() only
+├── app.ts, app.config.ts, app.routes.ts   composition root: providers (ports → adapters) and routes
+├── core/
+│   ├── protocol/        generated wire types (never edited by hand)
+│   └── connection/      shared module, same layers as a feature (no ui/)
+│       ├── domain/          ConnectionStatus, message unions, backoff policy
+│       ├── application/     ConnectionPort (abstract class) and ConnectionFacade
+│       └── infrastructure/  WebSocket adapter, wire format, socket URL, provideConnection()
+└── features/
+    ├── shell/           app frame: header with the name and the connection status
+    ├── pairing/         (Phase 6)
+    ├── deck/            (Phase 6)
+    ├── profiles/
+    └── settings/
+        ├── domain/          models and rules of the feature
+        ├── application/     facade: Signals for queries, methods for commands
+        ├── infrastructure/  adapters implementing core ports
+        └── ui/
+            ├── pages/       containers — inject the facade
+            └── components/  presentational — input()/output() only
 ```
 
 - Components never touch the WebSocket; they talk to the facade only.
@@ -203,7 +220,11 @@ web/src/app/
 - The connection adapter owns reconnection and the USB/LAN fallback; the UI is unaware of the transport.
 - Standalone components, `ChangeDetectionStrategy.OnPush`, Signals for state, `inject()` for DI.
 - Features do not import from each other; shared code goes through `core/`.
-- Layer and feature boundaries are enforced with `eslint-plugin-boundaries`.
+- Layer and feature boundaries are enforced with `eslint-plugin-boundaries` (`web/eslint.config.js`): a layer may
+  import only inner layers of its own feature and `core/`; presentational components may import only domain types and
+  other components; files outside `core/`, `features/` and the composition root fail the lint.
+- Theme tokens are CSS custom properties (`--ld-*`) in `web/src/styles.scss`: dark first, light via
+  `prefers-color-scheme`, with the mobile baseline (safe areas, `100dvh`, no tap highlight, 16 px inputs).
 
 ## Rules
 
