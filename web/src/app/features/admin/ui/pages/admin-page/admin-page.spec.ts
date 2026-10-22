@@ -1,8 +1,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { ConnectionStatus } from '../../../../../core/connection/domain/connection-status';
-import type { DeviceDto, PairingSessionDto } from '../../../../../core/protocol';
+import type { ButtonDto, DeviceDto, PairingSessionDto, ProfileDto } from '../../../../../core/protocol';
 import { type AdminAccess, AdminFacade } from '../../../application/admin.facade';
+import { type EditorCell, type EditorSelection, ProfileEditorFacade } from '../../../application/profile-editor.facade';
 import { AdminPage } from './admin-page';
 
 const device: DeviceDto = {
@@ -43,12 +44,78 @@ class FakeAdmin {
   }
 }
 
+const play: ButtonDto = {
+  id: 'b1',
+  row: 0,
+  column: 0,
+  label: 'Play',
+  color: 'blue',
+  iconId: 'play-pause',
+  action: { type: 'mediaKey', key: 'playPause' },
+};
+
+const profile: ProfileDto = {
+  id: 'p1',
+  name: 'Streaming',
+  color: 'red',
+  grid: { columns: 3, rows: 3 },
+  pages: [{ index: 0, buttons: [play] }],
+};
+
+class FakeEditor {
+  readonly profiles = signal([{ id: 'p1', name: 'Streaming', color: 'red' as const }]);
+  readonly profile = signal<ProfileDto | null>(profile);
+  readonly page = signal(0);
+  readonly pageCount = signal(1);
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly canDeleteProfile = signal(false);
+  readonly selection = signal<EditorSelection | null>(null);
+  readonly cells = signal<EditorCell[]>(
+    Array.from({ length: 9 }, (_, i) => ({
+      row: Math.floor(i / 3),
+      column: i % 3,
+      button: i === 0 ? play : null,
+    })),
+  );
+  readonly calls: string[] = [];
+
+  selectCell(row: number, column: number): void {
+    this.calls.push(`select ${row}:${column}`);
+    this.selection.set(row === 0 && column === 0 ? { kind: 'key', button: play } : { kind: 'empty', row, column });
+  }
+
+  addKey(): void {
+    this.calls.push('addKey');
+  }
+
+  updateKey(change: object): void {
+    this.calls.push(`update ${JSON.stringify(change)}`);
+  }
+
+  createProfile(): void {
+    this.calls.push('createProfile');
+  }
+
+  dismissError(): void {
+    this.error.set(null);
+  }
+}
+
 describe('AdminPage', () => {
   let admin: FakeAdmin;
+  let editor: FakeEditor;
 
   beforeEach(() => {
     admin = new FakeAdmin();
-    TestBed.configureTestingModule({ providers: [{ provide: AdminFacade, useValue: admin }] });
+    editor = new FakeEditor();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AdminFacade, useValue: admin },
+        { provide: ProfileEditorFacade, useValue: editor },
+      ],
+    });
   });
 
   async function render() {
@@ -93,6 +160,45 @@ describe('AdminPage', () => {
     const { element } = await render();
 
     expect(element.querySelector('[role="alert"]')?.textContent).toContain('This editor link is not valid');
+  });
+
+  it('shows the open profile on the grid and edits the chosen key', async () => {
+    const { fixture, element } = await render();
+
+    expect(element.querySelector('app-profile-list')?.textContent).toContain('Streaming');
+    expect((element.querySelector('#profile-name') as HTMLInputElement).value).toBe('Streaming');
+    const cells = element.querySelectorAll('app-editor-grid .cell');
+    expect(cells).toHaveLength(9);
+
+    (cells[0] as HTMLButtonElement).click();
+    await fixture.whenStable();
+    const label = element.querySelector('#key-label') as HTMLInputElement;
+    expect(label.value).toBe('Play');
+    label.value = 'Pause';
+    label.dispatchEvent(new Event('change'));
+
+    expect(editor.calls).toEqual(['select 0:0', 'update {"label":"Pause"}']);
+  });
+
+  it('adds a key on a chosen empty position', async () => {
+    const { fixture, element } = await render();
+
+    (element.querySelectorAll('app-editor-grid .cell')[4] as HTMLButtonElement).click();
+    await fixture.whenStable();
+    [...element.querySelectorAll('button')].find((button) => button.textContent?.trim() === 'Add a key here')?.click();
+
+    expect(editor.calls).toEqual(['select 1:1', 'addKey']);
+  });
+
+  it('shows and dismisses an editor error', async () => {
+    editor.error.set('One key is outside 3 × 3. Move or remove it first.');
+    const { fixture, element } = await render();
+
+    expect(element.querySelector('.banner')?.textContent).toContain('One key is outside 3 × 3.');
+    (element.querySelector('.dismiss') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('.banner')).toBeNull();
   });
 
   it('shows the facade error above the cards', async () => {

@@ -23,13 +23,13 @@ import { lastSeenLabel } from '../../../domain/admin-time';
             </svg>
             <div class="info">
               <span class="name">{{ device.name }}</span>
-              @if (!device.connected) {
-                <span class="meta">{{ lastSeen(device) }}</span>
-              }
+              <span class="state" [attr.data-connected]="device.connected">
+                <i aria-hidden="true"></i>{{ device.connected ? 'Connected' : 'Offline' }}
+                @if (!device.connected) {
+                  <span class="meta">· {{ lastSeen(device) }}</span>
+                }
+              </span>
             </div>
-            <span class="state" [attr.data-connected]="device.connected">
-              <i aria-hidden="true"></i>{{ device.connected ? 'Connected' : 'Offline' }}
-            </span>
             @if (confirming() === device.id) {
               <button
                 class="ld-btn ld-btn--danger"
@@ -101,6 +101,7 @@ import { lastSeenLabel } from '../../../domain/admin-time';
     }
 
     .info {
+      flex: 1;
       display: flex;
       flex-direction: column;
       min-width: 0;
@@ -122,7 +123,6 @@ import { lastSeenLabel } from '../../../domain/admin-time';
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-left: auto;
       white-space: nowrap;
 
       i {

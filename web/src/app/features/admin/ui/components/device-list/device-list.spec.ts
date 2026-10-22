@@ -34,8 +34,8 @@ describe('DeviceList', () => {
 
     expect(rows.map((row) => row.querySelector('.name')?.textContent)).toEqual(['Pixel 8', 'iPad Air']);
     expect(rows[0].querySelector('.state')?.textContent?.trim()).toBe('Connected');
-    expect(rows[1].querySelector('.state')?.textContent?.trim()).toBe('Offline');
-    expect(rows[1].querySelector('.meta')?.textContent).toBe('Last seen 2 h ago');
+    expect(rows[1].querySelector('.state')?.textContent).toContain('Offline');
+    expect(rows[1].querySelector('.meta')?.textContent).toBe('· Last seen 2 h ago');
   });
 
   it('says so when nothing is paired', async () => {
