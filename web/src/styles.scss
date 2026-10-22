@@ -13,9 +13,11 @@
   --ld-color-line: #3f3f3f;
   --ld-color-field-border: #444444;
 
-  // Text (both AA on every surface above)
+  // Text (both AA on every surface above, except muted on panel: use muted-on-panel there)
   --ld-color-text: #ffffff;
-  --ld-color-muted: #a0a0a0;
+  --ld-color-muted: #a0a0a0; // 5.4:1 on background, 5.9:1 on surface, only 4.35:1 on panel
+  --ld-color-muted-on-panel: #b4b4b4; // 5.5:1 on panel
+  --ld-color-danger-text: #ff8fa6; // error copy, 6.6:1 on background (the red key is only 2.8:1)
 
   // Keys: the closed palette of KeyColor, identical in both themes
   --ld-key-red: #e8315a;
@@ -89,6 +91,8 @@
 
     --ld-color-text: #151515;
     --ld-color-muted: #595959;
+    --ld-color-muted-on-panel: #595959; // 5.5:1 on panel
+    --ld-color-danger-text: #b3123d; // 6.1:1 on background
 
     --ld-color-success: #1a7f45;
     --ld-color-warning: #b8461c;
@@ -161,4 +165,73 @@ a,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+// Shared controls (docs/mocks): used by pairing and the editor, so every feature's buttons look alike.
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ld-space-2);
+  min-height: var(--ld-touch-target);
+  padding: 0 var(--ld-space-5);
+  border-radius: var(--ld-radius-lg);
+  border: 2px solid var(--ld-color-field-border);
+  background: transparent;
+  color: var(--ld-color-text);
+  font: inherit;
+  font-weight: var(--ld-font-weight-semibold);
+  cursor: pointer;
+  transition: transform var(--ld-duration-press) var(--ld-ease-out);
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+.ld-btn--primary {
+  min-height: 58px;
+  border: 3px solid var(--ld-key-border);
+  background: var(--ld-key-blue);
+  color: #ffffff; // 6.5:1 on the blue key
+  font-size: var(--ld-font-size-lg);
+  font-weight: var(--ld-font-weight-bold);
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 20%);
+}
+
+.ld-btn--danger {
+  border-color: var(--ld-key-red);
+}
+
+.ld-field {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 var(--ld-space-4);
+  border: 2px solid var(--ld-color-field-border);
+  border-radius: var(--ld-radius-md);
+  background: var(--ld-color-field);
+  color: var(--ld-color-text);
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ld-key-blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ld-key-blue) 45%, transparent);
+  }
+}
+
+.ld-label {
+  display: block;
+  margin: 0 0 var(--ld-space-2) var(--ld-space-1);
+  color: var(--ld-color-muted);
+  font-size: var(--ld-font-size-sm);
+}
+
+.ld-error {
+  color: var(--ld-color-danger-text);
+  font-size: var(--ld-font-size-md);
 }

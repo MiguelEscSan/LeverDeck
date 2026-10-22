@@ -1,0 +1,36 @@
+@let profile = deck.profile();
+
+<div class="bar">
+  @if (deck.profiles().length > 0) {
+    <app-profile-picker
+      [profiles]="deck.profiles()"
+      [activeId]="profile?.id ?? null"
+      [activeColor]="profile?.color ?? null"
+      (selected)="deck.selectProfile($event)"
+    />
+  }
+</div>
+
+@if (outdated()) {
+  <p class="message" role="alert">This app is older than LeverDeck on your PC. Reload the page to update it.</p>
+} @else if (profile) {
+  <div class="stage">
+    <app-deck-grid
+      [cells]="deck.cells()"
+      [columns]="profile.grid.columns"
+      [rows]="profile.grid.rows"
+      [feedback]="deck.feedback()"
+      [label]="profile.name + ' keys'"
+      (pressed)="deck.press($event)"
+    />
+  </div>
+  @if (deck.pageCount() > 1) {
+    <app-page-dots [count]="deck.pageCount()" [current]="deck.page()" (selected)="deck.goToPage($event)" />
+  }
+} @else if (deck.error(); as error) {
+  <p class="message" role="alert">{{ error }}</p>
+} @else if (deck.status() === 'connected' && !deck.loading()) {
+  <p class="message">No profiles yet. Create one in the editor on your PC.</p>
+} @else {
+  <p class="message" role="status">Connecting to your PC…</p>
+}
