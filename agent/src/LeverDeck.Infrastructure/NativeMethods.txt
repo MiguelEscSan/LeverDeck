@@ -1,0 +1,8 @@
+SendInput
+INPUT
+VIRTUAL_KEY
+DnsServiceConstructInstance
+DnsServiceFreeInstance
+DnsServiceRegister
+DnsServiceDeRegister
+DNS_REQUEST_PENDING

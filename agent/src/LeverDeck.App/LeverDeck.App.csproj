@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <AssemblyName>leverdeck</AssemblyName>
     <RootNamespace>LeverDeck.App</RootNamespace>
     <PublishAot>true</PublishAot>

@@ -1,10 +1,8 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace LeverDeck.App.Tests;
 
-public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests(LeverDeckAppFactory factory) : IClassFixture<LeverDeckAppFactory>
 {
     [Fact]
     public async Task Health_ReturnsOk()
