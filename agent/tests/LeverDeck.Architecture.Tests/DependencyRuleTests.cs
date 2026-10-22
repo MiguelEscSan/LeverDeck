@@ -4,7 +4,7 @@ namespace LeverDeck.Architecture.Tests;
 
 /// <summary>
 /// Enforces the dependency rule from docs/ARCHITECTURE.md by reading the project files:
-/// App → Infrastructure → Application → Domain, and Infrastructure → Protocol → Domain.
+/// App → Infrastructure → Application → Domain, and Infrastructure → Protocol (which references nothing).
 /// </summary>
 public sealed class DependencyRuleTests
 {
@@ -12,7 +12,7 @@ public sealed class DependencyRuleTests
     {
         ["LeverDeck.Domain"] = [],
         ["LeverDeck.Application"] = ["LeverDeck.Domain"],
-        ["LeverDeck.Protocol"] = ["LeverDeck.Domain"],
+        ["LeverDeck.Protocol"] = [],
         ["LeverDeck.Infrastructure"] = ["LeverDeck.Application", "LeverDeck.Protocol"],
         ["LeverDeck.App"] = ["LeverDeck.Infrastructure"],
     };
