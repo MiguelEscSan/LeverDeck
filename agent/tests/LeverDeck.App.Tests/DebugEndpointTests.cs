@@ -47,11 +47,16 @@ public sealed class DebugEndpointTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    /// <summary>The route is compiled only into Debug builds (<c>#if DEBUG</c>); a Release build never has it.</summary>
     [Fact]
-    public void Development_MapsTheDebugRoute()
+    public void Development_MapsTheDebugRouteOnlyInDebugBuilds()
     {
         using var factory = new DevelopmentAppFactory();
 
+#if DEBUG
         Assert.Contains(Path, Routes(factory));
+#else
+        Assert.DoesNotContain(Path, Routes(factory));
+#endif
     }
 }
