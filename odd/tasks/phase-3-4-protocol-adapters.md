@@ -62,3 +62,7 @@ Specs: [docs/ROADMAP.md](../../docs/ROADMAP.md) Phases 3 and 4.
   - **Pending manual checks (owner):** (1) a media key/hotkey reaches the PC via the debug endpoint; (2) `ping
     leverdeck.local` from another device — Microsoft's docs do not confirm that `DnsServiceRegister`'s host name makes
     Windows answer A queries, so this is the real test. Steps in CLAUDE.md "Commands" and the Phase 4 report.
+- 2026-10-22: `profiles.json` was only written on the first read, so the manual check had no ids to use; fixed by
+  seeding the default profile at startup (`DefaultProfileSeeder`, test-first). Manual check (1) passed: the "Vol -"
+  media key lowered the PC volume twice through `/debug/execute` (confirmed by the owner). Check (2), `ping
+  leverdeck.local`, is still pending.

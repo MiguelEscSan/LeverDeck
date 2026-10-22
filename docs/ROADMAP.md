@@ -286,8 +286,9 @@ generated folder is never edited.
       hosted service that re-advertises on address changes (off with `LeverDeck__Mdns__Enabled=false`).
 - [x] Integration tests for the stores (temp folder). DI wiring of the 18 use cases in `LeverDeck.App`, plus a
       Development-only, loopback-only `POST /debug/execute` compiled into Debug builds only.
-- [ ] Manual check (owner): a hotkey reaching the PC through `/debug/execute`, and `ping leverdeck.local` from another
-      device. They cannot run unattended; the debug command is in CLAUDE.md.
+- [x] Manual check: input reaching the PC through `/debug/execute` — the "Vol -" media key lowered the volume twice
+      (HTTP 200 `{"ok":true}`, confirmed by the owner, 2026-10-22).
+- [ ] Manual check (owner): `ping leverdeck.local` from another device.
 
 **Done when:** a debug endpoint can trigger a hotkey on the PC, and `ping leverdeck.local` resolves from another device.
 
