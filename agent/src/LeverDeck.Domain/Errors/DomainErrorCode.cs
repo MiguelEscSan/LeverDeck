@@ -15,7 +15,6 @@ public enum DomainErrorCode
     DeviceNotFound,
     DeviceRevoked,
     ButtonNotFound,
-    IconNotFound,
     ActionNotExecutable,
     Unauthorized,
     Forbidden,
@@ -23,4 +22,7 @@ public enum DomainErrorCode
 
     /// <summary>An action executor tried to run the action and failed (for example, the OS rejected the input).</summary>
     ActionFailed,
+
+    /// <summary>An uploaded icon that does not exist.</summary>
+    IconNotFound,
 }

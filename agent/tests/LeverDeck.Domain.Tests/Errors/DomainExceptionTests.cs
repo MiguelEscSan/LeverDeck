@@ -31,7 +31,7 @@ public sealed class DomainExceptionTests
             "ValidationFailed", "ProfileNotFound", "DuplicateProfileName", "LastProfileCannotBeDeleted",
             "PositionOccupied", "PositionOutOfGrid", "GridTooSmall", "PairingCodeInvalid", "PairingCodeExpired",
             "DeviceNotFound", "DeviceRevoked", "ButtonNotFound", "ActionNotExecutable", "Unauthorized", "Forbidden", "ProtocolMismatch",
-            "ActionFailed",
+            "ActionFailed", "IconNotFound",
         ];
 
         Assert.Equal(expected, Enum.GetNames<DomainErrorCode>());
