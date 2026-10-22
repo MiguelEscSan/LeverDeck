@@ -69,6 +69,8 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 ## Next steps
 
+Full phased plan: [ROADMAP.md](ROADMAP.md).
+
 1. Add `.gitattributes` (`* text=auto eol=lf`) — Git currently warns about LF/CRLF on Windows.
 2. Scaffold `agent/LeverDeck.sln` with the five projects under `src/`, xUnit tests under `tests/`, and the dependency
    rule as project references. Verify Native AOT publish early.

@@ -129,10 +129,11 @@ App ──▶ Infrastructure ──▶ Application ──▶ Domain
 Commands and queries are separated in the application layer. There are no separate read/write models,
 no command bus or mediator, and no event sourcing.
 
-- **Commands** change state and return nothing but an acknowledgement or an error:
-  `ExecuteAction`, `SaveProfile`, `DeleteProfile`, `PairDevice`, `RevokeDevice`.
-- **Queries** read state and have no side effects: `GetProfiles`, `GetProfile`, `GetDevices`, `GetSettings`.
-- **Events** are pushed by the agent to keep every device in sync: `ProfileUpdated`, `DeviceRevoked`, `ObsSceneChanged`.
+- **Commands** change state and return nothing but an acknowledgement or an error
+  (e.g. `ExecuteAction`, `SaveProfile`, `PairDevice`, `RevokeDevice`).
+- **Queries** read state and have no side effects (e.g. `GetProfiles`, `GetProfile`, `GetDevices`).
+- **Events** are pushed by the agent to keep every device in sync (e.g. `ProfileUpdated`, `DeviceRevoked`).
+- The full catalogue of domain types, use cases and wire messages lives in [ROADMAP.md](ROADMAP.md) (Phases 2 and 3).
 - One class per use case, one public `Execute`/`Handle` method.
 
 The WebSocket protocol mirrors this split: every message is a `Command`, a `Query`, a `QueryResult`,
