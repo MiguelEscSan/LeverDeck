@@ -43,3 +43,5 @@ public sealed record AppRegisteredPayload(Guid AppId);
 public sealed record AgentStatusPayload(string AgentVersion, int ProtocolVersion, bool ObsConnected);
 
 public sealed record ObsSceneChangedPayload(string SceneName);
+
+public sealed record InstalledGamesPayload(IReadOnlyList<InstalledGameDto> Games);

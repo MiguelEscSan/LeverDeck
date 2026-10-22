@@ -121,6 +121,8 @@ public sealed class DeviceSocketTests
 
         Assert.Equal(ErrorCodeDto.Forbidden, forbidden.Code);
         Assert.Equal(ErrorCodeDto.Forbidden, devices.Code);
+        var games = Assert.IsType<ErrorMessage>(await device.RequestAsync(new GetInstalledGamesQuery(NewRequestId())));
+        Assert.Equal(ErrorCodeDto.Forbidden, games.Code);
         Assert.IsType<AgentStatusResult>(await device.RequestAsync(new GetAgentStatusQuery(NewRequestId())));
     }
 

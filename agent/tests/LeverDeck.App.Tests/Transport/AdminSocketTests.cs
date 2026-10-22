@@ -68,6 +68,17 @@ public sealed class AdminSocketTests
     }
 
     [Fact]
+    public async Task GetInstalledGames_ListsTheLibrarysGames()
+    {
+        using var factory = new TransportAppFactory();
+        using var admin = await ConnectAdminAsync(factory);
+
+        var result = Assert.IsType<InstalledGamesResult>(await admin.RequestAsync(new GetInstalledGamesQuery(NewRequestId())));
+
+        Assert.Equal([new InstalledGameDto(GameStoreDto.Steam, "570", "Dota 2")], result.Payload.Games);
+    }
+
+    [Fact]
     public async Task Admin_SendingConnectDevice_IsValidationFailed()
     {
         using var factory = new TransportAppFactory();

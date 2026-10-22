@@ -37,6 +37,8 @@ internal static class Samples
     public static SettingsUpdateDto SettingsUpdate { get; } =
         new(false, new GridDto(3, 3), new ObsUpdateDto("localhost", 4455, "secret"));
 
+    public static InstalledGameDto Game { get; } = new(GameStoreDto.Steam, "570", "Dota 2");
+
     public static IReadOnlyList<ActionDto> Actions { get; } =
     [
         Hotkey,
@@ -68,12 +70,14 @@ internal static class Samples
         new GetPairingSessionQuery("q4"),
         new GetSettingsQuery("q5"),
         new GetAgentStatusQuery("q6"),
+        new GetInstalledGamesQuery("q7"),
         new ProfilesResult("q1", new ProfilesPayload([Summary])),
         new ProfileResult("q2", new ProfilePayload(Profile)),
         new DevicesResult("q3", new DevicesPayload([Device])),
         new PairingSessionResult("q4", new PairingSessionPayload(Session)),
         new SettingsResult("q5", new SettingsPayload(Settings)),
         new AgentStatusResult("q6", new AgentStatusPayload("1.0.0", ProtocolInfo.ProtocolVersion, false)),
+        new InstalledGamesResult("q7", new InstalledGamesPayload([Game])),
         new AckMessage("r1"),
         new AckMessage("r10", new AppRegisteredPayload(AppId)),
         new ErrorMessage("r2", ErrorCodeDto.NotFound, "Profile does not exist."),
@@ -121,6 +125,8 @@ internal static class Samples
         new SettingsPayload(Settings),
         new AgentStatusPayload("1.0.0", 1, true),
         new ObsSceneChangedPayload("Gameplay"),
+        Game,
+        new InstalledGamesPayload([Game, new InstalledGameDto(GameStoreDto.Epic, "Fortnite", "Fortnite")]),
     ];
 
     public static IEnumerable<object> All => [.. Messages, .. Actions, .. Dtos];

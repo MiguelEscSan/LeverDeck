@@ -52,6 +52,8 @@ public sealed class ScopeTests
             await h.GetPairingSession().ExecuteAsync(c, CancellationToken.None)),
         ["GetSettings"] = (CallerScope.Admin, async (h, c) =>
             await h.GetSettings().ExecuteAsync(c, CancellationToken.None)),
+        ["GetInstalledGames"] = (CallerScope.Admin, async (h, c) =>
+            await h.GetInstalledGames().ExecuteAsync(c, CancellationToken.None)),
     };
 
     private static readonly Dictionary<CallerScope, Caller> Callers = new()

@@ -7,10 +7,9 @@ using DomainAction = LeverDeck.Domain.Actions.Action;
 namespace LeverDeck.Infrastructure.Input;
 
 /// <summary>
-/// Runs hotkeys and media keys through <c>SendInput</c>. The other agent actions arrive in Phase 7 and fail with
-/// <see cref="DomainErrorCode.ActionNotExecutable"/> until then; client actions are rejected the same way, as a
-/// defence in depth (<c>ExecuteAction</c> never routes them here). Presses are serialized, so the modifiers of two
-/// concurrent hotkeys never mix.
+/// Runs hotkeys and media keys through <c>SendInput</c>, for <see cref="AgentActionExecutor"/>. Any other action fails
+/// with <see cref="DomainErrorCode.ActionNotExecutable"/>. Presses are serialized, so the modifiers of two concurrent
+/// hotkeys never mix.
 /// </summary>
 public sealed class SendInputActionExecutor : IActionExecutor
 {
@@ -36,11 +35,7 @@ public sealed class SendInputActionExecutor : IActionExecutor
         {
             Hotkey hotkey => Press(KeySequence.For(hotkey)),
             MediaKey mediaKey => Press(KeySequence.For(mediaKey)),
-            LaunchApp or OpenUrl or ObsScene or LaunchGame => Fail(
-                DomainErrorCode.ActionNotExecutable,
-                $"{action.GetType().Name} actions arrive in Phase 7."),
-            ChangePage or SwitchProfile => Fail(DomainErrorCode.ActionNotExecutable, "This action runs on the client."),
-            _ => Fail(DomainErrorCode.ActionNotExecutable, $"{action.GetType().Name} is not supported."),
+            _ => Fail(DomainErrorCode.ActionNotExecutable, $"{action.GetType().Name} is not a keyboard action."),
         };
         return Task.FromResult(result);
     }

@@ -39,6 +39,7 @@ public abstract record CommandMessage([property: JsonPropertyOrder(-1)] string R
 [JsonDerivedType(typeof(GetPairingSessionQuery), "getPairingSession")]
 [JsonDerivedType(typeof(GetSettingsQuery), "getSettings")]
 [JsonDerivedType(typeof(GetAgentStatusQuery), "getAgentStatus")]
+[JsonDerivedType(typeof(GetInstalledGamesQuery), "getInstalledGames")]
 public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>The answer to a query, correlated by <see cref="RequestId"/>.</summary>
@@ -49,6 +50,7 @@ public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string Req
 [JsonDerivedType(typeof(PairingSessionResult), "pairingSession")]
 [JsonDerivedType(typeof(SettingsResult), "settings")]
 [JsonDerivedType(typeof(AgentStatusResult), "agentStatus")]
+[JsonDerivedType(typeof(InstalledGamesResult), "installedGames")]
 public abstract record QueryResultMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>Pushed by the agent to keep clients in sync; it answers no request, so it has no request id.</summary>

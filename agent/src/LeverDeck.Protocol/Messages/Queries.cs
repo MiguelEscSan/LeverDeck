@@ -27,6 +27,11 @@ public sealed record GetAgentStatusQuery(string RequestId) : QueryMessage(Reques
     public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;
 }
 
+public sealed record GetInstalledGamesQuery(string RequestId) : QueryMessage(RequestId)
+{
+    public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;
+}
+
 public sealed record ProfilesResult(string RequestId, ProfilesPayload Payload) : QueryResultMessage(RequestId);
 
 public sealed record ProfileResult(string RequestId, ProfilePayload Payload) : QueryResultMessage(RequestId);
@@ -38,3 +43,5 @@ public sealed record PairingSessionResult(string RequestId, PairingSessionPayloa
 public sealed record SettingsResult(string RequestId, SettingsPayload Payload) : QueryResultMessage(RequestId);
 
 public sealed record AgentStatusResult(string RequestId, AgentStatusPayload Payload) : QueryResultMessage(RequestId);
+
+public sealed record InstalledGamesResult(string RequestId, InstalledGamesPayload Payload) : QueryResultMessage(RequestId);

@@ -1,5 +1,6 @@
 using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
+using LeverDeck.Application.Games;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Security;
@@ -33,6 +34,7 @@ public sealed partial class MessageRouter(
     RegisterApp registerApp,
     UnregisterApp unregisterApp,
     GetAgentStatus getAgentStatus,
+    GetInstalledGames getInstalledGames,
     TransportPayloads payloads,
     ILogger<MessageRouter> logger)
 {
@@ -176,6 +178,12 @@ public sealed partial class MessageRouter(
                     id,
                     await getAgentStatus.ExecuteAsync(caller, ct).ConfigureAwait(false),
                     status => new AgentStatusResult(id, StatusMapper.ToPayload(status, obsConnected: false)));
+
+            case GetInstalledGamesQuery:
+                return ResponseMapper.ToResponse(
+                    id,
+                    await getInstalledGames.ExecuteAsync(caller, ct).ConfigureAwait(false),
+                    games => new InstalledGamesResult(id, new InstalledGamesPayload([.. games.Select(GameMapper.ToDto)])));
 
             default:
                 return Invalid(id, $"Unknown query {query.GetType().Name}.");

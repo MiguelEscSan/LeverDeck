@@ -1,12 +1,14 @@
 using LeverDeck.Application.Actions.Ports;
 using LeverDeck.Application.Common.Ports;
 using LeverDeck.Application.Devices.Ports;
+using LeverDeck.Application.Games.Ports;
 using LeverDeck.Application.Pairing.Ports;
 using LeverDeck.Application.Profiles.Ports;
 using LeverDeck.Application.Settings.Ports;
 using LeverDeck.Infrastructure.Common;
 using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.Discovery;
+using LeverDeck.Infrastructure.Games;
 using LeverDeck.Infrastructure.Input;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
@@ -45,7 +47,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ITokenHasher, Sha256TokenHasher>();
         services.AddSingleton<AdminTokenStore>();
 
-        services.AddSingleton<IActionExecutor, SendInputActionExecutor>();
+        services.AddSingleton<IActionExecutor, AgentActionExecutor>();
+        services.AddSingleton<IGameLibrary, InstalledGameLibrary>();
 
         // mDNS: our own responder answers A queries for leverdeck.local (Windows does not for DnsServiceRegister's
         // target host); the native registration still publishes the _http._tcp service records.

@@ -26,7 +26,8 @@ public sealed record LaunchGame : Action
 
     private protected override ExecutionTarget RunsOn => ExecutionTarget.Agent;
 
-    private static bool IsValidId(GameStore store, string? gameId) => store switch
+    /// <summary>Whether <paramref name="gameId"/> is a valid id for <paramref name="store"/>, as the constructor requires.</summary>
+    public static bool IsValidId(GameStore store, string? gameId) => store switch
     {
         GameStore.Steam => gameId is { Length: > 0 and <= MaxSteamIdLength } && gameId.All(char.IsAsciiDigit),
         GameStore.Epic => gameId is { Length: > 0 and <= MaxEpicIdLength } && gameId.All(char.IsAsciiLetterOrDigit),

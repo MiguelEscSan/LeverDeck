@@ -1,12 +1,11 @@
 using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Errors;
 using LeverDeck.Infrastructure.Input;
-using LeverDeck.Infrastructure.Tests.Persistence;
 
 namespace LeverDeck.Infrastructure.Tests.Input;
 
 /// <summary>
-/// Routing of the executor, with a recording keyboard: no test ever reaches <c>SendInput</c>.
+/// The keyboard half of the executor, with a recording keyboard: no test ever reaches <c>SendInput</c>.
 /// </summary>
 public sealed class SendInputActionExecutorTests
 {
@@ -21,44 +20,24 @@ public sealed class SendInputActionExecutorTests
         }
     }
 
-    public static TheoryData<LeverDeck.Domain.Actions.Action> Samples() => [.. JsonProfileRepositoryTests.DomainActionSamples()];
-
     [Theory]
-    [MemberData(nameof(Samples))]
-    public async Task EverySample_IsRoutedAsItsCoverageSays(LeverDeck.Domain.Actions.Action action)
+    [MemberData(nameof(AgentActionExecutorTests.Samples), MemberType = typeof(AgentActionExecutorTests))]
+    public async Task AnyActionButAKey_FailsWithoutSendingInput(LeverDeck.Domain.Actions.Action action)
     {
         var keyboard = new RecordingKeyboard();
-        var executor = new SendInputActionExecutor(keyboard);
 
-        var result = await executor.ExecuteAsync(action, CancellationToken.None);
+        var result = await new SendInputActionExecutor(keyboard).ExecuteAsync(action, CancellationToken.None);
 
-        switch (ActionExecutorCoverage.ByActionType[action.GetType()])
+        if (action is Hotkey or MediaKey)
         {
-            case ActionSupport.Executable:
-                Assert.True(result.IsSuccess);
-                Assert.Single(keyboard.Sent);
-                break;
-            case ActionSupport.NotExecutableYet:
-                Assert.Equal(DomainErrorCode.ActionNotExecutable, result.Error?.Code);
-                Assert.Contains("Phase 7", result.Error?.Message, StringComparison.Ordinal);
-                Assert.Empty(keyboard.Sent);
-                break;
-            case ActionSupport.ClientOnly:
-                Assert.Equal(DomainErrorCode.ActionNotExecutable, result.Error?.Code);
-                Assert.Empty(keyboard.Sent);
-                break;
-            default:
-                Assert.Fail($"Unknown support for {action.GetType().Name}.");
-                break;
+            Assert.True(result.IsSuccess);
+            Assert.Single(keyboard.Sent);
         }
-    }
-
-    [Fact]
-    public void Samples_CoverEveryActionType()
-    {
-        Assert.Equal(
-            ActionCatalog.All.OrderBy(type => type.Name),
-            JsonProfileRepositoryTests.DomainActionSamples().Select(action => action.GetType()).Distinct().OrderBy(type => type.Name));
+        else
+        {
+            Assert.Equal(DomainErrorCode.ActionNotExecutable, result.Error?.Code);
+            Assert.Empty(keyboard.Sent);
+        }
     }
 
     [Fact]

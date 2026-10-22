@@ -1,5 +1,6 @@
 using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
+using LeverDeck.Application.Games;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
@@ -28,6 +29,8 @@ internal sealed class Harness
     public RecordingEventPublisher Events { get; } = new();
 
     public RecordingActionExecutor Executor { get; } = new();
+
+    public FakeGameLibrary Games { get; } = new();
 
     /// <summary>Total writes to every repository and the pairing store, to prove a call had no side effects.</summary>
     public int RepositoryWrites => Profiles.Writes + Devices.Writes + Settings.Writes;
@@ -67,4 +70,6 @@ internal sealed class Harness
     public GetSettings GetSettings() => new(Settings);
 
     public static GetAgentStatus GetAgentStatus() => new();
+
+    public GetInstalledGames GetInstalledGames() => new(Games);
 }
