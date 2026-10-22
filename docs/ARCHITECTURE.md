@@ -94,6 +94,52 @@ The editor on the PC uses `GET /admin/ws`, the only channel that accepts admin-s
   its connection. Anyone who can read the user's profile folder can already control the PC, so the token adds no new
   exposure there.
 
+### Transport endpoints
+
+All live in `Infrastructure/Transport`, as plain request delegates with source-generated JSON (Native AOT safe).
+
+| Endpoint | Auth | Behaviour |
+|---|---|---|
+| `POST /api/pairing/redeem` | none (public scope) | JSON only (`415` otherwise), body ≤ 4 KiB (`413`). `200 PairDeviceResponse` with `Cache-Control: no-store`; `400 ErrorDto` for `pairingCodeInvalid`/`pairingCodeExpired`/malformed bodies, `422` for `validationFailed` (device name), `500 internal`. The token is never logged. |
+| `GET /ws` | device token in the first message | The first message must be `connectDevice` within 10 s (`LeverDeck:Transport:ConnectTimeout`). On success: `ack`, then the socket is bound to that device. Messages ≤ 64 KiB. |
+| `GET /admin/ws` | admin token as `?token=` | Checked in constant time before the upgrade: a wrong or missing token gets `401` and no socket (browsers cannot set headers on a WebSocket). Bound to the admin scope. Messages ≤ 1 MiB (whole profiles). |
+
+Both sockets then answer one message at a time: every `command` gets an `ack` or `error`, every `query` a
+`queryResult` or `error`, with the same `requestId`. Scope is enforced by the use cases, so a device sending an admin
+message gets `forbidden`. Malformed JSON, unknown types, binary frames and non-request kinds get
+`error validationFailed` (with the `requestId` when it can still be read) and the socket stays open. Sends are
+serialized per connection; the server pings every 15 s and drops a socket that does not answer within 15 s.
+
+**Close codes.** The agent sends an `error` (or the event) first, then closes; the close reason is the wire error code,
+so a client can tell "pair again" from "reconnect" even if it missed the message. After the close frame the client has
+2 s to answer before the socket is aborted.
+
+| Code | Reason | When |
+|---|---|---|
+| `1008` policy violation | `unauthorized` | No `connectDevice` in time, another first message, malformed first message, unknown token |
+| `1008` policy violation | `deviceRevoked` | Connecting with a revoked token, or the device was revoked while connected (after the `deviceRevoked` event) |
+| `1008` policy violation | `protocolMismatch` | `connectDevice` with another `protocolVersion` |
+| `1009` message too big | `validationFailed` | A message over the channel's limit |
+| `1011` internal error | `internal` | Authentication failed unexpectedly |
+| `1001` going away | `shutdown` | The agent is stopping |
+| `1000` normal | — | Answer to a close started by the client |
+
+**Event routing.** `EventFanOut` subscribes to the in-memory broadcaster and loads payloads through the query use
+cases (as the admin), so a query result and an event never disagree.
+
+| Application event | Pushed as | To |
+|---|---|---|
+| `ProfileUpdated` | `profileUpdated { profile }` | every connection |
+| `ProfileDeleted` | `profileDeleted { profileId }` | every connection |
+| `DevicesChanged`, and a device socket connecting or disconnecting | `devicesChanged { devices }` (with `connected` from the connection registry) | admin connections |
+| `DeviceRevoked` | `deviceRevoked { deviceId }`, then close `1008 deviceRevoked` | the revoked device's connections |
+| `PairingSessionChanged` | `pairingSessionChanged { session }` (with `qrUrl` and `fallbackUrl`) | admin connections |
+| `SettingsUpdated` | `settingsUpdated { settings }` | admin connections |
+
+Events published while a command runs reach the clients before that command's `ack`. `qrUrl` is
+`http://leverdeck.local:8765/pair?code=<code>`; `fallbackUrl` uses the LAN IPv4 address chosen as for mDNS, or is
+`null` when there is none.
+
 ## Persistence
 
 The PC is the source of truth. Profiles, buttons and settings live on the agent, not in the browser,

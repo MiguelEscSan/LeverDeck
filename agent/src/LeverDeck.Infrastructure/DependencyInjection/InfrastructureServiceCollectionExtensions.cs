@@ -11,6 +11,7 @@ using LeverDeck.Infrastructure.Input;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
 using LeverDeck.Infrastructure.Security;
+using LeverDeck.Infrastructure.Transport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -47,6 +48,8 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddSingleton<IServiceAdvertiser, DnsServiceAdvertiser>();
         services.AddHostedService<ServiceAdvertisementHostedService>();
+
+        services.AddLeverDeckTransport();
 
         return services;
     }

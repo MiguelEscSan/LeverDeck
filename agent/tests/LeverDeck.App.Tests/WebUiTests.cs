@@ -68,8 +68,8 @@ public sealed partial class WebUiTests(LeverDeckAppFactory factory) : IClassFixt
     [Theory]
     [InlineData("/api/pairing/redeem")]
     [InlineData("/api")]
-    [InlineData("/ws")]
-    [InlineData("/admin/ws")]
+    [InlineData("/ws/missing")]
+    [InlineData("/admin/ws/missing")]
     [InlineData("/debug/execute")]
     [InlineData("/health/details")]
     [InlineData("/missing.js")]
@@ -78,6 +78,16 @@ public sealed partial class WebUiTests(LeverDeckAppFactory factory) : IClassFixt
         using var response = await GetAsync(path);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/ws", HttpStatusCode.BadRequest)]
+    [InlineData("/admin/ws", HttpStatusCode.Unauthorized)]
+    public async Task SocketEndpoints_WithoutAnUpgrade_AreNeverTheApp(string path, HttpStatusCode expected)
+    {
+        using var response = await GetAsync(path);
+
+        Assert.Equal(expected, response.StatusCode);
     }
 
     [Fact]

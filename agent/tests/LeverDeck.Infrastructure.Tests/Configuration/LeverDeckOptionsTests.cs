@@ -45,4 +45,25 @@ public sealed class LeverDeckOptionsTests
         Assert.Throws<InvalidOperationException>(
             () => LeverDeckOptions.FromConfiguration(Config(("LeverDeck:DataDirectory", "relative"))));
     }
+
+    [Fact]
+    public void ConnectTimeout_DefaultsToTenSecondsAndCanBeOverridden()
+    {
+        Assert.Equal(TimeSpan.FromSeconds(10), LeverDeckOptions.FromConfiguration(Config()).ConnectTimeout);
+        Assert.Equal(
+            TimeSpan.FromMilliseconds(500),
+            LeverDeckOptions.FromConfiguration(Config(("LeverDeck:Transport:ConnectTimeout", "00:00:00.5"))).ConnectTimeout);
+    }
+
+    [Theory]
+    [InlineData("soon")]
+    [InlineData("00:00:00")]
+    [InlineData("-00:00:05")]
+    public void InvalidConnectTimeout_FailsLoudly(string raw)
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => LeverDeckOptions.FromConfiguration(Config(("LeverDeck:Transport:ConnectTimeout", raw))));
+
+        Assert.Contains("LeverDeck:Transport:ConnectTimeout", error.Message, StringComparison.Ordinal);
+    }
 }

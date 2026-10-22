@@ -5,6 +5,7 @@ using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
 using LeverDeck.Application.Status;
 using LeverDeck.Infrastructure.DependencyInjection;
+using LeverDeck.Infrastructure.Transport;
 
 namespace LeverDeck.App;
 
@@ -55,6 +56,7 @@ internal static class CompositionRoot
     public static WebApplication MapLeverDeckEndpoints(this WebApplication app)
     {
         app.MapGet("/health", () => TypedResults.Text("ok"));
+        app.MapLeverDeckTransport();
 #if DEBUG
         if (app.Environment.IsDevelopment())
         {
