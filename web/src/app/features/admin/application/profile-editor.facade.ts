@@ -21,6 +21,8 @@ import {
   findButton,
   GRID_SIZES,
   LABEL_MAX_LENGTH,
+  moveButton,
+  moveButtonToPage,
   newProfile,
   nextProfileColor,
   nextProfileName,
@@ -302,6 +304,23 @@ export class ProfileEditorFacade {
       change.label = suggestedLabel(name);
     }
     this.apply(updateButton(profile, button.id, change));
+  }
+
+  /** Moves a key of the page to another position, trading places with a key already there; it stays selected. */
+  moveKey(buttonId: string, row: number, column: number): void {
+    const profile = this.profileState();
+    if (profile && this.apply(moveButton(profile, buttonId, row, column))) {
+      this.selectionState.set({ kind: 'key', id: buttonId });
+    }
+  }
+
+  /** Moves a key to the first free position of another page, and follows it there. */
+  moveKeyToPage(buttonId: string, pageIndex: number): void {
+    const profile = this.profileState();
+    if (profile && this.apply(moveButtonToPage(profile, buttonId, pageIndex))) {
+      this.pageState.set(pageIndex);
+      this.selectionState.set({ kind: 'key', id: buttonId });
+    }
   }
 
   removeKey(): void {

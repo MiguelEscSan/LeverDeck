@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { PageBar } from './page-bar';
+import { KEY_DRAG_TYPE } from '../editor-grid/editor-grid';
+import { type KeyToPage, PageBar } from './page-bar';
 
 describe('PageBar', () => {
   it('lists the pages, marks the current one and emits choices', async () => {
@@ -30,5 +31,28 @@ describe('PageBar', () => {
     await fixture.whenStable();
 
     expect(((fixture.nativeElement as HTMLElement).querySelector('.remove') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('takes a key dropped on another page', async () => {
+    const fixture = TestBed.createComponent(PageBar);
+    fixture.componentRef.setInput('count', 2);
+    fixture.componentRef.setInput('current', 0);
+    await fixture.whenStable();
+    const dropped: KeyToPage[] = [];
+    fixture.componentInstance.keyDropped.subscribe((drop) => dropped.push(drop));
+    const pages = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.page')] as HTMLButtonElement[];
+    const transfer = { types: [KEY_DRAG_TYPE], getData: () => 'b1', dropEffect: 'none' };
+    const event = (type: string) =>
+      Object.assign(new Event(type, { bubbles: true, cancelable: true }), { dataTransfer: transfer });
+
+    const onCurrent = event('dragover');
+    pages[0].dispatchEvent(onCurrent);
+    const onOther = event('dragover');
+    pages[1].dispatchEvent(onOther);
+    pages[1].dispatchEvent(event('drop'));
+
+    expect(onCurrent.defaultPrevented).toBe(false);
+    expect(onOther.defaultPrevented).toBe(true);
+    expect(dropped).toEqual([{ buttonId: 'b1', pageIndex: 1 }]);
   });
 });

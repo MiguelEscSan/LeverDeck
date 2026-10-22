@@ -39,7 +39,7 @@ import { ColorSwatches } from '../color-swatches/color-swatches';
         </button>
       }
     </div>
-    <p class="sub">Choose a key to edit it. Changes sync to paired devices instantly.</p>
+    <p class="sub">Choose a key to edit it, drag it to move it. Changes sync to paired devices instantly.</p>
     <div class="settings">
       <app-color-swatches label="Profile color" [value]="profile().color" (chosen)="recolor.emit($event)" />
       <div class="sizes" role="radiogroup" aria-label="Grid size">

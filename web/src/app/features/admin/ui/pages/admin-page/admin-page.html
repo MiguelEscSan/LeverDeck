@@ -40,6 +40,7 @@
             [selection]="selectedPosition()"
             [label]="gridName()"
             (selected)="editor.selectCell($event.row, $event.column)"
+            (moved)="editor.moveKey($event.buttonId, $event.row, $event.column)"
           />
         </div>
         <app-page-bar
@@ -48,6 +49,7 @@
           (selected)="editor.goToPage($event)"
           (add)="editor.addPage()"
           (remove)="editor.removePage()"
+          (keyDropped)="editor.moveKeyToPage($event.buttonId, $event.pageIndex)"
         />
       } @else if (editor.loading()) {
         <p class="message" role="status">Loading profiles…</p>

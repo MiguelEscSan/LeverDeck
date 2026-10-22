@@ -1,7 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { MAX_PAGES } from '../../../domain/profile-editing';
+import { KEY_DRAG_TYPE } from '../editor-grid/editor-grid';
 
-/** "Pages: 1 2 +" under the grid (docs/mocks/desktop.html), plus removing the current page. Presentational. */
+/** A key dropped on a page number, to move it to that page. */
+export interface KeyToPage {
+  readonly buttonId: string;
+  readonly pageIndex: number;
+}
+
+/**
+ * "Pages: 1 2 +" under the grid (docs/mocks/desktop.html), plus removing the current page. A key dragged from the
+ * grid onto a page number moves to that page. Presentational.
+ */
 @Component({
   selector: 'app-page-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,7 +24,11 @@ import { MAX_PAGES } from '../../../domain/profile-editing';
           class="page"
           [attr.aria-current]="page === current() ? 'page' : null"
           [attr.aria-label]="'Page ' + (page + 1)"
+          [class.drop-target]="page === over()"
           (click)="selected.emit(page)"
+          (dragover)="onDragOver(page, $event)"
+          (dragleave)="over.set(null)"
+          (drop)="onDrop(page, $event)"
         >
           {{ page + 1 }}
         </button>
@@ -72,6 +86,11 @@ import { MAX_PAGES } from '../../../domain/profile-editing';
       }
     }
 
+    .drop-target {
+      outline: 3px dashed var(--ld-color-focus);
+      outline-offset: 2px;
+    }
+
     .remove {
       border: 0;
       background: none;
@@ -94,6 +113,26 @@ export class PageBar {
   readonly selected = output<number>();
   readonly add = output();
   readonly remove = output();
+  readonly keyDropped = output<KeyToPage>();
+
+  protected readonly over = signal<number | null>(null);
+
+  protected onDragOver(page: number, event: DragEvent): void {
+    if (page !== this.current() && event.dataTransfer?.types.includes(KEY_DRAG_TYPE)) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      this.over.set(page);
+    }
+  }
+
+  protected onDrop(page: number, event: DragEvent): void {
+    this.over.set(null);
+    const buttonId = event.dataTransfer?.getData(KEY_DRAG_TYPE);
+    if (buttonId) {
+      event.preventDefault();
+      this.keyDropped.emit({ buttonId, pageIndex: page });
+    }
+  }
 
   protected readonly maxPages = MAX_PAGES;
   protected readonly pages = computed(() => Array.from({ length: this.count() }, (_, index) => index));

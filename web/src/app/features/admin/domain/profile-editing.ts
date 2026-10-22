@@ -186,6 +186,66 @@ export function updateButton(profile: ProfileDto, buttonId: string, change: Butt
   });
 }
 
+const pageOf = (profile: ProfileDto, buttonId: string): PageDto | null =>
+  profile.pages.find((page) => page.buttons.some((button) => button.id === buttonId)) ?? null;
+
+/**
+ * Moves a key to another position of its page. A key already there trades places with it, so dragging onto a taken
+ * position never loses a key (the agent only needs one key per position).
+ */
+export function moveButton(profile: ProfileDto, buttonId: string, row: number, column: number): EditResult {
+  const page = pageOf(profile, buttonId);
+  const button = findButton(profile, buttonId);
+  if (!page || !button) {
+    return fail('That key no longer exists.');
+  }
+  if (row < 0 || column < 0 || row >= profile.grid.rows || column >= profile.grid.columns) {
+    return fail('That position is outside the grid.');
+  }
+  if (button.row === row && button.column === column) {
+    return ok(profile);
+  }
+  const occupant = buttonAt(profile, page.index, row, column);
+  return ok(
+    mapPage(profile, page.index, (buttons) =>
+      buttons.map((candidate) => {
+        if (candidate.id === buttonId) {
+          return { ...candidate, row, column };
+        }
+        if (candidate.id === occupant?.id) {
+          return { ...candidate, row: button.row, column: button.column };
+        }
+        return candidate;
+      }),
+    ),
+  );
+}
+
+/** Moves a key to the first free position (row by row) of another page; refused when that page is full. */
+export function moveButtonToPage(profile: ProfileDto, buttonId: string, pageIndex: number): EditResult {
+  const from = pageOf(profile, buttonId);
+  const button = findButton(profile, buttonId);
+  if (!from || !button) {
+    return fail('That key no longer exists.');
+  }
+  if (from.index === pageIndex) {
+    return ok(profile);
+  }
+  if (!profile.pages.some((page) => page.index === pageIndex)) {
+    return fail(`Page ${pageIndex + 1} does not exist.`);
+  }
+  for (let row = 0; row < profile.grid.rows; row++) {
+    for (let column = 0; column < profile.grid.columns; column++) {
+      if (!buttonAt(profile, pageIndex, row, column)) {
+        const moved = { ...button, row, column };
+        const without = mapPage(profile, from.index, (buttons) => buttons.filter((candidate) => candidate.id !== buttonId));
+        return ok(mapPage(without, pageIndex, (buttons) => [...buttons, moved]));
+      }
+    }
+  }
+  return fail(`Page ${pageIndex + 1} is full.`);
+}
+
 export function removeButton(profile: ProfileDto, buttonId: string): ProfileDto {
   return {
     ...profile,

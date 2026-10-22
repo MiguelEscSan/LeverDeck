@@ -206,6 +206,31 @@ describe('ProfileEditorFacade', () => {
     });
   });
 
+  describe('moving keys', () => {
+    it('moves a key within its page, swapping with a key there, and keeps it selected', async () => {
+      editor.selectCell(1, 1);
+      editor.addKey();
+      editor.moveKey('b1', 1, 1);
+      await settle();
+
+      const stored = agent.profiles.get('p1')!;
+      expect(findButton(stored, 'b1')).toMatchObject({ row: 1, column: 1 });
+      expect(findButton(stored, 'id-1')).toMatchObject({ row: 0, column: 0 });
+      expect(editor.selection()).toMatchObject({ kind: 'key', button: { id: 'b1' } });
+    });
+
+    it('moves a key to another page and follows it', async () => {
+      editor.addPage();
+      editor.goToPage(0);
+      editor.moveKeyToPage('b1', 1);
+      await settle();
+
+      expect(editor.page()).toBe(1);
+      expect(agent.profiles.get('p1')!.pages[1].buttons.map((button) => button.id)).toEqual(['b1']);
+      expect(editor.selection()).toMatchObject({ kind: 'key', button: { id: 'b1' } });
+    });
+  });
+
   describe('pages and grid', () => {
     it('adds a page and goes to it, then removes it', async () => {
       editor.addPage();

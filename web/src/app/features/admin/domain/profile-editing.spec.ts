@@ -6,6 +6,8 @@ import {
   type EditResult,
   findButton,
   MAX_PAGES,
+  moveButton,
+  moveButtonToPage,
   newProfile,
   nextProfileColor,
   nextProfileName,
@@ -150,6 +152,45 @@ describe('keys', () => {
       error: 'Use at most 12 characters.',
     });
     expect(updateButton(profile(), 'nope', { label: 'A' })).toEqual({ ok: false, error: 'That key no longer exists.' });
+  });
+
+  it('moves a key to a free position of its page', () => {
+    const moved = value(moveButton(profile(), 'b1', 1, 3));
+    expect(findButton(moved, 'b1')).toMatchObject({ row: 1, column: 3 });
+    expect(moved.pages[0].buttons).toHaveLength(2);
+  });
+
+  it('swaps two keys when moving onto a taken position', () => {
+    const swapped = value(moveButton(profile(), 'b1', 2, 4));
+    expect(findButton(swapped, 'b1')).toMatchObject({ row: 2, column: 4 });
+    expect(findButton(swapped, 'b2')).toMatchObject({ row: 0, column: 0 });
+  });
+
+  it('refuses a move outside the grid and leaves a move in place alone', () => {
+    expect(moveButton(profile(), 'b1', 3, 0)).toEqual({ ok: false, error: 'That position is outside the grid.' });
+    expect(moveButton(profile(), 'nope', 0, 1)).toEqual({ ok: false, error: 'That key no longer exists.' });
+    const original = profile();
+    expect(value(moveButton(original, 'b1', 0, 0))).toBe(original);
+  });
+
+  it('moves a key to the first free position of another page', () => {
+    const moved = value(moveButtonToPage(profile(), 'b1', 1));
+    expect(moved.pages[0].buttons.map((button) => button.id)).toEqual(['b2']);
+    expect(moved.pages[1].buttons.find((button) => button.id === 'b1')).toMatchObject({ row: 0, column: 0 });
+
+    const next = value(moveButtonToPage(moved, 'b2', 1));
+    expect(findButton(next, 'b2')).toMatchObject({ row: 0, column: 1 });
+  });
+
+  it('refuses a move to a full or missing page', () => {
+    let full = value(addPage(profile()));
+    for (let row = 0; row < 3; row++) {
+      for (let column = 0; column < 5; column++) {
+        full = value(placeButton(full, 2, row, column, `f${row}${column}`));
+      }
+    }
+    expect(moveButtonToPage(full, 'b1', 2)).toEqual({ ok: false, error: 'Page 3 is full.' });
+    expect(moveButtonToPage(profile(), 'b1', 7)).toEqual({ ok: false, error: 'Page 8 does not exist.' });
   });
 
   it('removes a key', () => {
