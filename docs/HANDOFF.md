@@ -71,25 +71,43 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 Full phased plan: [ROADMAP.md](ROADMAP.md); task logs per phase in `odd/tasks/`.
 
-Done (all on `main`, CI green):
+Done (all on `main`):
 
 - Phases 0–5: agent solution and layers, Native AOT, domain and use cases, wire contract with generated TypeScript,
   Windows adapters (SendInput, DPAPI, mDNS with an own `leverdeck.local` responder), PWA shell embedded in the exe.
 - Phase 6 (MVP): pairing (QR + 6-digit code), `/ws` and `/admin/ws`, the phone deck (`/deck`) and the desktop editor
   (`/admin`, opened from the `?admin=` link the agent logs at start-up).
-- Phase 7 so far (`odd/tasks/phase-7-make-it-usable.md`): grid editor in `/admin` (profiles, pages, grid size, key
+- Phase 7 (`odd/tasks/phase-7-make-it-usable.md`): grid editor in `/admin` (profiles, pages, grid size, key
   label/color/icon/action; the PC edits, phones only read), drag and drop of keys (plus Alt + arrows), actions for
   links, registered apps and Steam/Epic games (installed games listed from the launchers' manifests), a Library with
-  Apps and Icons, and uploaded key icons (PNG, served at `/api/icons/<id>.png`).
+  Apps and Icons, uploaded key icons (PNG, served at `/api/icons/<id>.png`), and a fix so a key's label follows its
+  game or app when the game is typed by id (the label is cleared when no name is known).
+- P7-4 and P7-5 in the agent (last commit `c3522c2`): tray icon (`App/Tray`: Open editor, Start with Windows, Exit),
+  start with Windows through the per-user `Run` key (`RunKeyStartupRegistration`, only from the published exe), private
+  firewall rule for the agent port (`PrivateFirewallRule`, added in the background; without admin it logs the `netsh`
+  command), and optional HTTPS on the same port with a `mkcert` certificate in `tls/` (`LeverDeck:Https:Enabled`).
+  `LeverDeck:Desktop:Enabled=false` turns the tray and the firewall off (the app tests do).
+
+Not verified yet (the last session could not check these):
+
+- The tray icon on screen. It is created with no error logged; look in the hidden-icons arrow of the taskbar.
+- The AOT publish. It fails on this PC with "Platform linker not found": install the Desktop development with C++
+  workload, then `dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck -p:BuildWebUi=true`
+  from `agent/`, with the Visual Studio Installer folder on `PATH` (see CLAUDE.md). Check the trimming and AOT warnings.
+- HTTPS end to end: install `mkcert`, run `mkcert -install`, set `LeverDeck__Https__Enabled=true`, install the root CA
+  (`mkcert -CAROOT`) on the phone, then pair over `https://leverdeck.local:8765`.
+- The firewall rule: run the `netsh` command from the log once as administrator if the agent is not elevated. A
+  pre-existing rule named `leverdeck` (UDP, any port) is unrelated and was left alone.
 
 Open:
 
-- Manual checks by the owner on the real PC and phone (pairing over LAN and USB, links, games, apps, uploaded icons).
-- P7-4: tray icon, start with Windows, firewall rule on the private profile (the agent is a console app for now).
-- P7-5: optional HTTPS over LAN with `mkcert`.
+- Manual checks by the owner on the real PC and phone (pairing over LAN and USB, links, games, apps, uploaded icons,
+  the items above).
 - OBS scenes: postponed, the owner does not use OBS.
 - Owner's earlier note: review the Phase 5 code (web shell, embedding, CI) for a severe finding a review bot reported
   but never showed.
+- Phase 7 follow-ups noted in the roadmap: the game name for games typed by id (store lookup), and the elevated-target
+  warning (UIPI, see future ideas).
 - Phase 8: release `leverdeck.exe` from CI, README.
 
 Local setup notes (Windows): .NET SDK 10.0.402 or newer (`global.json`), Node 24, MSVC build tools for the AOT
