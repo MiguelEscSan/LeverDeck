@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { KEY_ICONS } from '../../../../../core/keys/domain/key-icons';
+import { pageOf } from '../../../domain/store-apps-page';
 import type {
   ButtonDto,
   InstalledGameDto,
@@ -17,6 +18,9 @@ import { KeyFace } from '../key-face/key-face';
  * "Selected key" (docs/mocks/desktop.html): the label (saved when the field is left or Enter is pressed), color,
  * icon and action of the chosen key, or a button to add one on a chosen empty position. Presentational.
  */
+/** How many icons one page of the picker shows. */
+export const ICON_PAGE_SIZE = 20;
+
 @Component({
   selector: 'app-key-inspector',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,20 +47,17 @@ import { KeyFace } from '../key-face/key-face';
       <app-color-swatches label="Key color" [value]="button.color" (chosen)="onColor($event)" />
 
       <span class="ld-label" id="key-icon-label">Icon</span>
+      <input
+        class="ld-field"
+        type="search"
+        autocomplete="off"
+        placeholder="Search icons"
+        aria-label="Search icons"
+        [value]="iconQuery()"
+        (input)="onIconQuery($event)"
+      />
       <div class="icons" role="radiogroup" aria-labelledby="key-icon-label">
-        @for (icon of customIcons(); track icon) {
-          <button
-            type="button"
-            role="radio"
-            class="icon"
-            [attr.aria-checked]="icon === button.iconId"
-            aria-label="Your icon"
-            (click)="changed.emit({ iconId: icon })"
-          >
-            <app-key-face [button]="{ label: '', color: button.color, iconId: icon }" />
-          </button>
-        }
-        @for (icon of icons; track icon.id) {
+        @for (icon of iconView().items; track icon.id) {
           <button
             type="button"
             role="radio"
@@ -68,8 +69,26 @@ import { KeyFace } from '../key-face/key-face';
           >
             <app-key-face [button]="{ label: '', color: button.color, iconId: icon.id }" />
           </button>
+        } @empty {
+          <p class="hint">No icons match “{{ iconQuery() }}”.</p>
         }
       </div>
+      @if (iconView().pageCount > 1) {
+        <nav class="icon-pager" aria-label="Icon pages">
+          <button type="button" class="ld-btn" [disabled]="iconView().page === 0" (click)="iconPage.set(iconView().page - 1)">
+            Previous
+          </button>
+          <span class="hint">{{ iconView().page + 1 }} / {{ iconView().pageCount }}</span>
+          <button
+            type="button"
+            class="ld-btn"
+            [disabled]="iconView().page >= iconView().pageCount - 1"
+            (click)="iconPage.set(iconView().page + 1)"
+          >
+            Next
+          </button>
+        </nav>
+      }
 
       <label class="link upload" [class.disabled]="uploading()">
         <input
@@ -180,6 +199,13 @@ import { KeyFace } from '../key-face/key-face';
       white-space: nowrap;
     }
 
+    .icon-pager {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ld-space-2);
+    }
+
     .remove {
       margin-top: var(--ld-space-3);
     }
@@ -207,7 +233,24 @@ export class KeyInspector {
   readonly add = output();
   readonly remove = output();
 
-  protected readonly icons = KEY_ICONS;
+  protected readonly iconQuery = signal('');
+  protected readonly iconPage = signal(0);
+  protected readonly iconView = computed(() =>
+    pageOf(
+      [
+        ...this.customIcons().map((id) => ({ id, name: 'Your icon' })),
+        ...KEY_ICONS,
+      ],
+      this.iconQuery(),
+      this.iconPage(),
+      ICON_PAGE_SIZE,
+    ),
+  );
+
+  protected onIconQuery(event: Event): void {
+    this.iconQuery.set((event.target as HTMLInputElement).value);
+    this.iconPage.set(0);
+  }
   protected readonly labelMaxLength = LABEL_MAX_LENGTH;
 
   protected onLabel(event: Event): void {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import type { ButtonDto } from '../../../../../core/protocol';
-import { KeyInspector } from './key-inspector';
+import { ICON_PAGE_SIZE, KeyInspector } from './key-inspector';
 
 const play: ButtonDto = {
   id: 'b1',
@@ -66,5 +66,24 @@ describe('KeyInspector', () => {
     const { element } = await render({});
 
     expect(element.querySelector('.hint')?.textContent).toContain('Choose a key on the grid');
+  });
+});
+
+describe('KeyInspector icon paging', () => {
+  it('shows one page of icons and a pager when there are many uploads', async () => {
+    const fixture = TestBed.createComponent(KeyInspector);
+    fixture.componentRef.setInput('button', play);
+    fixture.componentRef.setInput('profileId', 'p1');
+    fixture.componentRef.setInput('profiles', [{ id: 'p1', name: 'Streaming', color: 'red' }]);
+    fixture.componentRef.setInput('pageCount', 1);
+    fixture.componentRef.setInput(
+      'customIcons',
+      Array.from({ length: 30 }, (_, index) => `custom-${index.toString(16).padStart(32, '0')}`),
+    );
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelectorAll('.icons .icon')).toHaveLength(ICON_PAGE_SIZE);
+    expect(element.querySelector('.icon-pager')?.textContent).toContain(`1 / ${Math.ceil((30 + 30) / ICON_PAGE_SIZE)}`);
   });
 });
