@@ -353,6 +353,27 @@ generated folder is never edited.
 - [ ] README: install, firewall, pairing, USB mode, known limits (anti-cheat, elevated apps — see HANDOFF.md).
 - [ ] Fill the **Commands** section of `CLAUDE.md`.
 
+## Phase 8b — Desktop app (installer and own window)
+
+LeverDeck installs and runs like Spotify or Discord: a setup program installs it per user, the Start menu entry opens
+**its own window** with the existing editor (no browser, no URL to copy, no console), and closing the window keeps the
+agent in the tray serving the phones. The UI stays the Angular editor; only where it is shown changes (decided
+2026-10-23, option A over rewriting the editor in a native UI toolkit).
+
+- [ ] Spike: a WebView2 window inside the Native AOT exe (COM through `ComWrappers`/CsWin32), versus the official
+      `Microsoft.Web.WebView2` package with a self-contained single-file publish (the HANDOFF fallback when a dependency
+      is not AOT-compatible). Pick one from the spike's evidence.
+- [ ] GUI subsystem: `OutputType` `WinExe` in Release (no console window), `Exe` in Debug so `dotnet run` keeps its
+      logs; Release logs go to a rolling file under `<DataDirectory>/logs`.
+- [ ] Editor window: opens `http://localhost:8765/admin` with the admin token (never shown to the user), remembers its
+      size and position, closing it hides it and keeps the tray; the tray menu gains "Open LeverDeck".
+- [ ] Single instance: a second launch (Start menu, shortcut) asks the running instance to show its window and exits.
+- [ ] Start at login launches in the background (tray only); a manual launch opens the window.
+- [ ] Installer and updates with Velopack: per-user install under `%LocalAppData%`, Start menu shortcut, clean
+      uninstall, updates from GitHub Releases; the release workflow publishes `LeverDeckSetup.exe` next to the exe.
+- [ ] WebView2 runtime: present on Windows 10/11 through Windows Update; detect a missing runtime and say how to get it.
+- [ ] Manual check (owner): install, open from the Start menu, close to tray, reopen, update to a newer tag, uninstall.
+
 ## Phase 9 — macOS agent (planned, not started)
 
 Run the same agent on a Mac, with the Mac's own app catalog in the Apps view. The PWA and the protocol stay shared;
