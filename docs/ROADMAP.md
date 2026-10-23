@@ -385,6 +385,13 @@ agent in the tray serving the phones. The UI stays the Angular editor; only wher
 - [ ] WebView2 runtime: present on Windows 10/11 through Windows Update; detect a missing runtime and say how to get it.
 - [ ] Manual check (owner): install, open from the Start menu, close to tray, reopen, update to a newer tag, uninstall.
 
+Progress (2026-10-23): every item above is built on branch `claude/amazing-curie-nxci18` and none is ticked, since
+each needs a Windows run. Verified in a Linux container: both configurations build with no warnings, Release is
+`WinExe`, the Native AOT compile of the whole app (Velopack included) shows no trim or AOT warnings and links the static
+WebView2 loader, the log, placement and launch rules pass their tests, and `vpk pack` produces the installer files.
+Updates from GitHub Releases need the releases to be public (the repository is private today). Evidence and the open
+checks: `odd/tasks/desktop-app.md`.
+
 ## Phase 9 — macOS agent (planned, not started)
 
 Run the same agent on a Mac, with the Mac's own app catalog in the Apps view. The PWA and the protocol stay shared;

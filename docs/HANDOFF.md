@@ -19,14 +19,17 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
   (not SignalR). It serves the PWA and executes the actions. Native AOT preferred; self-contained single-file publish
   as fallback if a dependency is not AOT-compatible. System.Text.Json source generators for serialization.
   The PWA build is embedded as embedded resources and served via `ManifestEmbeddedFileProvider`.
-- **Desktop app (planned, ROADMAP Phase 8b):** LeverDeck installs and runs like Spotify or Discord. A Velopack setup
+- **Desktop app (ROADMAP Phase 8b, built on a branch, not yet checked on Windows):** LeverDeck installs and runs like Spotify or Discord. A Velopack setup
   installs it per user (Start menu shortcut, clean uninstall, updates from GitHub Releases); the Start menu opens its
   own window that shows the existing Angular editor through WebView2 (no browser, no token URL, no console:
   `WinExe` in Release); closing the window keeps the agent in the tray for the phones; a second launch shows the
   running instance's window. Logs go to a file under the data directory; every start of the agent deletes all
   existing logs and begins a new one (no previous log is kept), with a size cap within a session. A spike settled that
   the window runs under Native AOT (source-generated COM, statically linked WebView2 loader, one ~1.9 MB exe). A native UI rewrite was rejected: it
-  would duplicate the editor, and the phones need the PWA anyway.
+  would duplicate the editor, and the phones need the PWA anyway. The skeleton (GUI subsystem, logs, window, single
+  instance with `--background` at sign-in, Velopack and the release workflow) is on branch
+  `claude/amazing-curie-nxci18`; what is verified and what is not is in `odd/tasks/desktop-app.md`. Updates from
+  GitHub Releases need public releases; the repository is private today.
 - **Frontend:** **Angular** PWA (`@angular/pwa`), standalone, Signals, `OnPush`. The user knows Angular well,
   and the UI will grow beyond the grid (profiles, settings, button editor).
 - **Architecture:** hexagonal on both sides. The agent is a solution `agent/LeverDeck.slnx` with one project per layer
