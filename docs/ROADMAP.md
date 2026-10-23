@@ -392,6 +392,47 @@ WebView2 loader, the log, placement and launch rules pass their tests, and `vpk 
 Updates from GitHub Releases need the releases to be public (the repository is private today). Evidence and the open
 checks: `odd/tasks/desktop-app.md`.
 
+## Phase 8c — Sound clips (planned, not started)
+
+Play short sounds on the PC from a key. The owner uploads a clip from the desktop editor, assigns it to a key with an
+icon, and presses the key on the phone; the PC plays the clip through its speakers. The phone only sends the press
+(`executeAction`), as for every other key. Recording on the phone's microphone is a later phase, not part of this one.
+
+Decided (owner, 2026-10-23): all configuration happens on the PC (the editor is admin-only), the phone triggers.
+
+Open, to settle before the code starts:
+
+- **Press behaviour:** *once* (each press plays the clip to its end) or *toggle* (a press starts it, the next press stops
+  it). Toggle needs the agent to remember which clip is playing and to stop it.
+- **Overlap:** the Windows sound API that plays WAV without a dependency (`PlaySound`, winmm) plays one clip at a time.
+  Several clips at once need another API (for example WASAPI or XAudio2), which is more native code.
+- **Formats:** WAV first. MP3 and OGG need a decoder, which is more work and an AOT question.
+
+Design notes:
+
+- **Closed action, like the others.** A new `PlaySound` action (`abstract record Action` subtype, `sealed record`) that
+  carries a clip id, never a file path. The architecture test (`ActionWhitelistTests`) and the executor coverage test
+  must include it. The agent resolves the id to a file in its own folder.
+- **Uploads follow the icon upload.** The editor sends the file, the agent validates it (WAV header, size cap such as
+  2 MB, a limit on the number of clips), stores it under `<DataDirectory>/sounds/` and lists it to every client. It is
+  deleted with the key that uses it, or from the editor.
+- **No admin, no third-party runtime.** Playback goes through the Windows sound API the agent already calls through
+  `LibraryImport`, which keeps Native AOT. Confirm the playback call and its stop behaviour on the owner's PC before
+  relying on it.
+- **Protocol first.** New messages and DTOs in `LeverDeck.Protocol`, then the regenerated TypeScript types
+  (`TypeScriptSnapshotTests`). The PWA changes only in the editor and the key's appearance.
+
+### 8c.1 Tasks
+
+- [ ] Decide press behaviour and whether overlap is needed (see above).
+- [ ] Domain: `PlaySound` action and a clip entity (id, display name, file, length), test-first.
+- [ ] Application: upload, list and delete clip use cases behind an `ISoundStore` port; fakes in tests.
+- [ ] Infrastructure: `FileSoundStore` (validation and storage) and the playback adapter behind an `ISoundPlayer` port.
+- [ ] Protocol and transport: upload, list and delete messages; `soundsChanged` event; regenerate the TypeScript types.
+- [ ] Editor: upload a clip, pick it for a key, preview it, delete it.
+- [ ] Manual check (owner): upload a WAV from the PC, assign it to a key, press from the phone, hear it on the PC, and
+      confirm the behaviour chosen above.
+
 ## Phase 9 — macOS agent (planned, not started)
 
 Run the same agent on a Mac, with the Mac's own app catalog in the Apps view. The PWA and the protocol stay shared;
