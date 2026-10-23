@@ -90,12 +90,34 @@ Out of scope: macOS (Phase 9), a native UI rewrite, code signing.
   `StartupRegistrationTests.CommandQuotesThePathOfThePublishedExecutableAndStartsItInTheBackground` (Windows path).
   Windows CI runs them.
 
+## Windows check (2026-10-23, DEV-35200, parent session)
+
+- `dotnet build LeverDeck.slnx`: 0 errors; `dotnet test LeverDeck.slnx`: 1197 passed, 0 failed (the two Windows-only
+  tests included).
+- `npm run build`, then `dotnet publish src/LeverDeck.App -c Release -r win-x64 -p:RequireWebUi=true` with the MSVC
+  installer folder on `PATH`: links, no warnings, one `leverdeck.exe` of 24.5 MB, no `WebView2Loader.dll` shipped.
+  PE subsystem 2 (GUI): no console, no `conhost` child.
+- Manual launch (scratch data directory): the `LeverDeck` editor window opens with the editor signed in, `/health`
+  200; the owner used it to create profiles and pair an iPhone. It filled a maximized 2576×1408 window on a 96-DPI
+  monitor after being opened on a 125% one.
+- Logs: two seeded old logs deleted on start; one `leverdeck.log`; no `admin=` token in it. Restarting the agent
+  emptied it again (11 → 8 lines, the pairing line gone). A second launch does not touch it.
+- Single instance: a second manual launch exits 0 in 163 ms, one process left, window shown.
+- Close to tray: `WM_CLOSE` hides the window, the agent keeps serving, `window.json` saved (maximized); a relaunch
+  shows the same window again.
+- Sign-in start (`--background`): no editor window, tray window present, `/health` 200; a manual launch then opens
+  the window.
+- Test-harness gotcha: PowerShell turns `$null` into `""` for `string` P/Invoke arguments, so `FindWindow(class, $null)`
+  finds nothing; pass `[NullString]::Value`. A DPI-unaware PowerShell also reports virtualized window sizes.
+
 ## Not verified (needs Windows)
 
-- The AOT link and the published exe; no console window; the editor window, close to tray and reopen, DPI moves
-  between monitors, focus and keyboard in the web view, window placement across restarts.
-- Single instance (second launch shows the window; a second sign-in start exits), sign-in start stays hidden.
-- Logs deleted on every start and capped at 10 MB; the log has no admin token.
+- Focus and keyboard in the web view, window placement across restarts, a second sign-in start exiting.
+- The 10 MB log cap at runtime (unit-tested only).
+- mDNS on a PC with two interfaces on the same LAN (Ethernet .35 + Wi-Fi .36 here): the iPhone could not open
+  `leverdeck-dev-35200.local` (the IP fallback worked) and Windows' own resolver could not either, while raw queries
+  over Ethernet got answers. Suspected cause: the responder joins 224.0.0.251 only on the interface
+  `LanAddressSelector` picks. Pre-existing (not this branch); to confirm with the PC's Wi-Fi off.
 - The missing-runtime message (only seen by uninstalling WebView2 or on a PC without it).
 - The release workflow (`vpk` on the runner), the installer: install, Start menu shortcut, update to a newer tag,
   uninstall (Run value removed, data kept).
