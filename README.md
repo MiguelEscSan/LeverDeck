@@ -11,7 +11,8 @@ Turn any phone or tablet into a Stream Deck–style control surface for your Win
 
 Download `LeverDeckSetup.exe` from the latest GitHub Release and run it: it installs LeverDeck for your Windows user
 (no administrator rights), adds it to the Start menu and opens its window. Closing the window keeps LeverDeck in the
-tray, serving your phones; open it again from the Start menu or the tray icon. The window needs the Microsoft Edge
+tray, serving your phones; open it again from the Start menu or the tray icon. It also starts with Windows, in the
+tray and without opening the window; turn that off with "Start with Windows" in the tray icon's menu. The window needs the Microsoft Edge
 WebView2 Runtime, which Windows 11 and an up-to-date Windows 10 already have. LeverDeck updates itself from GitHub
 Releases; an update is applied the next time it starts.
 

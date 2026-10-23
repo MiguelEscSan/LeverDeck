@@ -148,8 +148,10 @@ WebView2, so the owner needs no browser and no URL. Windows-only code in `App`, 
 
 - **Per-user install, no admin.** `LeverDeckSetup.exe` (Velopack) installs into `%LocalAppData%\LeverDeck\current\`
   with a Start menu shortcut; uninstalling removes them and, through LeverDeck's own uninstall hook
-  (`Desktop/Installer.cs`), the "Start with Windows" Run value. The data directory (`%APPDATA%\LeverDeck`) is the
-  owner's and is kept.
+  (`Desktop/Installer.cs`), the "Start with Windows" Run value. A new install turns "Start with Windows" on through
+  the after-install hook, like other tray apps; Velopack runs that hook on the first install only, so an update never
+  turns it back on after the owner turned it off. The data directory (`%APPDATA%\LeverDeck`) is the owner's and is
+  kept.
 - **Hooks first.** `VelopackApp.Build().Run()` is the first line of `Main`: Velopack's install, update and uninstall
   hooks run there and exit, and a downloaded update is applied (the agent restarts with the same arguments, so a
   sign-in start stays in the background). Velopack marks itself `IsAotCompatible` for net8.0+, and the Native AOT

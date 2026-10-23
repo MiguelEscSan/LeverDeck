@@ -9,6 +9,7 @@ using Velopack;
 // First of all (Velopack's rule): the installer's install, update and uninstall hooks run here and exit, and an update
 // downloaded by UpdateCheck is applied (the agent restarts with the same arguments).
 VelopackApp.Build()
+    .OnAfterInstallFastCallback(_ => Installer.AfterInstall())
     .OnBeforeUninstallFastCallback(_ => Installer.BeforeUninstall())
     .Run();
 
