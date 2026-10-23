@@ -11,7 +11,7 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 - **Local path:** `C:\Projects\leverdeck`
 - **Remote:** https://github.com/MiguelEscSan/LeverDeck (branch `main`)
-- **Current state:** documentation only (`README.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md`). No code scaffolded yet.
+- **Current state:** the MVP works end to end (Phase 6) and Phase 7 is under way; see Next steps.
 
 ## How (decided)
 
@@ -69,12 +69,33 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 
 ## Next steps
 
-Full phased plan: [ROADMAP.md](ROADMAP.md).
+Full phased plan: [ROADMAP.md](ROADMAP.md); task logs per phase in `odd/tasks/`.
 
-Phases 0 and 1 are done: the agent solution is scaffolded, the dependency rule is tested, and the Native AOT spike
-passed (~9.5 MB `leverdeck.exe`, no AOT warnings). Phase 2 is done: the whole domain and all 18 use cases, test-first
-against fakes (see `odd/tasks/phase-2-domain-core.md`). Next is Phase 3: wire contract and TypeScript generation, and
-the admin authentication decision.
+Done (all on `main`, CI green):
+
+- Phases 0–5: agent solution and layers, Native AOT, domain and use cases, wire contract with generated TypeScript,
+  Windows adapters (SendInput, DPAPI, mDNS with an own `leverdeck.local` responder), PWA shell embedded in the exe.
+- Phase 6 (MVP): pairing (QR + 6-digit code), `/ws` and `/admin/ws`, the phone deck (`/deck`) and the desktop editor
+  (`/admin`, opened from the `?admin=` link the agent logs at start-up).
+- Phase 7 so far (`odd/tasks/phase-7-make-it-usable.md`): grid editor in `/admin` (profiles, pages, grid size, key
+  label/color/icon/action; the PC edits, phones only read), drag and drop of keys (plus Alt + arrows), actions for
+  links, registered apps and Steam/Epic games (installed games listed from the launchers' manifests), a Library with
+  Apps and Icons, and uploaded key icons (PNG, served at `/api/icons/<id>.png`).
+
+Open:
+
+- Manual checks by the owner on the real PC and phone (pairing over LAN and USB, links, games, apps, uploaded icons).
+- P7-4: tray icon, start with Windows, firewall rule on the private profile (the agent is a console app for now).
+- P7-5: optional HTTPS over LAN with `mkcert`.
+- OBS scenes: postponed, the owner does not use OBS.
+- Owner's earlier note: review the Phase 5 code (web shell, embedding, CI) for a severe finding a review bot reported
+  but never showed.
+- Phase 8: release `leverdeck.exe` from CI, README.
+
+Local setup notes (Windows): .NET SDK 10.0.402 or newer (`global.json`), Node 24, MSVC build tools for the AOT
+publish. If `npm ci` crashes or leaves `web/node_modules` half installed, delete `web/node_modules` and run it again.
+`web/package.json` overrides `vite` (pinned by `@angular/build`) for dev-server advisories; `braces` has no fixed
+release yet and only reaches the lint config.
 
 ## Working preferences
 
