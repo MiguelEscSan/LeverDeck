@@ -260,6 +260,12 @@ describe('AdminPage', () => {
     [...element.querySelectorAll<HTMLButtonElement>('app-library-nav button')].find((b) => b.textContent?.includes('Apps'))?.click();
     await fixture.whenStable();
     expect(element.querySelector('app-editor-grid')).toBeNull();
+    const button = (label: string) =>
+      [...element.querySelectorAll<HTMLButtonElement>('app-app-list button')].find((b) => b.textContent?.trim() === label);
+    button('Add app')?.click();
+    await fixture.whenStable();
+    button('Program (.exe)')?.click();
+    await fixture.whenStable();
     const path = element.querySelector('#app-path') as HTMLInputElement;
     path.value = '"C:\\Program Files\\OBS\\obs64.exe"';
     path.dispatchEvent(new Event('input'));
@@ -272,6 +278,7 @@ describe('AdminPage', () => {
     expect(library.calls).toEqual(['register obs64 C:\\Program Files\\OBS\\obs64.exe']);
     expect(element.querySelector('app-app-list .name')?.textContent).toBe('obs64');
     expect((element.querySelector('#app-path') as HTMLInputElement).value).toBe('');
+    expect(element.querySelector('app-app-list dialog')?.hasAttribute('open')).toBe(false);
   });
 
   it('uploads an icon from the Icons section', async () => {

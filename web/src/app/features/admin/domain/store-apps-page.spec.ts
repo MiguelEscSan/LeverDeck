@@ -23,7 +23,7 @@ describe('pageOf', () => {
 
     expect(pageOf(named, 'RAPIDA', 0).items).toEqual([{ name: 'Asistencia rápida' }]);
     expect(pageOf(named, 'calc', 4).items).toEqual([{ name: 'Calculadora' }]);
-    expect(pageOf(named, 'zzz', 0)).toEqual({ items: [], page: 0, pageCount: 1 });
+    expect(pageOf(named, 'zzz', 0)).toEqual({ items: [], page: 0, pageCount: 1, total: 0 });
   });
 });
 
@@ -41,6 +41,7 @@ describe('pageOfApps', () => {
     expect(result.items).toHaveLength(11 - REGISTERED_APPS_PAGE_SIZE);
     expect(result.page).toBe(1);
     expect(result.pageCount).toBe(2);
+    expect(result.total).toBe(11);
   });
 
   it('finds an app by its name or its path, ignoring case and accents', () => {

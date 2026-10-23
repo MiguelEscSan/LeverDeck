@@ -7,6 +7,8 @@ export interface StoreAppsPage<T> {
   readonly page: number;
   /** At least 1, so an empty result still shows one page. */
   readonly pageCount: number;
+  /** How many apps match the query, across every page. */
+  readonly total: number;
 }
 
 /** Lowercase without accents, so "rapida" finds "rápida" and "ñ" matches "n". */
@@ -52,5 +54,6 @@ function pageMatching<T>(
     items: matches.slice(current * pageSize, (current + 1) * pageSize),
     page: current,
     pageCount,
+    total: matches.length,
   };
 }

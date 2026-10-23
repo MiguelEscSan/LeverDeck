@@ -48,13 +48,20 @@ Strategy: `ask-on-risk`. Forecast about 450 authored changed lines (UI rewrite p
 - [x] T1 — Domain: `pageOfApps` for registered apps (test-first). Route: inline (one mechanical file + spec).
       RED: spec failed to compile (no `pageOfApps` export); GREEN: `ng test --include store-apps-page.spec.ts`
       5 passed.
-- [ ] T2 — UI: AppList paged list + AddAppDialog with Store and Program tabs, specs, admin page wiring. Route:
-      delegated writer (2+ non-trivial files fires the writer trigger).
+- [x] T2 — UI: AppList paged list + AddAppDialog with Store and Program tabs, specs, admin page wiring. Route:
+      delegated writer (2+ non-trivial files fires the writer trigger). RED: new app-list.spec 5 failed / 1 passed;
+      GREEN: `npm run lint` all pass, `npm test` 374 passed (54 files), `npm run build` complete. Native `<dialog>`
+      with showModal(); jsdom 30 has no showModal/close, so the component falls back to the `open` attribute.
 
 ## Progress
 
 - Branch `feat/apps-add-dialog` created from `main` (f09b111).
+- T1 committed (`bd00cfd`); assessed medium, `under_budget`.
+- T1 review: consent declined by the user for that candidate.
+- T2 written by the delegated writer and checked; parent added `total` to `StoreAppsPage` (test-first: TS2339 RED,
+  then GREEN) so AppList no longer re-pages with `Number.MAX_SAFE_INTEGER`. Parent re-run: lint pass, 374 tests pass,
+  build complete. Committed as the T2 work unit.
 
 ## Next step
 
-T1.
+Assess the slice from `main`; check the dialog in the running app (agent + embedded PWA), not done yet.

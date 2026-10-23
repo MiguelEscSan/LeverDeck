@@ -43,7 +43,6 @@
         }
         <app-app-list
           #appList
-          class="card"
           [apps]="library.apps()"
           [busy]="library.busy()"
           (register)="registerApp($event, appList)"
