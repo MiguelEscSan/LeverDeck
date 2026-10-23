@@ -12,6 +12,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+      Release is the GUI subsystem, so the installed app opens no console window; its logs go to a file
+      (docs/ARCHITECTURE.md, Logs). Debug stays a console app, so `dotnet run` keeps showing them.
+    -->
+    <OutputType Condition="'$(Configuration)' == 'Release'">WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)' != 'Release'">Exe</OutputType>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" />
     <InternalsVisibleTo Include="LeverDeck.App.Tests" />
