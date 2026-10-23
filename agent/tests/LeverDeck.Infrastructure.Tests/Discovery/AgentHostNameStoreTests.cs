@@ -22,6 +22,18 @@ public sealed class AgentHostNameStoreTests : IDisposable
     }
 
     [Fact]
+    public void Resolve_WritesTheNameThroughATemporaryFileThatAnInterruptedRunLeftHalfWritten()
+    {
+        File.WriteAllText(_directory.File("hostname.tmp"), "leverdeck-off");
+
+        var name = NewStore().Resolve();
+
+        Assert.Equal("leverdeck-office-pc", name.Label);
+        Assert.Equal("leverdeck-office-pc", File.ReadAllText(_directory.File("hostname")).Trim());
+        Assert.False(File.Exists(_directory.File("hostname.tmp")));
+    }
+
+    [Fact]
     public void Resolve_KeepsTheStoredNameWhenThePcIsRenamed()
     {
         NewStore(machineName: "Office PC").Resolve();

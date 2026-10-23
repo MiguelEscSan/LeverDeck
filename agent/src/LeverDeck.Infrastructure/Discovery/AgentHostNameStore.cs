@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
+using System.Text;
 using LeverDeck.Infrastructure.Configuration;
+using LeverDeck.Infrastructure.Persistence;
 
 namespace LeverDeck.Infrastructure.Discovery;
 
@@ -47,9 +49,9 @@ public sealed class AgentHostNameStore
             return stored!;
         }
 
+        // Atomic: a write cut short must not leave a shorter label that still parses and moves the PC to another origin.
         var name = AgentHostName.FromMachineName(_machineName(), _randomSuffix);
-        Directory.CreateDirectory(_options.DataDirectory);
-        File.WriteAllText(path, name.Label);
+        AtomicFile.WriteAllBytes(path, Encoding.UTF8.GetBytes(name.Label));
         return name;
     }
 }

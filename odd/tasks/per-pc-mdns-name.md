@@ -77,6 +77,10 @@ Strategy: `ask-on-risk`. Forecast about 350 authored changed lines.
   `IServiceAdvertiser` doc comment was fixed by the parent.
 - T5 committed with this document. Parent re-run: `npm run lint` pass, `npm test` 375 passed.
 
+- Review (user granted): reliability lens approved and acknowledged, 4 non-blocking suggestions. Acted on the
+  non-atomic `hostname` write: `AgentHostNameStore` now writes through `AtomicFile` (temp + flush + move); new test
+  with a half-written `hostname.tmp` was RED, then GREEN; `dotnet test` 1157 passed.
+
 ## Next step
 
 Manual check on two PCs (owner): each logs its own name, `ping leverdeck-<pc>.local` from the phone's network, pair
