@@ -392,48 +392,55 @@ WebView2 loader, the log, placement and launch rules pass their tests, and `vpk 
 Updates from GitHub Releases need the releases to be public (the repository is private today). Evidence and the open
 checks: `odd/tasks/desktop-app.md`.
 
-## Phase 8c — Sound clips (planned, not started)
+## Phase 8c — Sound clips (built, not checked on Windows)
 
-Play short sounds on the PC from a key. The owner uploads a clip from the desktop editor, assigns it to a key with an
-icon, and presses the key on the phone; the PC plays the clip through its speakers. The phone only sends the press
-(`executeAction`), as for every other key. Recording on the phone's microphone is a later phase, not part of this one.
+Play short sounds on the PC from a key. The owner uploads a clip from the desktop editor, names it, assigns it to a key
+with an icon, and presses the key on the phone; the PC plays the clip through its speakers. The phone only sends the
+press (`executeAction`), as for every other key. Phones never upload, rename or delete a clip. Recording on the phone's
+microphone is a later phase, not part of this one.
 
-Decided (owner, 2026-10-23): all configuration happens on the PC (the editor is admin-only), the phone triggers.
+Decided (owner, 2026-10-23): all configuration happens on the PC; **pressing again restarts the clip from the beginning**,
+like the soundboard panel in Discord (no toggle). The design artifact "LeverDeck Audio" was the reference for the
+screens.
 
-Decided (owner, 2026-10-23): **pressing again restarts the clip from the beginning**, like the soundboard panel in
-Discord. The press does not toggle or stop.
+Deliberate deviations from the design artifact:
 
-Defaults, to confirm before the code starts:
+- **WAV only.** The design lists MP3, OGG and FLAC. The Windows sound API that plays here (winmm `PlaySound`) reads only
+  uncompressed PCM WAV and does not decode the rest, so the editor refuses them with the way to convert them. Supporting
+  them needs a decoder (Media Foundation or similar), which is an AOT and dependency question for the owner to decide.
+- **One clip at a time.** `PlaySound` plays one clip; a press on another clip cuts the current one. Several clips at once
+  need another API (WASAPI or XAudio2), which is more native code.
+- **No "Add to key" button, no waveform, no drop zone.** A clip is assigned in the key's action editor (the Sound picker),
+  which is where the editor already picks apps and games. The waveform in the design is decorative and was left out.
+- **The phone's Audio screen is a read-only list** (name, length, size). It has no play buttons and no bottom navigation:
+  preview needs the admin token, which a phone does not hold, and the header link to `/sounds` replaces the tab bar.
 
-- **Overlap:** the Windows sound API that plays WAV without a dependency (`PlaySound`, winmm) plays one clip at a time,
-  so a press on another clip cuts the current one. Restarting the same clip works the same way. Several clips at once
-  need another API (for example WASAPI or XAudio2), which is more native code.
-- **Formats:** WAV first. MP3 and OGG need a decoder, which is more work and an AOT question.
+Design notes as built:
 
-Design notes:
-
-- **Closed action, like the others.** A new `PlaySound` action (`abstract record Action` subtype, `sealed record`) that
-  carries a clip id, never a file path. The architecture test (`ActionWhitelistTests`) and the executor coverage test
-  must include it. The agent resolves the id to a file in its own folder.
-- **Uploads follow the icon upload.** The editor sends the file, the agent validates it (WAV header, size cap such as
-  2 MB, a limit on the number of clips), stores it under `<DataDirectory>/sounds/` and lists it to every client. It is
-  deleted with the key that uses it, or from the editor.
-- **No admin, no third-party runtime.** Playback goes through the Windows sound API the agent already calls through
-  `LibraryImport`, which keeps Native AOT. Confirm the playback call and its stop behaviour on the owner's PC before
-  relying on it.
-- **Protocol first.** New messages and DTOs in `LeverDeck.Protocol`, then the regenerated TypeScript types
-  (`TypeScriptSnapshotTests`). The PWA changes only in the editor and the key's appearance.
+- **Closed action.** `PlaySound` (`abstract record Action` subtype) carries a `SoundId` (`sound-` and 32 hex digits), never a
+  path. The architecture test and the executor coverage list it.
+- **Upload over HTTP.** `PUT /api/sounds/<id>.wav?name=…` with the admin token in `X-LeverDeck-Admin`, because a 50 MB clip
+  does not fit the 1 MiB admin socket. Checked as a PCM WAV in the domain (`WaveFile`): format, mono or stereo, 8–32 bits,
+  a data chunk, 50 MB at most. The library, rename and delete use the socket; every connection hears `soundsChanged`.
+- **Storage.** `sounds.json` (names, lengths, sizes; schema-versioned like the other files) and `sounds/<id>.wav`, written
+  atomically. A clip a key still plays cannot be deleted, as an icon.
+- **Playback.** `PlaySound` through winmm, asynchronous (`SND_ASYNC`): the second press restarts the clip. Windows needs no
+  administrator rights.
 
 ### 8c.1 Tasks
 
-- [ ] Confirm the defaults above (one clip at a time, WAV only).
-- [ ] Domain: `PlaySound` action and a clip entity (id, display name, file, length), test-first.
-- [ ] Application: upload, list and delete clip use cases behind an `ISoundStore` port; fakes in tests.
-- [ ] Infrastructure: `FileSoundStore` (validation and storage) and the playback adapter behind an `ISoundPlayer` port.
-- [ ] Protocol and transport: upload, list and delete messages; `soundsChanged` event; regenerate the TypeScript types.
-- [ ] Editor: upload a clip, pick it for a key, preview it, delete it.
-- [ ] Manual check (owner): upload a WAV from the PC, assign it to a key, press from the phone, hear it on the PC, and
-      confirm the behaviour chosen above.
+- [x] Domain: `SoundId`, `SoundName`, `WaveFile`, `SoundClip`, `PlaySound`, with tests (test-first).
+- [x] Application: `GetSounds`, `UploadSound`, `RenameSound`, `DeleteSound` behind `ISoundStore` and `ISoundPlayer`, with fakes
+      and tests; `ScopeTests` covers which scope may run each one (uploads and changes need admin; the list needs any paired caller).
+- [x] Infrastructure: `FileSoundStore` (index and files), `WinmmSoundPlayer` (CsWin32 `PlaySound`), `SoundEndpoint` (upload and
+      admin preview), mappers, persistence records, executor routing.
+- [x] Protocol and transport: `playSound` action; `renameSound`, `deleteSound`, `getSounds` and their results; `soundsChanged`;
+      TypeScript regenerated.
+- [x] Web, editor: Audio section (choose WAV, name, upload, preview, rename, delete), Sound picker in the key's action editor.
+- [x] Web, phone: read-only Audio list at `/sounds`, linked from the header.
+- [ ] Owner, on Windows: upload a WAV from the PC, assign it to a key, press from the phone, hear it on the PC, press it
+      again while it plays (it restarts), rename it, delete it while a key uses it (refused), delete it when unused.
+- [ ] Owner, on Windows: a 50 MB WAV uploads, and a larger file or an MP3 is refused with its message.
 
 ## Phase 9 — macOS agent (planned, not started)
 

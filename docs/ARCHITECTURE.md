@@ -165,6 +165,17 @@ WebView2, so the owner needs no browser and no URL. Windows-only code in `App`, 
   `Velopack` package) and attaches `leverdeck.exe`, `LeverDeckSetup.exe`, `releases.win.json`, the full `.nupkg`,
   `RELEASES` and `assets.win.json` to the GitHub Release. The package holds the exe alone; no delta packages yet.
 
+### Sound clips
+
+A sound clip is an uploaded PCM WAV that a key plays on the PC (ROADMAP Phase 8c). The editor uploads it over HTTP:
+`PUT /api/sounds/<id>.wav?name=…` (and `GET` for the editor's own preview), both with the admin token in the
+`X-LeverDeck-Admin` header and refused without it, so a phone can neither upload nor fetch a clip. A clip is 50 MB at
+most; the endpoint raises Kestrel's 30 MB request limit for that request only. Phones list the clips over the socket
+(`getSounds`, device scope) and are told of changes (`soundsChanged`). Only WAV plays: the domain checks the header
+(`WaveFile`) and refuses every other format by name. Playback is `PlaySound` in winmm (`Infrastructure/Sounds`),
+asynchronous, so a second press restarts the clip. The library is `sounds.json` plus `sounds/<id>.wav`, in the data
+directory.
+
 ### Transport endpoints
 
 All live in `Infrastructure/Transport`, as plain request delegates with source-generated JSON (Native AOT safe).
@@ -226,6 +237,8 @@ so every paired device sees the same configuration.
 ├── icons/           (uploaded key icons, <custom-id>.png; see Transport endpoints)
 ├── logs/            (Release only: leverdeck.log of the current run; see Logs)
 ├── window.json      (the editor window's size and position)
+├── sounds.json      (the sound clip library: names, lengths, sizes)
+├── sounds/          (uploaded WAV clips, <sound-id>.wav; see Sound clips)
 ├── webview2/        (the editor window's WebView2 profile)
 └── admin-token      (generated once, DPAPI-protected; see Desktop editor)
 ```
