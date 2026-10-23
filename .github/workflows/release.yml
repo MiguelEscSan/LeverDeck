@@ -1,0 +1,62 @@
+name: Release
+
+# A version tag (v0.1.0, or v0.2.0-beta.1 for a pre-release) builds, tests and publishes leverdeck.exe, then attaches
+# it to a GitHub Release named after the tag. The exe's file version comes from the tag.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: agent
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: agent/global.json
+
+      - name: Build web app
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Restore
+        run: dotnet restore LeverDeck.slnx
+
+      - name: Build
+        run: dotnet build LeverDeck.slnx --no-restore -c Release -p:RequireWebUi=true
+
+      - name: Test
+        run: dotnet test LeverDeck.slnx --no-build -c Release
+
+      - name: Publish (Native AOT)
+        shell: pwsh
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck -p:RequireWebUi=true -p:Version=$version
+
+      - name: Create the release
+        working-directory: .
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $flags = @('--title', "LeverDeck $env:TAG", '--generate-notes')
+          if ($env:TAG.Contains('-')) { $flags += '--prerelease' }
+          gh release create $env:TAG artifacts/leverdeck/leverdeck.exe @flags

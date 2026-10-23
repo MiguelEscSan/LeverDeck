@@ -347,7 +347,9 @@ generated folder is never edited.
 
 ## Phase 8 — Release
 
-- [ ] Publish `leverdeck.exe` from CI as a GitHub Release.
+- [ ] Publish `leverdeck.exe` from CI as a GitHub Release. The workflow is ready (`.github/workflows/release.yml`:
+      a `v*` tag builds, tests, publishes and attaches the exe); done once the first tag is released.
+- [x] The exe and the tray carry the app icon (`LeverDeck.App/leverdeck.ico`, from the PWA icon).
 - [ ] README: install, firewall, pairing, USB mode, known limits (anti-cheat, elevated apps — see HANDOFF.md).
 - [ ] Fill the **Commands** section of `CLAUDE.md`.
 
