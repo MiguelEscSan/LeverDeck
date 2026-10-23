@@ -28,6 +28,9 @@ public sealed record LeverDeckOptions
     /// <summary>Absolute folder holding <c>profiles.json</c>, <c>devices.json</c>, <c>settings.json</c> and the admin token.</summary>
     public required string DataDirectory { get; init; }
 
+    /// <summary>The run's log file in Release builds (docs/ARCHITECTURE.md, Logs).</summary>
+    public string LogDirectory => Path.Combine(DataDirectory, "logs");
+
     /// <summary>Whether the agent advertises its host name over mDNS. Tests turn it off.</summary>
     public bool MdnsEnabled { get; init; } = true;
 

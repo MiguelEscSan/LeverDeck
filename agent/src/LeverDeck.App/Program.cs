@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 var builder = WebApplication.CreateSlimBuilder(args);
 
 var options = LeverDeckOptions.FromConfiguration(builder.Configuration);
+#if !DEBUG
+builder.Logging.AddLeverDeckFileLogging(options);
+#endif
 builder.Services.AddLeverDeck();
 if (options.DesktopEnabled)
 {

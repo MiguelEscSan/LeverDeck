@@ -170,6 +170,7 @@ so every paired device sees the same configuration.
 ├── devices.json     (token hashes, names, pairing dates)
 ├── settings.json
 ├── icons/           (uploaded key icons, <custom-id>.png; see Transport endpoints)
+├── logs/            (Release only: leverdeck.log of the current run; see Logs)
 └── admin-token      (generated once, DPAPI-protected; see Desktop editor)
 ```
 
@@ -182,6 +183,24 @@ so every paired device sees the same configuration.
 - Secrets at rest (the admin token, the OBS password) are protected with DPAPI for the current Windows user.
 - The folder is `LeverDeck:DataDirectory` when set (tests use a temp folder), else
   `Environment.GetFolderPath(ApplicationData)\LeverDeck`.
+
+## Logs
+
+Release builds are `WinExe` (no console window), so they log to `<DataDirectory>/logs/leverdeck.log` through
+`FileLoggerProvider` (`Infrastructure/Logging`, no reflection, AOT safe); Debug builds keep the console, so
+`dotnet run` still prints everything. Levels come from the usual `Logging` configuration.
+
+- **Every start of the agent begins a new log.** `SessionLogFile.Start` deletes every `*.log` in the folder and opens
+  an empty `leverdeck.log`; no previous log is kept (the owner's rule). A start is a new process: Windows sign-in,
+  or quitting from the tray and opening LeverDeck again. Closing or reopening the editor window is not a start.
+  A file that cannot be deleted is left for the next start.
+- **10 MB cap per run.** A tray session can last weeks, so the first line that would cross the cap is replaced by a
+  notice ("The log reached its 10 MB limit; later messages are dropped until LeverDeck restarts.") and nothing more is
+  written. Stopping rather than truncating keeps the start of the session, where most problems show.
+- Each line is `<UTC time> <level> <category>: <message>`, followed by the exception if any; every write is flushed.
+  The file is opened with `FileShare.Read`, so it can be read while the agent runs.
+- **The admin token is never logged in Release.** The log lives next to the DPAPI-protected token; only Debug builds
+  print the editor URL with the token (for `dotnet run`).
 
 ## Agent (.NET) — hexagonal solution
 

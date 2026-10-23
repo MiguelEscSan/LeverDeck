@@ -8,7 +8,9 @@ using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
 using LeverDeck.Application.Status;
+using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.DependencyInjection;
+using LeverDeck.Infrastructure.Logging;
 using LeverDeck.Infrastructure.Transport;
 
 namespace LeverDeck.App;
@@ -26,6 +28,22 @@ internal static class CompositionRoot
         services.AddDebugEndpointServices();
 #endif
         return services;
+    }
+
+    /// <summary>
+    /// Release logging: no console (the exe is WinExe), so entries go to <c>&lt;DataDirectory&gt;/logs</c> only. The
+    /// file is started, which deletes the logs of earlier runs, when the host builds its logger factory; registered
+    /// through a factory so the container disposes it on exit.
+    /// </summary>
+    public static ILoggingBuilder AddLeverDeckFileLogging(this ILoggingBuilder logging, LeverDeckOptions options)
+    {
+        logging.ClearProviders();
+        // The release ships the exe alone, without appsettings.json: keep ASP.NET Core's per-request lines out of the log.
+        logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
+        logging.Services.AddSingleton<ILoggerProvider>(provider => new FileLoggerProvider(
+            SessionLogFile.Start(options.LogDirectory),
+            provider.GetService<TimeProvider>() ?? TimeProvider.System));
+        return logging;
     }
 
     /// <summary>The tray icon and the firewall rule, for the owner's desktop only (<c>LeverDeck:Desktop:Enabled</c>).</summary>
