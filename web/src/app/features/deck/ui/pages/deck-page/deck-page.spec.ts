@@ -5,6 +5,8 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import type { ConnectionStatus } from '../../../../../core/connection/domain/connection-status';
 import type { ConnectionRejection } from '../../../../../core/connection/domain/rejection';
 import type { ButtonDto, ProfileDto } from '../../../../../core/protocol';
+import { ThemeFacade } from '../../../../../core/theme/application/theme.facade';
+import { ThemeStore, ThemeTarget } from '../../../../../core/theme/application/theme.ports';
 import { DeckFacade } from '../../../application/deck.facade';
 import type { DeckCell } from '../../../domain/deck';
 import { DeckPage } from './deck-page';
@@ -73,6 +75,8 @@ describe('DeckPage', () => {
           { path: 'pair', component: PairStub },
         ]),
         { provide: DeckFacade, useValue: deck },
+        { provide: ThemeStore, useValue: { read: () => 'system', write: () => undefined } },
+        { provide: ThemeTarget, useValue: { apply: () => undefined } },
       ],
     });
   });
@@ -93,6 +97,19 @@ describe('DeckPage', () => {
     element.querySelector<HTMLButtonElement>('app-deck-key button')?.click();
 
     expect(deck.pressed).toEqual([play]);
+  });
+
+  it('switches the theme from the bar', async () => {
+    const harness = await open();
+    const select = (harness.routeNativeElement as HTMLElement).querySelector(
+      'app-theme-select select',
+    ) as HTMLSelectElement;
+
+    expect(select.value).toBe('system');
+    select.value = 'dark';
+    select.dispatchEvent(new Event('change'));
+
+    expect(TestBed.inject(ThemeFacade).preference()).toBe('dark');
   });
 
   it.each(['unauthorized', 'deviceRevoked'] as const)(

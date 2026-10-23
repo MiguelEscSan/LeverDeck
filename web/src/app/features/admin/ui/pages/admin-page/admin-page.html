@@ -20,6 +20,12 @@
           <i aria-hidden="true"></i>{{ statusLabel() }}
         </span>
         <span class="saving" aria-live="polite">{{ editor.saving() ? 'Saving…' : 'All changes saved' }}</span>
+        <app-theme-switch
+          class="theme"
+          [value]="theme.preference()"
+          [options]="theme.options"
+          (changed)="theme.choose($event)"
+        />
       </div>
     </aside>
 

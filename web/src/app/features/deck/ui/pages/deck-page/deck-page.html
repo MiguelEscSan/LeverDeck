@@ -9,6 +9,12 @@
       (selected)="deck.selectProfile($event)"
     />
   }
+  <app-theme-select
+    class="theme"
+    [value]="theme.preference()"
+    [options]="theme.options"
+    (changed)="theme.choose($event)"
+  />
 </div>
 
 @if (outdated()) {

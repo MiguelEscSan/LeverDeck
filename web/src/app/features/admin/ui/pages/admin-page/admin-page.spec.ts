@@ -1,6 +1,8 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { ConnectionStatus } from '../../../../../core/connection/domain/connection-status';
+import { ThemeFacade } from '../../../../../core/theme/application/theme.facade';
+import { ThemeStore, ThemeTarget } from '../../../../../core/theme/application/theme.ports';
 import type {
   ButtonDto,
   DeviceDto,
@@ -168,6 +170,8 @@ describe('AdminPage', () => {
         { provide: AdminFacade, useValue: admin },
         { provide: ProfileEditorFacade, useValue: editor },
         { provide: LibraryFacade, useValue: library },
+        { provide: ThemeStore, useValue: { read: () => 'system', write: () => undefined } },
+        { provide: ThemeTarget, useValue: { apply: () => undefined } },
       ],
     });
   });
@@ -185,6 +189,19 @@ describe('AdminPage', () => {
     expect(element.querySelector('app-pairing-card')).not.toBeNull();
     expect(element.querySelector('app-device-list')?.textContent).toContain('Pixel 8');
     expect(element.querySelector('.status')?.textContent?.trim()).toBe('Agent connected');
+  });
+
+  it('switches the theme from the sidebar footer', async () => {
+    const { fixture, element } = await render();
+    const radio = (value: string) =>
+      element.querySelector<HTMLInputElement>(`.side-footer app-theme-switch input[value="${value}"]`);
+
+    expect(radio('system')?.checked).toBe(true);
+    radio('light')?.click();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(ThemeFacade).preference()).toBe('light');
+    expect(radio('light')?.checked).toBe(true);
   });
 
   it('wires the pairing and revoke buttons to the facade', async () => {

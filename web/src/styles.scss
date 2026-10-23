@@ -77,30 +77,40 @@
   --ld-duration-press: 120ms;
 }
 
+// The light tokens apply under a light system scheme unless this device pinned dark, and always when it pinned light
+// (`data-theme` on <html>, set by ThemeFacade, and before the first paint by the script in index.html).
+@mixin light-theme {
+  color-scheme: light;
+
+  --ld-color-background: #f2f2f2;
+  --ld-color-surface: #ffffff;
+  --ld-color-panel: #e4e4e4;
+  --ld-color-field: #ffffff;
+  --ld-color-border: #c4c4c4;
+  --ld-color-line: #d6d6d6;
+  --ld-color-field-border: #b8b8b8;
+
+  --ld-color-text: #151515;
+  --ld-color-muted: #595959;
+  --ld-color-muted-on-panel: #595959; // 5.5:1 on panel
+  --ld-color-danger-text: #b3123d; // 6.1:1 on background
+
+  --ld-color-success: #1a7f45;
+  --ld-color-warning: #b8461c;
+  --ld-color-idle: #6e6e6e;
+  --ld-color-focus: #151515;
+
+  --ld-shadow-menu: 0 12px 32px rgb(0 0 0 / 18%);
+}
+
 @media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-
-    --ld-color-background: #f2f2f2;
-    --ld-color-surface: #ffffff;
-    --ld-color-panel: #e4e4e4;
-    --ld-color-field: #ffffff;
-    --ld-color-border: #c4c4c4;
-    --ld-color-line: #d6d6d6;
-    --ld-color-field-border: #b8b8b8;
-
-    --ld-color-text: #151515;
-    --ld-color-muted: #595959;
-    --ld-color-muted-on-panel: #595959; // 5.5:1 on panel
-    --ld-color-danger-text: #b3123d; // 6.1:1 on background
-
-    --ld-color-success: #1a7f45;
-    --ld-color-warning: #b8461c;
-    --ld-color-idle: #6e6e6e;
-    --ld-color-focus: #151515;
-
-    --ld-shadow-menu: 0 12px 32px rgb(0 0 0 / 18%);
+  :root:not([data-theme='dark']) {
+    @include light-theme;
   }
+}
+
+:root[data-theme='light'] {
+  @include light-theme;
 }
 
 *,

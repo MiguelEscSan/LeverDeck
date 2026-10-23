@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ThemeFacade } from '../../../../../core/theme/application/theme.facade';
 import { AdminFacade } from '../../../application/admin.facade';
 import { LibraryFacade } from '../../../application/library.facade';
 import { ProfileEditorFacade } from '../../../application/profile-editor.facade';
@@ -14,6 +15,7 @@ import { PageBar } from '../../components/page-bar/page-bar';
 import { PairingCard } from '../../components/pairing-card/pairing-card';
 import { ProfileList } from '../../components/profile-list/profile-list';
 import { ProfileToolbar } from '../../components/profile-toolbar/profile-toolbar';
+import { ThemeSwitch } from '../../components/theme-switch/theme-switch';
 
 /** What the middle column shows: the open profile's keys, or one of the library sections. */
 export type EditorView = 'keys' | LibrarySection;
@@ -44,6 +46,7 @@ const STATUS_LABELS = {
     PairingCard,
     ProfileList,
     ProfileToolbar,
+    ThemeSwitch,
   ],
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.scss',
@@ -52,6 +55,7 @@ export class AdminPage {
   protected readonly admin = inject(AdminFacade);
   protected readonly editor = inject(ProfileEditorFacade);
   protected readonly library = inject(LibraryFacade);
+  protected readonly theme = inject(ThemeFacade);
 
   protected readonly view = signal<EditorView>('keys');
   protected readonly librarySection = computed(() => {

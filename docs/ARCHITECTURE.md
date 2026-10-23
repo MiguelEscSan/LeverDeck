@@ -267,6 +267,7 @@ web/src/app/
 │   ├── protocol/        generated wire types (never edited by hand)
 │   ├── auth/            device and admin tokens (Web Storage), pairing redeem API, route guards
 │   ├── keys/            the bundled key icon set, shared by the deck and the editor
+│   ├── theme/           the System / Dark / Light preference of this device (`localStorage`), applied to the document
 │   └── connection/      shared module, same layers as a feature (no ui/)
 │       ├── domain/          ConnectionStatus, message unions, backoff policy, rejections, request errors
 │       ├── application/     ConnectionPort (abstract class), RequestChannel, ConnectionFacade (`/ws`) and
@@ -297,7 +298,9 @@ web/src/app/
   import only inner layers of its own feature and `core/`; presentational components may import only domain types and
   other components; files outside `core/`, `features/` and the composition root fail the lint.
 - Theme tokens are CSS custom properties (`--ld-*`) in `web/src/styles.scss`: dark first, light via
-  `prefers-color-scheme`, with the mobile baseline (safe areas, `100dvh`, no tap highlight, 16 px inputs).
+  `prefers-color-scheme`, with the mobile baseline (safe areas, `100dvh`, no tap highlight, 16 px inputs). Each device
+  may pin a theme (`ThemeFacade` in `core/theme`, per device, never synced from the agent): `data-theme="dark|light"`
+  on `<html>` beats the media query, and an inline script in `index.html` applies it before the first paint.
 
 ## Rules
 

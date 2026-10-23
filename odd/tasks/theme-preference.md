@@ -54,8 +54,12 @@ Strategy: `ask-on-risk`. Forecast about 350 authored changed lines.
       (test-first). Route: inline (context already loaded; small mechanical files). RED: the specs failed to
       compile (no `../domain/theme`); GREEN: `ng test --include core/theme` 12 passed; `npm run lint` passes. jsdom 30
       has no `HTMLMetaElement.media`, so the adapter reads the `media` attribute.
-- [ ] T2 — Tokens under `data-theme`, no-flash script, providers, controls in the deck and the editor, docs. Route:
-      inline.
+- [x] T2 — Tokens under `data-theme`, no-flash script, providers, controls in the deck and the editor, docs. Route:
+      inline (context already loaded). Deck: native `ThemeSelect` at the right of the bar; editor: `ThemeSwitch`
+      radio segments in the sidebar footer. Checks: `npm run lint` all pass, `npm test` 391 passed (59 files),
+      `npm run build` complete (built index.html keeps the inline script). Browser (dev server, 375x812): pinned light
+      under a dark OS and pinned dark under a light OS apply, the choice survives a reload, System restores both
+      `theme-color` metas.
 
 ## Progress
 

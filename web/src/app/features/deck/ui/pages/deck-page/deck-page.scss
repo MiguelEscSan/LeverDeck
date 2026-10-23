@@ -8,8 +8,15 @@
 }
 
 .bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ld-space-3);
   min-height: var(--ld-touch-target);
   margin-top: calc(-1 * var(--ld-space-3));
+}
+
+.theme {
+  margin-left: auto;
 }
 
 .stage {
