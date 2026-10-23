@@ -18,6 +18,9 @@ internal static unsafe partial class NativeTray
     public const uint WmApp = 0x8000;
     public const uint WmTrayIcon = WmApp + 1;
 
+    /// <summary>Posted to the tray window to show the editor: by the tray itself, or by a second launch.</summary>
+    public const uint WmShowEditor = WmApp + 2;
+
     public const uint NimAdd = 0;
     public const uint NimDelete = 2;
     public const uint NifMessage = 0x1;
@@ -168,6 +171,10 @@ internal static unsafe partial class NativeTray
     [LibraryImport("user32.dll", EntryPoint = "AppendMenuW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool AppendMenu(nint menu, uint flags, nuint id, string? item);
+
+    [LibraryImport("user32.dll", EntryPoint = "SetMenuDefaultItem", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool SetMenuDefaultItem(nint menu, uint item, uint byPosition);
 
     [LibraryImport("user32.dll", EntryPoint = "TrackPopupMenu", SetLastError = true)]
     public static partial int TrackPopupMenu(nint menu, uint flags, int x, int y, int reserved, nint hwnd, nint rect);

@@ -1,3 +1,4 @@
+using LeverDeck.App.Desktop;
 using LeverDeck.App.Platform;
 using LeverDeck.App.Tray;
 using LeverDeck.Application.Actions;
@@ -10,6 +11,7 @@ using LeverDeck.Application.Settings;
 using LeverDeck.Application.Status;
 using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.DependencyInjection;
+using LeverDeck.Infrastructure.Desktop;
 using LeverDeck.Infrastructure.Logging;
 using LeverDeck.Infrastructure.Transport;
 
@@ -46,10 +48,16 @@ internal static class CompositionRoot
         return logging;
     }
 
-    /// <summary>The tray icon and the firewall rule, for the owner's desktop only (<c>LeverDeck:Desktop:Enabled</c>).</summary>
+    /// <summary>
+    /// The tray icon, the editor window and the firewall rule, for the owner's desktop only
+    /// (<c>LeverDeck:Desktop:Enabled</c>).
+    /// </summary>
     public static IServiceCollection AddLeverDeckDesktop(this IServiceCollection services)
     {
-        services.AddHostedService<TrayIcon>();
+        services.AddSingleton<WindowPlacementStore>();
+        services.AddSingleton<EditorWindow>();
+        services.AddSingleton<TrayIcon>();
+        services.AddHostedService(provider => provider.GetRequiredService<TrayIcon>());
         services.AddHostedService<FirewallRuleService>();
         return services;
     }

@@ -107,9 +107,34 @@ The editor on the PC uses `GET /admin/ws`, the only channel that accepts admin-s
   keeps working.
 - **`/admin/ws` requires it.** A connection without the right token (compared in constant time) is rejected before
   any message is read.
-- **The editor URL carries it.** The tray (Phase 7) opens the editor with the token in the URL; the editor keeps it for
-  its connection. Anyone who can read the user's profile folder can already control the PC, so the token adds no new
-  exposure there.
+- **The editor URL carries it.** The editor window (below) opens `http://localhost:8765/?admin=<token>`; the editor
+  keeps the token for its connection and moves it out of the URL, so the owner never sees it. Anyone who can read the
+  user's profile folder can already control the PC, so the token adds no new exposure there.
+
+### Editor window (desktop app)
+
+LeverDeck shows the same Angular editor in a window of its own (`LeverDeck.App/Desktop/EditorWindow.cs`), through
+WebView2, so the owner needs no browser and no URL. Windows-only code in `App`, like the tray.
+
+- **Native AOT.** The few WebView2 COM interfaces are declared with source-generated COM (`[GeneratedComInterface]`,
+  `[GeneratedComClass]`) in `Desktop/WebView2.cs`, with IIDs and vtable order from `WebView2.h` in the
+  `Microsoft.Web.WebView2` package; each declares only the vtable prefix it uses, with `Unused*` placeholder slots.
+  The package is referenced with no assets (its managed wrappers need built-in COM); the AOT build links
+  `WebView2LoaderStatic.lib` (`DirectPInvoke`), so the exe stays one file, and JIT builds load `WebView2Loader.dll`
+  from the output folder.
+- **One UI thread.** The tray thread is STA and owns both the tray window and the editor window with its web view;
+  Kestrel stays on the thread pool. The process is per-monitor DPI aware (v2), set once before any window; the web
+  view's bounds follow `WM_SIZE` and `WM_DPICHANGED`.
+- **Close hides.** Closing the window hides it (the web view stays loaded but invisible) and the agent keeps serving
+  the phones from the tray; "Open LeverDeck" in the tray menu, a left click on the icon or a second launch shows it
+  again. The window's size, position and maximized state are kept in `window.json` in the data directory. On exit the
+  web view's controller is closed before the window is destroyed.
+- **Profile folder.** The web view's user data always goes to `<DataDirectory>/webview2`; the default folder, next
+  to the exe, would be replaced by every installer update.
+- **Missing runtime.** WebView2 comes with Windows 11 and Windows 10 updates. When
+  `CreateCoreWebView2EnvironmentWithOptions` fails, the window hides again and a message box says so; for a missing
+  runtime it offers Microsoft's WebView2 download page. The tray's "Open in browser" still opens the editor in the
+  default browser.
 
 ### Transport endpoints
 
@@ -171,6 +196,8 @@ so every paired device sees the same configuration.
 ├── settings.json
 ├── icons/           (uploaded key icons, <custom-id>.png; see Transport endpoints)
 ├── logs/            (Release only: leverdeck.log of the current run; see Logs)
+├── window.json      (the editor window's size and position)
+├── webview2/        (the editor window's WebView2 profile)
 └── admin-token      (generated once, DPAPI-protected; see Desktop editor)
 ```
 

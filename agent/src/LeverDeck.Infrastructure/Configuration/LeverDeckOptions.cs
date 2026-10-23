@@ -31,6 +31,12 @@ public sealed record LeverDeckOptions
     /// <summary>The run's log file in Release builds (docs/ARCHITECTURE.md, Logs).</summary>
     public string LogDirectory => Path.Combine(DataDirectory, "logs");
 
+    /// <summary>
+    /// The editor window's WebView2 profile. Always passed explicitly: the default folder, next to the exe, is replaced
+    /// on every Velopack update.
+    /// </summary>
+    public string WebView2DataDirectory => Path.Combine(DataDirectory, "webview2");
+
     /// <summary>Whether the agent advertises its host name over mDNS. Tests turn it off.</summary>
     public bool MdnsEnabled { get; init; } = true;
 

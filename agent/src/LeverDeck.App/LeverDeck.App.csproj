@@ -23,7 +23,29 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" />
+    <!--
+      Only for the native WebView2 loader and its header (Desktop/WebView2.cs). No assets: the package's managed
+      wrappers use built-in COM interop, which Native AOT does not support; the editor window declares its own
+      source-generated COM interfaces instead.
+    -->
+    <PackageReference Include="Microsoft.Web.WebView2" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
     <InternalsVisibleTo Include="LeverDeck.App.Tests" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PkgMicrosoft_Web_WebView2)' != ''">
+    <!--
+      Native AOT links the static loader into leverdeck.exe, so the published exe stays one file. version.lib, which it
+      needs, is already in Native AOT's default Windows libraries. x64 only, like the published runtime (win-x64).
+    -->
+    <DirectPInvoke Include="WebView2Loader" />
+    <NativeLibrary Include="$(PkgMicrosoft_Web_WebView2)/build/native/x64/WebView2LoaderStatic.lib" />
+    <!-- JIT builds (dotnet run, tests) load WebView2Loader.dll from the output folder; the AOT publish does not ship it. -->
+    <None
+      Include="$(PkgMicrosoft_Web_WebView2)/build/native/x64/WebView2Loader.dll"
+      Link="WebView2Loader.dll"
+      CopyToOutputDirectory="PreserveNewest"
+      CopyToPublishDirectory="Never"
+      Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
