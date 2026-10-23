@@ -11,6 +11,7 @@ import type {
   PairingSessionDto,
   ProfileDto,
   RegisteredAppDto,
+  SoundDto,
 } from '../../../../../core/protocol';
 import { type AdminAccess, AdminFacade } from '../../../application/admin.facade';
 import { LibraryFacade } from '../../../application/library.facade';
@@ -124,7 +125,26 @@ class FakeLibrary {
   readonly error = signal<string | null>(null);
   readonly icons = signal<string[]>([]);
   readonly uploading = signal(false);
+  readonly sounds = signal<SoundDto[]>([]);
+  readonly soundUploading = signal(false);
   readonly calls: string[] = [];
+
+  async uploadSound(file: File, name: string): Promise<boolean> {
+    this.calls.push(`sound ${file.name} as ${name}`);
+    return true;
+  }
+
+  async renameSound(soundId: string, name: string): Promise<void> {
+    this.calls.push(`rename ${soundId} ${name}`);
+  }
+
+  async deleteSound(soundId: string): Promise<void> {
+    this.calls.push(`delete sound ${soundId}`);
+  }
+
+  async previewSound(soundId: string): Promise<void> {
+    this.calls.push(`preview ${soundId}`);
+  }
 
   async uploadIcon(file: File): Promise<string | null> {
     this.calls.push(`upload ${file.name}`);

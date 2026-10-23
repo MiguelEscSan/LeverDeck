@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { ConnectionFacade } from '../../../../../core/connection/application/connection.facade';
 import { BrandMark } from '../../components/brand-mark/brand-mark';
 import { StatusBadge } from '../../components/status-badge/status-badge';
@@ -8,7 +8,7 @@ import { StatusBadge } from '../../components/status-badge/status-badge';
 @Component({
   selector: 'app-shell-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, BrandMark, StatusBadge],
+  imports: [RouterLink, RouterOutlet, BrandMark, StatusBadge],
   templateUrl: './shell-page.html',
   styleUrl: './shell-page.scss',
 })

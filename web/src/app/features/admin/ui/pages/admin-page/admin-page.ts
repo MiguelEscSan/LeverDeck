@@ -15,6 +15,7 @@ import { PageBar } from '../../components/page-bar/page-bar';
 import { PairingCard } from '../../components/pairing-card/pairing-card';
 import { ProfileList } from '../../components/profile-list/profile-list';
 import { ProfileToolbar } from '../../components/profile-toolbar/profile-toolbar';
+import { SoundLibrary } from '../../components/sound-library/sound-library';
 import { ThemeSwitch } from '../../components/theme-switch/theme-switch';
 
 /** What the middle column shows: the open profile's keys, or one of the library sections. */
@@ -46,6 +47,7 @@ const STATUS_LABELS = {
     PairingCard,
     ProfileList,
     ProfileToolbar,
+    SoundLibrary,
     ThemeSwitch,
   ],
   templateUrl: './admin-page.html',
@@ -109,6 +111,10 @@ export class AdminPage {
 
   protected async uploadIcon(file: File): Promise<void> {
     await this.library.uploadIcon(file);
+  }
+
+  protected async uploadSound(upload: { readonly file: File; readonly name: string }): Promise<void> {
+    await this.library.uploadSound(upload.file, upload.name);
   }
 
   protected async registerApp(registration: AppRegistration, form: AppList): Promise<void> {

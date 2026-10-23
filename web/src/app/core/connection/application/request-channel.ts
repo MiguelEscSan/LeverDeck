@@ -13,6 +13,7 @@ import type {
   QueryMessage,
   QueryResultMessage,
   SettingsResult,
+  SoundsResult,
   StoreAppsResult,
 } from '../../protocol';
 import type { IncomingMessage, OutgoingMessage } from '../domain/messages';
@@ -31,6 +32,7 @@ export interface QueryResults {
   getInstalledGames: InstalledGamesResult;
   getStoreApps: StoreAppsResult;
   getIcons: IconsResult;
+  getSounds: SoundsResult;
 }
 
 type PayloadOf<Union, Type> = Extract<Union, { type: Type }> extends { payload: infer P } ? P : never;

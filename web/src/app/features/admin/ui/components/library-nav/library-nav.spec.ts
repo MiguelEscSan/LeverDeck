@@ -7,15 +7,17 @@ describe('LibraryNav', () => {
     fixture.componentRef.setInput('current', 'icons');
     fixture.componentRef.setInput('appCount', 2);
     fixture.componentRef.setInput('iconCount', 5);
+    fixture.componentRef.setInput('soundCount', 3);
     await fixture.whenStable();
     const chosen: LibrarySection[] = [];
     fixture.componentInstance.selected.subscribe((section) => chosen.push(section));
     const items = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')];
 
-    expect(items.map((item) => item.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['Apps 2', 'Icons 5']);
-    expect(items.map((item) => item.getAttribute('aria-current'))).toEqual([null, 'page']);
+    expect(items.map((item) => item.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['Apps 2', 'Icons 5', 'Audio 3']);
+    expect(items.map((item) => item.getAttribute('aria-current'))).toEqual([null, 'page', null]);
     items[0].click();
+    items[2].click();
 
-    expect(chosen).toEqual(['apps']);
+    expect(chosen).toEqual(['apps', 'sounds']);
   });
 });

@@ -4,6 +4,7 @@ import { AdminPage } from './features/admin/ui/pages/admin-page/admin-page';
 import { DeckPage } from './features/deck/ui/pages/deck-page/deck-page';
 import { PairingPage } from './features/pairing/ui/pages/pairing-page/pairing-page';
 import { ShellPage } from './features/shell/ui/pages/shell-page/shell-page';
+import { SoundLibraryPage } from './features/sounds/ui/pages/sound-library-page/sound-library-page';
 
 /**
  * `/` only routes: the editor link (`/?admin=…`) to `/admin`, a paired device to `/deck`, anything else to `/pair`.
@@ -17,6 +18,12 @@ export const routes: Routes = [
     component: ShellPage,
     canActivate: [pairedGuard],
     children: [{ path: '', component: DeckPage, title: 'LeverDeck' }],
+  },
+  {
+    path: 'sounds',
+    component: ShellPage,
+    canActivate: [pairedGuard],
+    children: [{ path: '', component: SoundLibraryPage, title: 'Audio · LeverDeck' }],
   },
   { path: 'admin', component: AdminPage, canActivate: [adminTokenGuard], title: 'Editor · LeverDeck' },
   { path: '**', redirectTo: '' },

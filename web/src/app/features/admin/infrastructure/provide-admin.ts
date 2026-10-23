@@ -1,11 +1,14 @@
 import { DOCUMENT } from '@angular/common';
 import { type EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { AdminTokenStore } from '../../../core/auth/application/token-stores';
 import { IconEncoder } from '../application/icon-encoder.port';
 import { IdSource } from '../application/id-source.port';
+import { SoundTransport } from '../application/sound-transport.port';
 import { CanvasIconEncoder } from './canvas-icon-encoder';
 import { CryptoIdSource } from './crypto-id-source';
+import { HttpSoundTransport } from './http-sound-transport';
 
-/** Binds the editor's ports to the browser: ids from the page's `crypto`, icons drawn on a `<canvas>`. */
+/** Binds the editor's ports to the browser: ids from the page's `crypto`, icons drawn on a `<canvas>`, sounds over HTTP. */
 export function provideAdmin(): EnvironmentProviders {
   return makeEnvironmentProviders([
     {
@@ -30,6 +33,13 @@ export function provideAdmin(): EnvironmentProviders {
           (file) => window.createImageBitmap(file),
           () => document.createElement('canvas'),
         );
+      },
+    },
+    {
+      provide: SoundTransport,
+      useFactory: () => {
+        const tokens = inject(AdminTokenStore);
+        return new HttpSoundTransport(() => tokens.read());
       },
     },
   ]);

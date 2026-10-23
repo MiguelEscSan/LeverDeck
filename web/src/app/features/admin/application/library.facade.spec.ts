@@ -4,10 +4,32 @@ import { Subject } from 'rxjs';
 import { AdminConnectionFacade } from '../../../core/connection/application/connection.facade';
 import type { ConnectionStatus } from '../../../core/connection/domain/connection-status';
 import { RequestError } from '../../../core/connection/domain/request-error';
-import type { EventMessage, RegisteredAppDto, SettingsDto } from '../../../core/protocol';
+import type { EventMessage, RegisteredAppDto, SettingsDto, SoundDto } from '../../../core/protocol';
 import { IconEncoder } from './icon-encoder.port';
 import { IdSource } from './id-source.port';
 import { LibraryFacade } from './library.facade';
+import { SoundTransport } from './sound-transport.port';
+
+/** The browser's part of a sound clip: records the uploads and previews, and refuses when told to. */
+class FakeSoundTransport extends SoundTransport {
+  readonly uploads: { soundId: string; name: string }[] = [];
+  readonly previews: string[] = [];
+  refuse: string | null = null;
+
+  async upload(soundId: string, name: string): Promise<void> {
+    if (this.refuse) {
+      throw new Error(this.refuse);
+    }
+    this.uploads.push({ soundId, name });
+  }
+
+  async preview(soundId: string): Promise<void> {
+    if (this.refuse) {
+      throw new Error(this.refuse);
+    }
+    this.previews.push(soundId);
+  }
+}
 
 const settings = (apps: RegisteredAppDto[]): SettingsDto => ({
   startWithWindows: false,
@@ -25,6 +47,7 @@ class FakeAgent {
   readonly commands: { type: string; payload: unknown }[] = [];
   apps: RegisteredAppDto[] = [];
   icons: string[] = ['custom-00000000000000000000000000000001'];
+  sounds: SoundDto[] = [{ id: 'sound-00000000000000000000000000000001', name: 'Applause', durationMs: 3000, sizeBytes: 4096 }];
   games = [{ store: 'steam' as const, gameId: '570', name: 'Dota 2' }];
   fail: RequestError | null = null;
 
@@ -32,12 +55,15 @@ class FakeAgent {
     if (type === 'getIcons') {
       return { icons: this.icons };
     }
+    if (type === 'getSounds') {
+      return { sounds: this.sounds };
+    }
     return type === 'getSettings' ? { settings: settings(this.apps) } : { games: this.games };
   }
 
   async command(
     type: string,
-    payload: { displayName?: string; path?: string; appId?: string; iconId?: string; data?: string },
+    payload: { displayName?: string; path?: string; appId?: string; iconId?: string; data?: string; soundId?: string; name?: string },
   ): Promise<unknown> {
     this.commands.push({ type, payload });
     if (this.fail) {
@@ -47,6 +73,14 @@ class FakeAgent {
       this.apps = [...this.apps, { appId: 'a1', displayName: payload.displayName!, path: payload.path! }];
       this.events.next({ kind: 'event', type: 'settingsUpdated', payload: { settings: settings(this.apps) } });
       return { kind: 'ack', requestId: 'x', payload: { appId: 'a1' } };
+    }
+    if (type === 'deleteSound') {
+      this.sounds = this.sounds.filter((sound) => sound.id !== payload.soundId);
+      this.events.next({ kind: 'event', type: 'soundsChanged', payload: { sounds: this.sounds } });
+    }
+    if (type === 'renameSound') {
+      this.sounds = this.sounds.map((sound) => (sound.id === payload.soundId ? { ...sound, name: payload.name! } : sound));
+      this.events.next({ kind: 'event', type: 'soundsChanged', payload: { sounds: this.sounds } });
     }
     if (type === 'saveIcon') {
       this.icons = [...this.icons, payload.iconId!];
@@ -59,6 +93,7 @@ class FakeAgent {
 describe('LibraryFacade', () => {
   let agent: FakeAgent;
   let library: LibraryFacade;
+  let sounds: FakeSoundTransport;
   const encoder = {
     fail: null as string | null,
     async encode(): Promise<string> {
@@ -80,11 +115,13 @@ describe('LibraryFacade', () => {
     agent = new FakeAgent();
     encoder.fail = null;
     agent.apps = [{ appId: 'a0', displayName: 'Notepad', path: 'C:\\Windows\\notepad.exe' }];
+    sounds = new FakeSoundTransport();
     TestBed.configureTestingModule({
       providers: [
         { provide: AdminConnectionFacade, useValue: agent },
         { provide: IdSource, useValue: { next: () => '0123abcd-89ab-4def-8123-456789abcdef' } },
         { provide: IconEncoder, useValue: encoder },
+        { provide: SoundTransport, useValue: sounds },
       ],
     });
     library = TestBed.inject(LibraryFacade);
@@ -166,6 +203,80 @@ describe('LibraryFacade', () => {
       agent.events.next({ kind: 'event', type: 'iconsChanged', payload: { icons: [] } });
 
       expect(library.icons()).toEqual([]);
+    });
+  });
+
+  describe('sounds', () => {
+    const wav = new File(['RIFF'], 'Applause Short.wav', { type: 'audio/wav' });
+
+    it('loads the sound library once connected', () => {
+      expect(library.sounds().map((sound) => sound.name)).toEqual(['Applause']);
+    });
+
+    it('uploads a WAV under a new id with its name and lists it again', async () => {
+      expect(await library.uploadSound(wav, '  Applause Short  ')).toBe(true);
+
+      expect(sounds.uploads).toEqual([{ soundId: 'sound-0123abcd89ab4def8123456789abcdef', name: 'Applause Short' }]);
+      expect(library.soundUploading()).toBe(false);
+    });
+
+    it('refuses a file that is not a WAV, without uploading', async () => {
+      expect(await library.uploadSound(new File(['ID3'], 'song.mp3'), 'Song')).toBe(false);
+
+      expect(library.error()).toMatch(/Convert MP3, OGG or FLAC to WAV first/);
+      expect(sounds.uploads).toEqual([]);
+    });
+
+    it('shows the reason the agent gives for a refused upload', async () => {
+      sounds.refuse = 'A sound must be an uncompressed WAV file (PCM).';
+
+      expect(await library.uploadSound(wav, 'Applause')).toBe(false);
+      expect(library.error()).toBe('A sound must be an uncompressed WAV file (PCM).');
+    });
+
+    it('renames a clip and keeps its id', async () => {
+      await library.renameSound('sound-00000000000000000000000000000001', 'Crowd');
+
+      expect(agent.commands).toEqual([
+        { type: 'renameSound', payload: { soundId: 'sound-00000000000000000000000000000001', name: 'Crowd' } },
+      ]);
+      expect(library.sounds()[0]).toEqual(expect.objectContaining({ id: 'sound-00000000000000000000000000000001', name: 'Crowd' }));
+    });
+
+    it('does not send an empty name', async () => {
+      await library.renameSound('sound-00000000000000000000000000000001', '   ');
+
+      expect(agent.commands).toEqual([]);
+      expect(library.error()).toBe('Use 1–60 characters.');
+    });
+
+    it('deletes a clip and drops it from the list', async () => {
+      await library.deleteSound('sound-00000000000000000000000000000001');
+
+      expect(library.sounds()).toEqual([]);
+    });
+
+    it('explains a clip that a key still plays', async () => {
+      agent.fail = new RequestError('validationFailed', 'Sound sound-0000 is still played by a key.');
+
+      await library.deleteSound('sound-00000000000000000000000000000001');
+
+      expect(library.error()).toBe('A key still plays this sound. Change that key first.');
+    });
+
+    it('plays a preview through the transport and shows a refusal', async () => {
+      await library.previewSound('sound-00000000000000000000000000000001');
+      expect(sounds.previews).toEqual(['sound-00000000000000000000000000000001']);
+
+      sounds.refuse = "Couldn't load the sound. It may have been removed.";
+      await library.previewSound('sound-00000000000000000000000000000001');
+      expect(library.error()).toBe("Couldn't load the sound. It may have been removed.");
+    });
+
+    it('follows soundsChanged', () => {
+      agent.events.next({ kind: 'event', type: 'soundsChanged', payload: { sounds: [] } });
+
+      expect(library.sounds()).toEqual([]);
     });
   });
 });

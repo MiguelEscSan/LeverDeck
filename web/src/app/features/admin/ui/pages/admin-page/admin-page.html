@@ -13,6 +13,7 @@
         [current]="librarySection()"
         [appCount]="library.apps().length"
         [iconCount]="library.icons().length"
+        [soundCount]="library.sounds().length"
         (selected)="view.set($event)"
       />
       <div class="side-footer">
@@ -74,6 +75,26 @@
           (upload)="uploadIcon($event)"
           (remove)="library.deleteIcon($event)"
         />
+      } @else if (view() === 'sounds') {
+        <header class="view-header">
+          <h1 class="view-title">Audio</h1>
+          <p class="sub">Sounds added here can be played from any key. Changes sync to paired devices instantly.</p>
+        </header>
+        @if (library.error(); as error) {
+          <p class="banner" role="alert">
+            <span class="ld-error">{{ error }}</span>
+            <button type="button" class="dismiss" aria-label="Dismiss" (click)="library.dismissError()">×</button>
+          </p>
+        }
+        <app-sound-library
+          [sounds]="library.sounds()"
+          [busy]="library.busy()"
+          [uploading]="library.soundUploading()"
+          (upload)="uploadSound($event)"
+          (rename)="library.renameSound($event.soundId, $event.name)"
+          (remove)="library.deleteSound($event)"
+          (preview)="library.previewSound($event)"
+        />
       } @else if (editor.profile(); as profile) {
         <app-profile-toolbar
           [profile]="profile"
@@ -120,6 +141,7 @@
           [apps]="library.apps()"
           [games]="library.games()"
           [gamesLoading]="library.gamesLoading()"
+          [sounds]="library.sounds()"
           [customIcons]="library.icons()"
           [uploading]="library.uploading()"
           (changed)="editor.updateKey($event)"

@@ -35,3 +35,16 @@ h1 {
   flex-direction: column;
   padding: 0 var(--ld-space-6) var(--ld-space-6);
 }
+
+.nav {
+  display: flex;
+  gap: var(--ld-space-3);
+  margin-left: auto;
+}
+
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--ld-space-2);
+}

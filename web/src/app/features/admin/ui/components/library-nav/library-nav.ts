@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-/** A library section of the editor: the registered apps or the uploaded icons. */
-export type LibrarySection = 'apps' | 'icons';
+/** A library section of the editor: the registered apps, the uploaded icons or the sound clips. */
+export type LibrarySection = 'apps' | 'icons' | 'sounds';
 
-/** "Library" in the sidebar, under the profiles: the apps and icons sections, with how many of each. Presentational. */
+/** "Library" in the sidebar, under the profiles: the apps, icons and audio sections, with how many of each. Presentational. */
 @Component({
   selector: 'app-library-nav',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +25,14 @@ export type LibrarySection = 'apps' | 'icons';
         (click)="selected.emit('icons')"
       >
         Icons <span class="count">{{ iconCount() }}</span>
+      </button>
+      <button
+        type="button"
+        class="item"
+        [attr.aria-current]="current() === 'sounds' ? 'page' : null"
+        (click)="selected.emit('sounds')"
+      >
+        Audio <span class="count">{{ soundCount() }}</span>
       </button>
     </nav>
   `,
@@ -83,6 +91,7 @@ export class LibraryNav {
   readonly current = input<LibrarySection | null>(null);
   readonly appCount = input(0);
   readonly iconCount = input(0);
+  readonly soundCount = input(0);
 
   readonly selected = output<LibrarySection>();
 }

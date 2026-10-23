@@ -7,6 +7,7 @@ import type {
   PageTargetDto,
   ProfileSummaryDto,
   RegisteredAppDto,
+  SoundDto,
   VirtualKeyDto,
 } from '../../../core/protocol';
 
@@ -21,7 +22,8 @@ export type EditableActionType =
   | 'launchApp'
   | 'launchGame'
   | 'changePage'
-  | 'switchProfile';
+  | 'switchProfile'
+  | 'playSound';
 
 export const EDITABLE_ACTION_TYPES: readonly EditableActionType[] = [
   'hotkey',
@@ -31,14 +33,19 @@ export const EDITABLE_ACTION_TYPES: readonly EditableActionType[] = [
   'launchGame',
   'changePage',
   'switchProfile',
+  'playSound',
 ];
 
-/** What picking an action needs to know: the key's profile, the other profiles, the registered apps and games. */
+/**
+ * What picking an action needs to know: the key's profile, the other profiles, the registered apps, the games and the
+ * sound clips. The clips are optional so that callers that never play sounds need not pass them.
+ */
 export interface ActionContext {
   readonly profileId: string;
   readonly profiles: readonly ProfileSummaryDto[];
   readonly apps: readonly RegisteredAppDto[];
   readonly games: readonly InstalledGameDto[];
+  readonly sounds?: readonly SoundDto[];
 }
 
 /** Every action type by name. A `Record` over the generated union, so a new action breaks the build until named. */
@@ -51,6 +58,7 @@ export const ACTION_TYPE_NAMES: Readonly<Record<ActionDto['type'], string>> = {
   launchGame: 'Launch game',
   changePage: 'Change page',
   switchProfile: 'Switch profile',
+  playSound: 'Play sound',
 };
 
 export const isEditableAction = (action: ActionDto): action is Extract<ActionDto, { type: EditableActionType }> =>
@@ -219,6 +227,10 @@ export function defaultAction(type: EditableActionType, context: ActionContext):
       const other = context.profiles.find((profile) => profile.id !== context.profileId);
       return { type: 'switchProfile', profileId: other?.id ?? context.profileId };
     }
+    case 'playSound': {
+      const sound = context.sounds?.[0];
+      return sound ? { type: 'playSound', soundId: sound.id } : null;
+    }
   }
 }
 
@@ -268,7 +280,7 @@ export function gameIdError(store: GameStoreDto, gameId: string): string | null 
 }
 
 /** One line describing what a key does, for the editor. */
-export function actionSummary(action: ActionDto, context: Pick<ActionContext, 'profiles' | 'apps' | 'games'>): string {
+export function actionSummary(action: ActionDto, context: Pick<ActionContext, 'profiles' | 'apps' | 'games' | 'sounds'>): string {
   switch (action.type) {
     case 'hotkey':
       return [...action.modifiers.map((modifier) => MODIFIER_NAMES[modifier]), VIRTUAL_KEY_NAMES[action.key]].join(' + ');
@@ -291,6 +303,10 @@ export function actionSummary(action: ActionDto, context: Pick<ActionContext, 'p
     case 'launchGame': {
       const game = context.games.find((candidate) => candidate.store === action.store && candidate.gameId === action.gameId);
       return `Play ${game?.name ?? action.gameId} (${GAME_STORE_NAMES[action.store]})`;
+    }
+    case 'playSound': {
+      const sound = context.sounds?.find((candidate) => candidate.id === action.soundId);
+      return sound ? `Play ${sound.name}` : 'Play a sound that is no longer in the library';
     }
   }
 }
@@ -324,5 +340,7 @@ export function suggestedIcon(action: ActionDto): string {
       return 'window';
     case 'openUrl':
       return 'globe';
+    case 'playSound':
+      return 'volume-up';
   }
 }

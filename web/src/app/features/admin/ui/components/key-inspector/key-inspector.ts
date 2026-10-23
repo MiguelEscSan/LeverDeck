@@ -7,6 +7,7 @@ import type {
   KeyColorDto,
   ProfileSummaryDto,
   RegisteredAppDto,
+  SoundDto,
 } from '../../../../../core/protocol';
 import { type ButtonChange, LABEL_MAX_LENGTH } from '../../../domain/profile-editing';
 import { type ActionChoice, ActionEditor } from '../action-editor/action-editor';
@@ -109,6 +110,7 @@ export const ICON_PAGE_SIZE = 20;
         [apps]="apps()"
         [games]="games()"
         [gamesLoading]="gamesLoading()"
+        [sounds]="sounds()"
         (changed)="actionChanged.emit($event)"
         (refreshGames)="refreshGames.emit()"
       />
@@ -221,6 +223,8 @@ export class KeyInspector {
   readonly apps = input<readonly RegisteredAppDto[]>([]);
   readonly games = input<readonly InstalledGameDto[]>([]);
   readonly gamesLoading = input(false);
+  /** The uploaded sound clips, offered to the key's action. */
+  readonly sounds = input<readonly SoundDto[]>([]);
   /** Uploaded icon ids, offered before the bundled icons. */
   readonly customIcons = input<readonly string[]>([]);
   readonly uploading = input(false);

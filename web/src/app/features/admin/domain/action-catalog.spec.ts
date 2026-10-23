@@ -1,4 +1,4 @@
-import type { InstalledGameDto, ProfileSummaryDto, RegisteredAppDto } from '../../../core/protocol';
+import type { InstalledGameDto, ProfileSummaryDto, RegisteredAppDto, SoundDto } from '../../../core/protocol';
 import {
   type ActionContext,
   actionSummary,
@@ -18,7 +18,8 @@ const profiles: ProfileSummaryDto[] = [
 ];
 const apps: RegisteredAppDto[] = [{ appId: 'a1', displayName: 'OBS', path: 'C:\\OBS\\obs64.exe' }];
 const games: InstalledGameDto[] = [{ store: 'steam', gameId: '570', name: 'Dota 2' }];
-const context: ActionContext = { profileId: 'p1', profiles, apps, games };
+const sounds: SoundDto[] = [{ id: 'sound-0123456789abcdef0123456789abcdef', name: 'Applause', durationMs: 3000, sizeBytes: 4096 }];
+const context: ActionContext = { profileId: 'p1', profiles, apps, games, sounds };
 const empty: ActionContext = { profileId: 'p1', profiles: [profiles[0]], apps: [], games: [] };
 
 describe('actionSummary', () => {
@@ -36,6 +37,10 @@ describe('actionSummary', () => {
     expect(actionSummary({ type: 'launchGame', store: 'steam', gameId: '570' }, context)).toBe('Play Dota 2 (Steam)');
     expect(actionSummary({ type: 'launchGame', store: 'epic', gameId: 'Sugar' }, context)).toBe('Play Sugar (Epic Games)');
     expect(actionSummary({ type: 'openUrl', url: 'https://example.com/' }, context)).toBe('Open https://example.com/');
+    expect(actionSummary({ type: 'playSound', soundId: 'sound-0123456789abcdef0123456789abcdef' }, context)).toBe('Play Applause');
+    expect(actionSummary({ type: 'playSound', soundId: 'sound-ffffffffffffffffffffffffffffffff' }, context)).toBe(
+      'Play a sound that is no longer in the library',
+    );
   });
 });
 
@@ -51,6 +56,8 @@ describe('defaultAction', () => {
   it('switches to another profile when there is one, else to its own', () => {
     expect(defaultAction('switchProfile', context)).toEqual({ type: 'switchProfile', profileId: 'p2' });
     expect(defaultAction('switchProfile', empty)).toEqual({ type: 'switchProfile', profileId: 'p1' });
+    expect(defaultAction('playSound', context)).toEqual({ type: 'playSound', soundId: 'sound-0123456789abcdef0123456789abcdef' });
+    expect(defaultAction('playSound', empty)).toBeNull();
   });
 
   it('needs input first for a link, and for an app or game when there is none to pick', () => {

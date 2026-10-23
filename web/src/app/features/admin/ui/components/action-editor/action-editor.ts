@@ -8,6 +8,7 @@ import type {
   PageTargetDto,
   ProfileSummaryDto,
   RegisteredAppDto,
+  SoundDto,
   VirtualKeyDto,
 } from '../../../../../core/protocol';
 import {
@@ -120,6 +121,17 @@ export interface ActionChoice {
             <option [value]="profile.id" [selected]="profile.id === targetProfile()">{{ profile.name }}</option>
           }
         </select>
+      }
+      @case ('playSound') {
+        <label class="ld-label" for="action-sound">Sound</label>
+        <select id="action-sound" class="ld-field" (change)="onSound($event)">
+          @for (sound of sounds(); track sound.id) {
+            <option [value]="sound.id" [selected]="sound.id === playedSound()">{{ sound.name }}</option>
+          }
+        </select>
+        @if (sounds().length === 0) {
+          <p class="hint">Upload a sound under “Audio” first, then pick it here.</p>
+        }
       }
       @case ('openUrl') {
         <label class="ld-label" for="action-url">Link</label>
@@ -292,6 +304,8 @@ export class ActionEditor {
   readonly apps = input<readonly RegisteredAppDto[]>([]);
   readonly games = input<readonly InstalledGameDto[]>([]);
   readonly gamesLoading = input(false);
+  /** The uploaded sound clips a key can play. */
+  readonly sounds = input<readonly SoundDto[]>([]);
 
   readonly changed = output<ActionChoice>();
   readonly refreshGames = output();
@@ -322,6 +336,7 @@ export class ActionEditor {
     profiles: this.profiles(),
     apps: this.apps(),
     games: this.games(),
+    sounds: this.sounds(),
   }));
   protected readonly editable = computed(() => isEditableAction(this.action()));
   protected readonly summary = computed(() => actionSummary(this.action(), this.context()));
@@ -341,6 +356,10 @@ export class ActionEditor {
   protected readonly targetProfile = computed(() => {
     const action = this.action();
     return action.type === 'switchProfile' ? action.profileId : null;
+  });
+  protected readonly playedSound = computed(() => {
+    const action = this.action();
+    return action.type === 'playSound' ? action.soundId : (this.sounds()[0]?.id ?? null);
   });
 
   // Open URL: the stored link, or what was typed when it was refused.
@@ -431,6 +450,10 @@ export class ActionEditor {
 
   protected onProfile(event: Event): void {
     this.emit({ type: 'switchProfile', profileId: (event.target as HTMLSelectElement).value });
+  }
+
+  protected onSound(event: Event): void {
+    this.emit({ type: 'playSound', soundId: (event.target as HTMLSelectElement).value });
   }
 
   protected onUrl(event: Event): void {
