@@ -400,12 +400,14 @@ icon, and presses the key on the phone; the PC plays the clip through its speake
 
 Decided (owner, 2026-10-23): all configuration happens on the PC (the editor is admin-only), the phone triggers.
 
-Open, to settle before the code starts:
+Decided (owner, 2026-10-23): **pressing again restarts the clip from the beginning**, like the soundboard panel in
+Discord. The press does not toggle or stop.
 
-- **Press behaviour:** *once* (each press plays the clip to its end) or *toggle* (a press starts it, the next press stops
-  it). Toggle needs the agent to remember which clip is playing and to stop it.
-- **Overlap:** the Windows sound API that plays WAV without a dependency (`PlaySound`, winmm) plays one clip at a time.
-  Several clips at once need another API (for example WASAPI or XAudio2), which is more native code.
+Defaults, to confirm before the code starts:
+
+- **Overlap:** the Windows sound API that plays WAV without a dependency (`PlaySound`, winmm) plays one clip at a time,
+  so a press on another clip cuts the current one. Restarting the same clip works the same way. Several clips at once
+  need another API (for example WASAPI or XAudio2), which is more native code.
 - **Formats:** WAV first. MP3 and OGG need a decoder, which is more work and an AOT question.
 
 Design notes:
@@ -424,7 +426,7 @@ Design notes:
 
 ### 8c.1 Tasks
 
-- [ ] Decide press behaviour and whether overlap is needed (see above).
+- [ ] Confirm the defaults above (one clip at a time, WAV only).
 - [ ] Domain: `PlaySound` action and a clip entity (id, display name, file, length), test-first.
 - [ ] Application: upload, list and delete clip use cases behind an `ISoundStore` port; fakes in tests.
 - [ ] Infrastructure: `FileSoundStore` (validation and storage) and the playback adapter behind an `ISoundPlayer` port.
