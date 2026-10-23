@@ -114,10 +114,11 @@ Out of scope: macOS (Phase 9), a native UI rewrite, code signing.
 
 - Focus and keyboard in the web view, window placement across restarts, a second sign-in start exiting.
 - The 10 MB log cap at runtime (unit-tested only).
-- mDNS on a PC with two interfaces on the same LAN (Ethernet .35 + Wi-Fi .36 here): the iPhone could not open
-  `leverdeck-dev-35200.local` (the IP fallback worked) and Windows' own resolver could not either, while raw queries
-  over Ethernet got answers. Suspected cause: the responder joins 224.0.0.251 only on the interface
-  `LanAddressSelector` picks. Pre-existing (not this branch); to confirm with the PC's Wi-Fi off.
+- mDNS: the iPhone first failed on `leverdeck-dev-35200.local` because the test instance ran with
+  `LeverDeck__Mdns__Enabled=false`; after a restart with mDNS on it opens the name (the PC's Wi-Fi stayed on, so the
+  two-interface theory was not the cause). Still open, minor: Windows' own resolver on the same PC answers "name does
+  not exist" (no cache entry) while raw QM/QU queries over Ethernet get our answers. Only opening the name from the PC
+  itself is affected; the window uses `localhost`. Cause unknown; pre-existing, not this branch.
 - The missing-runtime message (only seen by uninstalling WebView2 or on a PC without it).
 - The release workflow (`vpk` on the runner), the installer: install, Start menu shortcut, update to a newer tag,
   uninstall (Run value removed, data kept).
