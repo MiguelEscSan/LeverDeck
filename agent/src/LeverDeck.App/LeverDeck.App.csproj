@@ -6,6 +6,8 @@
     <RootNamespace>LeverDeck.App</RootNamespace>
     <PublishAot>true</PublishAot>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <!-- The tray icon calls Win32 through LibraryImport and UnmanagedCallersOnly, which need unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

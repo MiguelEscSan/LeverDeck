@@ -46,8 +46,8 @@ Everything a daily user needs beyond the MVP. Spec: [docs/ROADMAP.md](../../docs
 | P7-2 | More actions: open URL, launch registered apps, Steam/Epic games with the installed-games list (agent + web); OBS postponed | delegated writer | done (manual check pending) |
 | P7-3 | Drag and drop keys between positions and pages, with a keyboard alternative | delegated writer | done (manual check pending) |
 | P7-6 | Library sections in the editor (Apps, Icons) and uploaded key icons (agent store, endpoint and protocol; web gallery and picker) | delegated writer | done (manual check pending) |
-| P7-4 | Tray icon, start with Windows, firewall rule on the private profile | — | pending |
-| P7-5 | Optional HTTPS over LAN with `mkcert` | — | pending |
+| P7-4 | Tray icon, start with Windows, firewall rule on the private profile | agent (direct) | done (tray not visually checked; see progress) |
+| P7-5 | Optional HTTPS over LAN with `mkcert` | agent (direct) | done (not tested with a real mkcert yet) |
 
 ## Acceptance
 
@@ -56,6 +56,17 @@ Everything a daily user needs beyond the MVP. Spec: [docs/ROADMAP.md](../../docs
   edit.
 
 ## Progress
+
+- 2026-10-23: P7-4 and P7-5 in the agent. Tray icon (`App/Tray`): hidden message window on its own thread, menu with
+  "Open editor" (opens `/?admin=` with the token), "Start with Windows" (checked state) and "Exit LeverDeck"; Win32 through
+  `LibraryImport` and `UnmanagedCallersOnly`, AOT-safe. Start with Windows: per-user `Run` key, only from the published
+  `leverdeck.exe` (`RunKeyStartupRegistration`). Firewall: inbound TCP on the agent port for the private profile, added at
+  start in the background (`PrivateFirewallRule`); without administrator rights it logs the `netsh` command to run once.
+  HTTPS: `LeverDeck:Https:Enabled=true` serves HTTPS on the same port with a `mkcert` certificate in `tls/` (reissued when
+  the LAN address changes); the pairing links and the log use the same scheme. `LeverDeck:Desktop:Enabled=false` turns
+  the tray and the firewall off (tests do). Verified: solution build, all agent tests, AOT publish (see the session
+  report). Not yet verified: the tray icon on screen (it was created, no error logged; check the hidden-icons arrow), and
+  HTTPS end to end (mkcert is not installed on this PC, so the agent logs the warning and serves HTTP).
 
 - 2026-10-22: P7-1 done (web only). 293 web tests, lint and build green. Smoke-tested in Chromium against a fake
   agent: select and edit a key (label, color, icon, hotkey with modifiers), add a key, refused grid shrink, new

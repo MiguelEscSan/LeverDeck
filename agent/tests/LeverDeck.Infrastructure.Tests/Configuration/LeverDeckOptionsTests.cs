@@ -21,6 +21,15 @@ public sealed class LeverDeckOptionsTests
     }
 
     [Fact]
+    public void Defaults_ServeHttpAndManageTheDesktop()
+    {
+        var options = LeverDeckOptions.FromConfiguration(Config());
+
+        Assert.False(options.HttpsEnabled);
+        Assert.True(options.DesktopEnabled);
+    }
+
+    [Fact]
     public void Configuration_OverridesTheDataDirectoryAndTheAdvertiser()
     {
         var options = LeverDeckOptions.FromConfiguration(

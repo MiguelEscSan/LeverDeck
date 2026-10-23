@@ -342,8 +342,8 @@ generated folder is never edited.
 - [ ] OBS scene (confirm OBS client AOT compatibility). Postponed: not used by the owner.
 - [x] Multiple pages per profile and the grid size (3×3, 5×3, 8×4; new profiles take the 5×3 default setting) in
       the editor, plus dragging keys between positions and pages.
-- [ ] Tray icon, start with Windows, firewall rule on the private profile.
-- [ ] Optional HTTPS over LAN with `mkcert` for installable PWA.
+- [x] Tray icon, start with Windows, firewall rule on the private profile (tray not yet checked on screen).
+- [x] Optional HTTPS over LAN with `mkcert` for installable PWA (`LeverDeck:Https:Enabled`; not yet tested with mkcert).
 
 ## Phase 8 — Release
 

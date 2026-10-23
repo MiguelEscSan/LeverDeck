@@ -30,6 +30,7 @@ public class LeverDeckAppFactory : WebApplicationFactory<Program>
         builder.UseEnvironment(Environment);
         builder.UseSetting(LeverDeckOptions.DataDirectoryKey, DataDirectory);
         builder.UseSetting(LeverDeckOptions.MdnsEnabledKey, "false");
+        builder.UseSetting(LeverDeckOptions.DesktopEnabledKey, "false");
     }
 
     protected override void Dispose(bool disposing)

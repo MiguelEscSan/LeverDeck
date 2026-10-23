@@ -4,6 +4,7 @@ using LeverDeck.Application.Devices.Ports;
 using LeverDeck.Application.Games.Ports;
 using LeverDeck.Application.Icons.Ports;
 using LeverDeck.Application.Pairing.Ports;
+using LeverDeck.Application.Platform.Ports;
 using LeverDeck.Application.Profiles.Ports;
 using LeverDeck.Application.Settings.Ports;
 using LeverDeck.Infrastructure.Common;
@@ -14,7 +15,9 @@ using LeverDeck.Infrastructure.Icons;
 using LeverDeck.Infrastructure.Input;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
+using LeverDeck.Infrastructure.Platform;
 using LeverDeck.Infrastructure.Security;
+using LeverDeck.Infrastructure.Tls;
 using LeverDeck.Infrastructure.Transport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +53,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ITokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<ITokenHasher, Sha256TokenHasher>();
         services.AddSingleton<AdminTokenStore>();
+        services.AddSingleton<LanCertificate>();
+        services.AddSingleton<IStartupRegistration, RunKeyStartupRegistration>();
 
         services.AddSingleton<IActionExecutor, AgentActionExecutor>();
         services.AddSingleton<IGameLibrary, InstalledGameLibrary>();

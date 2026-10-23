@@ -16,6 +16,10 @@ public sealed record LeverDeckOptions
 
     public const string ConnectTimeoutKey = "LeverDeck:Transport:ConnectTimeout";
 
+    public const string HttpsEnabledKey = "LeverDeck:Https:Enabled";
+
+    public const string DesktopEnabledKey = "LeverDeck:Desktop:Enabled";
+
     /// <summary>HTTP and WebSocket port (docs/ARCHITECTURE.md, Connectivity).</summary>
     public const int Port = 8765;
 
@@ -29,6 +33,17 @@ public sealed record LeverDeckOptions
     public TimeSpan ConnectTimeout { get; init; } = DefaultConnectTimeout;
 
     public static TimeSpan DefaultConnectTimeout { get; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Serve HTTPS on the same port with a <c>mkcert</c> certificate (docs/ARCHITECTURE.md, Connectivity). Off by
+    /// default: the device must then trust the mkcert root CA.
+    /// </summary>
+    public bool HttpsEnabled { get; init; }
+
+    /// <summary>
+    /// The tray icon and the firewall rule, which only make sense on the owner's desktop. Tests turn them off.
+    /// </summary>
+    public bool DesktopEnabled { get; init; } = true;
 
     /// <summary><c>%APPDATA%\LeverDeck</c>, resolved through the known folder rather than hardcoded.</summary>
     public static string DefaultDataDirectory()
@@ -61,6 +76,8 @@ public sealed record LeverDeckOptions
             DataDirectory = dataDirectory,
             MdnsEnabled = ReadFlag(configuration, MdnsEnabledKey, defaultValue: true),
             ConnectTimeout = ReadDuration(configuration, ConnectTimeoutKey, DefaultConnectTimeout),
+            HttpsEnabled = ReadFlag(configuration, HttpsEnabledKey, defaultValue: false),
+            DesktopEnabled = ReadFlag(configuration, DesktopEnabledKey, defaultValue: true),
         };
     }
 

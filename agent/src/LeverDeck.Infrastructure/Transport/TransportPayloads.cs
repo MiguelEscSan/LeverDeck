@@ -39,7 +39,7 @@ public sealed class TransportPayloads(
             await getPairingSession.ExecuteAsync(caller, cancellationToken).ConfigureAwait(false),
             session => new PairingSessionPayload(session is null
                 ? null
-                : PairingSessionMapper.ToDto(session, PairingLinks.QrUrl(session.Code), links.FallbackUrl(session.Code))));
+                : PairingSessionMapper.ToDto(session, links.QrUrl(session.Code), links.FallbackUrl(session.Code))));
 
     public async Task<Result<SettingsPayload>> SettingsAsync(Caller caller, CancellationToken cancellationToken) =>
         Map(

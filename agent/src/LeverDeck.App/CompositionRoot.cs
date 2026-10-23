@@ -1,3 +1,5 @@
+using LeverDeck.App.Platform;
+using LeverDeck.App.Tray;
 using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
 using LeverDeck.Application.Games;
@@ -23,6 +25,14 @@ internal static class CompositionRoot
 #if DEBUG
         services.AddDebugEndpointServices();
 #endif
+        return services;
+    }
+
+    /// <summary>The tray icon and the firewall rule, for the owner's desktop only (<c>LeverDeck:Desktop:Enabled</c>).</summary>
+    public static IServiceCollection AddLeverDeckDesktop(this IServiceCollection services)
+    {
+        services.AddHostedService<TrayIcon>();
+        services.AddHostedService<FirewallRuleService>();
         return services;
     }
 

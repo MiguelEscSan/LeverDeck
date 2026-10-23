@@ -15,21 +15,31 @@ public sealed class PairingLinksTests
     [Fact]
     public void QrUrl_UsesTheMdnsName()
     {
-        Assert.Equal("http://leverdeck.local:8765/pair?code=042137", PairingLinks.QrUrl(Code));
+        var links = new PairingLinks(() => null, "http");
+
+        Assert.Equal("http://leverdeck.local:8765/pair?code=042137", links.QrUrl(Code));
+    }
+
+    [Fact]
+    public void QrUrl_UsesHttpsWhenTheAgentServesHttps()
+    {
+        var links = new PairingLinks(() => null, "https");
+
+        Assert.Equal("https://leverdeck.local:8765/pair?code=042137", links.QrUrl(Code));
     }
 
     [Fact]
     public void FallbackUrl_UsesTheCurrentLanAddress()
     {
-        var links = new PairingLinks(() => IPAddress.Parse("192.168.1.20"));
+        var links = new PairingLinks(() => IPAddress.Parse("192.168.1.20"), "https");
 
-        Assert.Equal("http://192.168.1.20:8765/pair?code=042137", links.FallbackUrl(Code));
+        Assert.Equal("https://192.168.1.20:8765/pair?code=042137", links.FallbackUrl(Code));
     }
 
     [Fact]
     public void FallbackUrl_IsNullWithoutALanAddress()
     {
-        var links = new PairingLinks(() => null);
+        var links = new PairingLinks(() => null, "http");
 
         Assert.Null(links.FallbackUrl(Code));
     }
