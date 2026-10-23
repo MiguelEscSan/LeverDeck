@@ -118,8 +118,7 @@ public sealed class ServiceAdvertisementHostedServiceTests
     [Fact]
     public void AdvertisedNames_MatchTheArchitecture()
     {
-        Assert.Equal("leverdeck.local", DnsServiceAdvertiser.HostName);
-        Assert.Equal("LeverDeck._http._tcp.local", DnsServiceAdvertiser.ServiceName);
+        Assert.Equal("leverdeck-studio._http._tcp.local", DnsServiceAdvertiser.ServiceNameFor(AgentHostNames.Of("leverdeck-studio")));
         Assert.Equal(8765, LeverDeckOptions.Port);
     }
 }

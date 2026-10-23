@@ -13,14 +13,19 @@ namespace LeverDeck.Infrastructure.Discovery;
 
 /// <summary>
 /// Advertises the agent over mDNS with the native Windows 10+ responder (<c>DnsServiceRegister</c> in dnsapi.dll):
-/// a <c>_http._tcp</c> service instance whose SRV target is <see cref="HostName"/>, carrying the LAN IPv4 address and
-/// <see cref="LeverDeckOptions.Port"/>. Windows withdraws the registration itself when the process exits.
+/// a <c>_http._tcp</c> service instance named after this PC (<see cref="ServiceNameFor"/>) whose SRV target is its
+/// <see cref="AgentHostName"/>, carrying the LAN IPv4 address and <see cref="LeverDeckOptions.Port"/>. Windows
+/// withdraws the registration itself when the process exits.
 /// </summary>
-public sealed partial class DnsServiceAdvertiser(ILogger<DnsServiceAdvertiser> logger) : IServiceAdvertiser, IDisposable
+public sealed partial class DnsServiceAdvertiser(ILogger<DnsServiceAdvertiser> logger, AgentHostName hostName)
+    : IServiceAdvertiser, IDisposable
 {
-    public const string HostName = "leverdeck.local";
-
-    public const string ServiceName = "LeverDeck._http._tcp.local";
+    /// <summary>The DNS-SD instance: one per PC, so two agents on one LAN do not register the same service.</summary>
+    public static string ServiceNameFor(AgentHostName hostName)
+    {
+        ArgumentNullException.ThrowIfNull(hostName);
+        return $"{hostName.Label}._http._tcp.local";
+    }
 
     // The DnsService* APIs exist from Windows 10 (build 10240).
     private const string MinimumWindows = "windows10.0.10240";
@@ -50,7 +55,7 @@ public sealed partial class DnsServiceAdvertiser(ILogger<DnsServiceAdvertiser> l
 
             var address = LanAddressSelector.Select(LanAddressSelector.FromSystem())
                 ?? throw new InvalidOperationException("No LAN IPv4 address is available to advertise.");
-            var instance = Construct(address);
+            var instance = Construct(hostName, address);
             var status = await CallAsync(instance, register: true, cancellationToken).ConfigureAwait(false);
             if (status != Success)
             {
@@ -59,7 +64,7 @@ public sealed partial class DnsServiceAdvertiser(ILogger<DnsServiceAdvertiser> l
             }
 
             _instance = instance;
-            LogAdvertised(HostName, address, LeverDeckOptions.Port);
+            LogAdvertised(hostName.Fqdn, address, LeverDeckOptions.Port);
         }
         finally
         {
@@ -91,7 +96,7 @@ public sealed partial class DnsServiceAdvertiser(ILogger<DnsServiceAdvertiser> l
                 throw new Win32Exception((int)status, $"DnsServiceDeRegister failed with status {status}.");
             }
 
-            LogWithdrawn(HostName);
+            LogWithdrawn(hostName.Fqdn);
         }
         finally
         {
@@ -108,11 +113,11 @@ public sealed partial class DnsServiceAdvertiser(ILogger<DnsServiceAdvertiser> l
     private static PlatformNotSupportedException NotSupported() => new("mDNS advertisement needs Windows 10 or later.");
 
     [SupportedOSPlatform(MinimumWindows)]
-    private static unsafe nint Construct(IPAddress address)
+    private static unsafe nint Construct(AgentHostName hostName, IPAddress address)
     {
         var instance = PInvoke.DnsServiceConstructInstance(
-            ServiceName,
-            HostName,
+            ServiceNameFor(hostName),
+            hostName.Fqdn,
             LanAddressSelector.ToIp4Address(address),
             pIp6: null,
             LeverDeckOptions.Port,

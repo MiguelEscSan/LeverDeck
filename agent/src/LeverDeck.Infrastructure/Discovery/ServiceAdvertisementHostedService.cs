@@ -8,7 +8,8 @@ namespace LeverDeck.Infrastructure.Discovery;
 
 /// <summary>
 /// Advertises the agent while the host runs and withdraws it on shutdown; when the PC's addresses change, it
-/// re-advertises so <c>leverdeck.local</c> follows the new IP. Turned off with <c>LeverDeck:Mdns:Enabled=false</c>.
+/// re-advertises so this PC's <see cref="AgentHostName"/> follows the new IP. Turned off with
+/// <c>LeverDeck:Mdns:Enabled=false</c>.
 /// mDNS is a convenience: a failure is logged and never stops the agent (devices can still use the IP or USB).
 /// </summary>
 public sealed partial class ServiceAdvertisementHostedService(

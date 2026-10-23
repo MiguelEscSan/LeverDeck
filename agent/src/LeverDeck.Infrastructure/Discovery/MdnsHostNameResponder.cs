@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace LeverDeck.Infrastructure.Discovery;
 
 /// <summary>
-/// Answers mDNS queries for <see cref="DnsServiceAdvertiser.HostName"/> with the LAN IPv4 address, because the native
+/// Answers mDNS queries for this PC's <see cref="AgentHostName"/> with the LAN IPv4 address, because the native
 /// <c>DnsServiceRegister</c> publishes the service records but Windows does not answer A queries for its target host.
 /// Advertising opens a UDP 5353 socket on the LAN interface (<see cref="LanAddressSelector"/>), sends two unsolicited
 /// announcements one second apart (RFC 6762 §8.3) and answers until withdrawn; withdrawing sends a goodbye (TTL 0).
@@ -23,14 +23,15 @@ public sealed partial class MdnsHostNameResponder : IServiceAdvertiser, IDisposa
     private readonly Func<IPAddress?> _selectAddress;
     private readonly Func<IPAddress, IMdnsTransport> _openTransport;
     private readonly TimeSpan _announcementInterval;
-    private readonly MdnsResponder _responder = new(DnsServiceAdvertiser.HostName);
+    private readonly MdnsResponder _responder;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Session? _session;
 
-    public MdnsHostNameResponder(ILogger<MdnsHostNameResponder> logger, TimeProvider time)
+    public MdnsHostNameResponder(ILogger<MdnsHostNameResponder> logger, TimeProvider time, AgentHostName hostName)
         : this(
             logger,
             time,
+            hostName,
             () => LanAddressSelector.Select(LanAddressSelector.FromSystem()),
             UdpMdnsTransport.Open,
             DefaultAnnouncementInterval)
@@ -40,12 +41,15 @@ public sealed partial class MdnsHostNameResponder : IServiceAdvertiser, IDisposa
     internal MdnsHostNameResponder(
         ILogger<MdnsHostNameResponder> logger,
         TimeProvider time,
+        AgentHostName hostName,
         Func<IPAddress?> selectAddress,
         Func<IPAddress, IMdnsTransport> openTransport,
         TimeSpan announcementInterval)
     {
+        ArgumentNullException.ThrowIfNull(hostName);
         _logger = logger;
         _time = time;
+        _responder = new MdnsResponder(hostName.Fqdn);
         _selectAddress = selectAddress;
         _openTransport = openTransport;
         _announcementInterval = announcementInterval;
@@ -208,7 +212,7 @@ public sealed partial class MdnsHostNameResponder : IServiceAdvertiser, IDisposa
 
     [LoggerMessage(
         Level = LogLevel.Warning,
-        Message = "Another host answers mDNS queries for {HostName} with {OtherAddress}; this PC answers with {Address}. Devices may reach the wrong host.")]
+        Message = "Another host answers mDNS queries for {HostName} with {OtherAddress}; this PC answers with {Address}. Devices may reach the wrong host. Give this PC another name with LeverDeck__Mdns__HostName.")]
     private partial void LogConflict(string hostName, IPAddress otherAddress, IPAddress address);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "An mDNS receive failed with {Error}.")]

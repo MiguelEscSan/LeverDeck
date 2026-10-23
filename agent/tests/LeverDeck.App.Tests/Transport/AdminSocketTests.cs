@@ -45,7 +45,7 @@ public sealed class AdminSocketTests
         var result = Assert.IsType<PairingSessionResult>(await admin.RequestAsync(new GetPairingSessionQuery(NewRequestId())));
 
         var session = Assert.IsType<PairingSessionDto>(result.Payload.Session);
-        Assert.Equal($"http://leverdeck.local:8765/pair?code={session.Code}", session.QrUrl);
+        Assert.Equal($"http://{LeverDeckAppFactory.HostName}.local:8765/pair?code={session.Code}", session.QrUrl);
         if (session.FallbackUrl is { } fallback)
         {
             Assert.Matches(@"^http://\d{1,3}(\.\d{1,3}){3}:8765/pair\?code=\d+$", fallback);

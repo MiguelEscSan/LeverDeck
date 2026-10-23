@@ -59,7 +59,7 @@ public sealed class EventFanOutTests
         await device.SendAsync(new GetAgentStatusQuery(NewRequestId()));
         var first = await device.ReceiveAsync();
 
-        Assert.StartsWith("http://leverdeck.local:8765/pair?code=", pushed.Payload.Session!.QrUrl, StringComparison.Ordinal);
+        Assert.StartsWith($"http://{LeverDeckAppFactory.HostName}.local:8765/pair?code=", pushed.Payload.Session!.QrUrl, StringComparison.Ordinal);
         // The very next message the device gets is its answer: no admin-only event leaked to it.
         Assert.IsType<AgentStatusResult>(first);
     }

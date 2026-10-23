@@ -14,6 +14,8 @@ public sealed record LeverDeckOptions
 
     public const string MdnsEnabledKey = "LeverDeck:Mdns:Enabled";
 
+    public const string MdnsHostNameKey = "LeverDeck:Mdns:HostName";
+
     public const string ConnectTimeoutKey = "LeverDeck:Transport:ConnectTimeout";
 
     public const string HttpsEnabledKey = "LeverDeck:Https:Enabled";
@@ -26,8 +28,14 @@ public sealed record LeverDeckOptions
     /// <summary>Absolute folder holding <c>profiles.json</c>, <c>devices.json</c>, <c>settings.json</c> and the admin token.</summary>
     public required string DataDirectory { get; init; }
 
-    /// <summary>Whether the agent advertises itself as <c>leverdeck.local</c>. Tests turn it off.</summary>
+    /// <summary>Whether the agent advertises its host name over mDNS. Tests turn it off.</summary>
     public bool MdnsEnabled { get; init; } = true;
+
+    /// <summary>
+    /// The name this PC answers to instead of the one generated from the machine name (a label or <c>label.local</c>),
+    /// or <see langword="null"/>. For two PCs whose names would otherwise collide.
+    /// </summary>
+    public string? MdnsHostName { get; init; }
 
     /// <summary>How long a new <c>/ws</c> connection may take to send <c>connectDevice</c> before it is closed.</summary>
     public TimeSpan ConnectTimeout { get; init; } = DefaultConnectTimeout;
@@ -75,6 +83,7 @@ public sealed record LeverDeckOptions
         {
             DataDirectory = dataDirectory,
             MdnsEnabled = ReadFlag(configuration, MdnsEnabledKey, defaultValue: true),
+            MdnsHostName = string.IsNullOrWhiteSpace(configuration[MdnsHostNameKey]) ? null : configuration[MdnsHostNameKey]!.Trim(),
             ConnectTimeout = ReadDuration(configuration, ConnectTimeoutKey, DefaultConnectTimeout),
             HttpsEnabled = ReadFlag(configuration, HttpsEnabledKey, defaultValue: false),
             DesktopEnabled = ReadFlag(configuration, DesktopEnabledKey, defaultValue: true),

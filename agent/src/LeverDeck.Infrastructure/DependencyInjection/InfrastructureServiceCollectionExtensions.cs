@@ -38,6 +38,7 @@ public static class InfrastructureServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton(provider => LeverDeckOptions.FromConfiguration(provider.GetRequiredService<IConfiguration>()));
+        services.AddSingleton(provider => new AgentHostNameStore(provider.GetRequiredService<LeverDeckOptions>()).Resolve());
         services.TryAddSingleton(TimeProvider.System);
 
         services.AddSingleton<IClock, SystemClock>();
@@ -61,11 +62,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IGameLibrary, InstalledGameLibrary>();
         services.AddSingleton<IStoreAppCatalog, StartMenuStoreAppCatalog>();
 
-        // mDNS: our own responder answers A queries for leverdeck.local (Windows does not for DnsServiceRegister's
+        // mDNS: our own responder answers A queries for this PC's host name (Windows does not for DnsServiceRegister's
         // target host); the native registration still publishes the _http._tcp service records.
         services.AddSingleton(provider => new MdnsHostNameResponder(
             provider.GetRequiredService<ILogger<MdnsHostNameResponder>>(),
-            provider.GetRequiredService<TimeProvider>()));
+            provider.GetRequiredService<TimeProvider>(),
+            provider.GetRequiredService<AgentHostName>()));
         services.AddSingleton<DnsServiceAdvertiser>();
         services.AddSingleton<IServiceAdvertiser>(provider => new CompositeServiceAdvertiser(
         [

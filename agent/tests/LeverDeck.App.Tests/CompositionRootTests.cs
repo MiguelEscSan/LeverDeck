@@ -41,6 +41,15 @@ public sealed class CompositionRootTests(DevelopmentAppFactory factory) : IClass
     }
 
     [Fact]
+    public void HostName_IsOneNameSharedByTheResponderAndThePairingLinks()
+    {
+        var hostName = factory.Services.GetRequiredService<AgentHostName>();
+
+        Assert.Equal($"{LeverDeckAppFactory.HostName}.local", hostName.Fqdn);
+        Assert.Same(hostName, factory.Services.GetRequiredService<AgentHostName>());
+    }
+
+    [Fact]
     public void Advertiser_AnswersForTheHostNameAndRegistersTheService()
     {
         var advertiser = Assert.IsType<CompositeServiceAdvertiser>(factory.Services.GetRequiredService<IServiceAdvertiser>());

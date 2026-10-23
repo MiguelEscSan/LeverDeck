@@ -40,6 +40,14 @@ public sealed class LeverDeckOptionsTests
     }
 
     [Fact]
+    public void MdnsHostName_IsReadTrimmedAndAbsentWhenBlank()
+    {
+        Assert.Equal("studio", LeverDeckOptions.FromConfiguration(Config(("LeverDeck:Mdns:HostName", " studio "))).MdnsHostName);
+        Assert.Null(LeverDeckOptions.FromConfiguration(Config(("LeverDeck:Mdns:HostName", "  "))).MdnsHostName);
+        Assert.Null(LeverDeckOptions.FromConfiguration(Config()).MdnsHostName);
+    }
+
+    [Fact]
     public void InvalidFlag_FailsLoudly()
     {
         var error = Assert.Throws<InvalidOperationException>(

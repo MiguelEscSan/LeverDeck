@@ -3,6 +3,8 @@ using System.Net.WebSockets;
 using LeverDeck.Application.Security;
 using LeverDeck.Domain.Devices;
 using LeverDeck.Domain.Pairing;
+using LeverDeck.Infrastructure.Discovery;
+using LeverDeck.Infrastructure.Tests.Discovery;
 using LeverDeck.Infrastructure.Transport;
 using LeverDeck.Protocol.Dtos;
 
@@ -12,26 +14,28 @@ public sealed class PairingLinksTests
 {
     private static readonly PairingCode Code = new("042137");
 
-    [Fact]
-    public void QrUrl_UsesTheMdnsName()
-    {
-        var links = new PairingLinks(() => null, "http");
+    private static readonly AgentHostName Studio = AgentHostNames.Of("leverdeck-studio");
 
-        Assert.Equal("http://leverdeck.local:8765/pair?code=042137", links.QrUrl(Code));
+    [Fact]
+    public void QrUrl_UsesThisPcsMdnsName()
+    {
+        var links = new PairingLinks(Studio, () => null, "http");
+
+        Assert.Equal("http://leverdeck-studio.local:8765/pair?code=042137", links.QrUrl(Code));
     }
 
     [Fact]
     public void QrUrl_UsesHttpsWhenTheAgentServesHttps()
     {
-        var links = new PairingLinks(() => null, "https");
+        var links = new PairingLinks(Studio, () => null, "https");
 
-        Assert.Equal("https://leverdeck.local:8765/pair?code=042137", links.QrUrl(Code));
+        Assert.Equal("https://leverdeck-studio.local:8765/pair?code=042137", links.QrUrl(Code));
     }
 
     [Fact]
     public void FallbackUrl_UsesTheCurrentLanAddress()
     {
-        var links = new PairingLinks(() => IPAddress.Parse("192.168.1.20"), "https");
+        var links = new PairingLinks(Studio, () => IPAddress.Parse("192.168.1.20"), "https");
 
         Assert.Equal("https://192.168.1.20:8765/pair?code=042137", links.FallbackUrl(Code));
     }
@@ -39,7 +43,7 @@ public sealed class PairingLinksTests
     [Fact]
     public void FallbackUrl_IsNullWithoutALanAddress()
     {
-        var links = new PairingLinks(() => null, "http");
+        var links = new PairingLinks(Studio, () => null, "http");
 
         Assert.Null(links.FallbackUrl(Code));
     }

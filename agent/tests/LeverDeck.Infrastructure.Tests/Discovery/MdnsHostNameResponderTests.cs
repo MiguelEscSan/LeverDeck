@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Threading.Channels;
 using LeverDeck.Application.Common.Ports;
 using LeverDeck.Infrastructure.Discovery;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace LeverDeck.Infrastructure.Tests.Discovery;
@@ -73,10 +74,11 @@ public sealed class MdnsHostNameResponderTests
     private readonly List<FakeMdnsTransport> _transports = [];
     private IPAddress? _address = First;
 
-    private MdnsHostNameResponder NewResponder() =>
+    private MdnsHostNameResponder NewResponder(string hostName = "leverdeck.local", ILogger<MdnsHostNameResponder>? logger = null) =>
         new(
-            NullLogger<MdnsHostNameResponder>.Instance,
+            logger ?? NullLogger<MdnsHostNameResponder>.Instance,
             TimeProvider.System,
+            AgentHostNames.Of(hostName),
             () => _address,
             address =>
             {
@@ -142,6 +144,47 @@ public sealed class MdnsHostNameResponderTests
         Assert.Equal(MdnsCodecTests.ResponseHex, Convert.ToHexString(sent[3].Packet));
         await responder.WithdrawAsync(CancellationToken.None);
     }
+
+    [Fact]
+    public async Task Queries_AreAnsweredForThisPcsNameOnly()
+    {
+        using var responder = NewResponder("leverdeck-studio.local");
+        await responder.AdvertiseAsync(CancellationToken.None);
+        var transport = _transports[0];
+        await transport.WaitForSentAsync(2);
+        var from = new IPEndPoint(IPAddress.Parse("192.168.1.50"), 5353);
+
+        transport.Deliver(Convert.FromHexString(MdnsCodecTests.QueryHex), from); // leverdeck.local: another PC's name
+        transport.Deliver(Query("leverdeck-studio.local"), from);
+
+        var sent = await transport.WaitForSentAsync(3);
+        Assert.Equal(3, sent.Count);
+        Assert.True(MdnsCodec.TryParse(sent[2].Packet, out var answer));
+        Assert.Equal("leverdeck-studio.local", Assert.Single(answer.Answers).Name);
+        await responder.WithdrawAsync(CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task AnotherHostAnsweringForOurName_IsLoggedWithHowToRenameThisPc()
+    {
+        var logger = new RecordingLogger<MdnsHostNameResponder>();
+        using var responder = NewResponder(logger: logger);
+        await responder.AdvertiseAsync(CancellationToken.None);
+        var transport = _transports[0];
+        await transport.WaitForSentAsync(2);
+
+        var claim = MdnsCodec.Write(new MdnsMessage(
+            0, MdnsCodec.AuthoritativeResponseFlags, [], [MdnsCodec.ARecord("leverdeck.local", Second, 120, true)], [], []));
+        transport.Deliver(claim, new IPEndPoint(Second, 5353));
+
+        var warning = await logger.WaitForAsync(LogLevel.Warning);
+        Assert.Contains("192.168.1.77", warning, StringComparison.Ordinal);
+        Assert.Contains("LeverDeck__Mdns__HostName", warning, StringComparison.Ordinal);
+        await responder.WithdrawAsync(CancellationToken.None);
+    }
+
+    private static byte[] Query(string name) =>
+        MdnsCodec.Write(new MdnsMessage(0, 0, [new MdnsQuestion(name, DnsType.A, DnsClass.In, UnicastResponse: false)], [], [], []));
 
     [Fact]
     public async Task Withdraw_SaysGoodbyeAndClosesTheTransport()

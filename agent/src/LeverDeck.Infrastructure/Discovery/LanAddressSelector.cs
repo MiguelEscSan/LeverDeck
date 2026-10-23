@@ -11,7 +11,7 @@ internal sealed record LanInterface(
     IReadOnlyList<IPAddress> Addresses,
     bool HasIpv4Gateway);
 
-/// <summary>Picks the IPv4 address that <c>leverdeck.local</c> should resolve to.</summary>
+/// <summary>Picks the IPv4 address that this PC's <see cref="AgentHostName"/> should resolve to.</summary>
 internal static class LanAddressSelector
 {
     /// <summary>
