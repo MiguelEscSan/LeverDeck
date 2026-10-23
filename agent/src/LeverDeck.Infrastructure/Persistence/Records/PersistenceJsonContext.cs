@@ -16,4 +16,5 @@ namespace LeverDeck.Infrastructure.Persistence.Records;
 [JsonSerializable(typeof(ProfilesDocument))]
 [JsonSerializable(typeof(DevicesDocument))]
 [JsonSerializable(typeof(SettingsDocument))]
+[JsonSerializable(typeof(SoundsDocument))]
 internal sealed partial class PersistenceJsonContext : JsonSerializerContext;

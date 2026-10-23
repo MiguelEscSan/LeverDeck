@@ -126,7 +126,8 @@ export type ActionDto =
   | ObsSceneActionDto
   | LaunchGameActionDto
   | ChangePageActionDto
-  | SwitchProfileActionDto;
+  | SwitchProfileActionDto
+  | PlaySoundActionDto;
 
 export type CommandMessage =
   | ConnectDeviceCommand
@@ -141,7 +142,9 @@ export type CommandMessage =
   | RegisterAppCommand
   | UnregisterAppCommand
   | SaveIconCommand
-  | DeleteIconCommand;
+  | DeleteIconCommand
+  | RenameSoundCommand
+  | DeleteSoundCommand;
 
 export type EventMessage =
   | ProfileUpdatedEvent
@@ -151,7 +154,8 @@ export type EventMessage =
   | PairingSessionChangedEvent
   | SettingsUpdatedEvent
   | ObsSceneChangedEvent
-  | IconsChangedEvent;
+  | IconsChangedEvent
+  | SoundsChangedEvent;
 
 export type Message = CommandMessage | QueryMessage | AckMessage | ErrorMessage | QueryResultMessage | EventMessage;
 
@@ -164,7 +168,8 @@ export type QueryMessage =
   | GetAgentStatusQuery
   | GetInstalledGamesQuery
   | GetStoreAppsQuery
-  | GetIconsQuery;
+  | GetIconsQuery
+  | GetSoundsQuery;
 
 export type QueryResultMessage =
   | ProfilesResult
@@ -175,7 +180,8 @@ export type QueryResultMessage =
   | AgentStatusResult
   | InstalledGamesResult
   | StoreAppsResult
-  | IconsResult;
+  | IconsResult
+  | SoundsResult;
 
 export interface AckMessage {
   kind: 'ack';
@@ -251,6 +257,13 @@ export interface DeleteProfileCommand {
   type: 'deleteProfile';
   requestId: string;
   payload: ProfileIdPayload;
+}
+
+export interface DeleteSoundCommand {
+  kind: 'command';
+  type: 'deleteSound';
+  requestId: string;
+  payload: SoundIdPayload;
 }
 
 export interface DeviceDto {
@@ -368,6 +381,13 @@ export interface GetProfilesQuery {
 export interface GetSettingsQuery {
   kind: 'query';
   type: 'getSettings';
+  requestId: string;
+  payload: EmptyPayload;
+}
+
+export interface GetSoundsQuery {
+  kind: 'query';
+  type: 'getSounds';
   requestId: string;
   payload: EmptyPayload;
 }
@@ -515,6 +535,11 @@ export interface PairingSessionResult {
   payload: PairingSessionPayload;
 }
 
+export interface PlaySoundActionDto {
+  type: 'playSound';
+  soundId: string;
+}
+
 export interface ProfileDeletedEvent {
   kind: 'event';
   type: 'profileDeleted';
@@ -597,6 +622,18 @@ export interface RenameDevicePayload {
   name: string;
 }
 
+export interface RenameSoundCommand {
+  kind: 'command';
+  type: 'renameSound';
+  requestId: string;
+  payload: RenameSoundPayload;
+}
+
+export interface RenameSoundPayload {
+  soundId: string;
+  name: string;
+}
+
 export interface RevokeDeviceCommand {
   kind: 'command';
   type: 'revokeDevice';
@@ -651,6 +688,34 @@ export interface SettingsUpdatedEvent {
   kind: 'event';
   type: 'settingsUpdated';
   payload: SettingsPayload;
+}
+
+export interface SoundDto {
+  id: string;
+  name: string;
+  durationMs: number;
+  sizeBytes: number;
+}
+
+export interface SoundIdPayload {
+  soundId: string;
+}
+
+export interface SoundsChangedEvent {
+  kind: 'event';
+  type: 'soundsChanged';
+  payload: SoundsPayload;
+}
+
+export interface SoundsPayload {
+  sounds: SoundDto[];
+}
+
+export interface SoundsResult {
+  kind: 'queryResult';
+  type: 'sounds';
+  requestId: string;
+  payload: SoundsPayload;
 }
 
 export interface StartPairingCommand {

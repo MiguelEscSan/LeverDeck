@@ -59,3 +59,10 @@ public sealed record GetIconsQuery(string RequestId) : QueryMessage(RequestId)
 }
 
 public sealed record IconsResult(string RequestId, IconsPayload Payload) : QueryResultMessage(RequestId);
+
+public sealed record GetSoundsQuery(string RequestId) : QueryMessage(RequestId)
+{
+    public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;
+}
+
+public sealed record SoundsResult(string RequestId, SoundsPayload Payload) : QueryResultMessage(RequestId);

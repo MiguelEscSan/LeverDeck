@@ -43,6 +43,10 @@ internal static class Samples
 
     public const string IconId = "custom-0123456789abcdef0123456789abcdef";
 
+    public const string SoundId = "sound-0123456789abcdef0123456789abcdef";
+
+    private static readonly SoundDto Sound = new(SoundId, "Applause", 3000, 264_600);
+
     public static IReadOnlyList<ActionDto> Actions { get; } =
     [
         Hotkey,
@@ -53,6 +57,7 @@ internal static class Samples
         new LaunchGameActionDto(GameStoreDto.Steam, "570"),
         new ChangePageActionDto(PageTargetDto.Specific, 2),
         new SwitchProfileActionDto(ProfileId),
+        new PlaySoundActionDto(SoundId),
     ];
 
     public static IReadOnlyList<Message> Messages { get; } =
@@ -70,6 +75,8 @@ internal static class Samples
         new UnregisterAppCommand("r11", new AppIdPayload(AppId)),
         new SaveIconCommand("r12", new SaveIconPayload(IconId, "iVBORw0KGgo=")),
         new DeleteIconCommand("r13", new IconIdPayload(IconId)),
+        new RenameSoundCommand("r14", new RenameSoundPayload(SoundId, "Crowd")),
+        new DeleteSoundCommand("r15", new SoundIdPayload(SoundId)),
         new GetProfilesQuery("q1"),
         new GetProfileQuery("q2", new ProfileIdPayload(ProfileId)),
         new GetDevicesQuery("q3"),
@@ -79,6 +86,8 @@ internal static class Samples
         new GetInstalledGamesQuery("q7"),
         new GetStoreAppsQuery("q8"),
         new GetIconsQuery("q8"),
+        new GetSoundsQuery("q9"),
+        new SoundsResult("q9", new SoundsPayload([Sound])),
         new ProfilesResult("q1", new ProfilesPayload([Summary])),
         new ProfileResult("q2", new ProfilePayload(Profile)),
         new DevicesResult("q3", new DevicesPayload([Device])),
@@ -99,6 +108,7 @@ internal static class Samples
         new SettingsUpdatedEvent(new SettingsPayload(Settings)),
         new ObsSceneChangedEvent(new ObsSceneChangedPayload("Gameplay")),
         new IconsChangedEvent(new IconsPayload([IconId])),
+        new SoundsChangedEvent(new SoundsPayload([Sound])),
     ];
 
     /// <summary>Every DTO and payload on its own, plus the HTTP pairing bodies.</summary>
@@ -140,6 +150,10 @@ internal static class Samples
         new SaveIconPayload(IconId, "iVBORw0KGgo="),
         new IconIdPayload(IconId),
         new IconsPayload([IconId]),
+        Sound,
+        new SoundsPayload([Sound]),
+        new RenameSoundPayload(SoundId, "Crowd"),
+        new SoundIdPayload(SoundId),
         new InstalledGamesPayload([Game, new InstalledGameDto(GameStoreDto.Epic, "Fortnite", "Fortnite")]),
         StoreApp,
         new StoreAppsPayload([StoreApp]),

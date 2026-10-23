@@ -8,6 +8,7 @@ using LeverDeck.Application.Icons;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
+using LeverDeck.Application.Sounds;
 using LeverDeck.Application.Status;
 using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.DependencyInjection;
@@ -64,7 +65,7 @@ internal static class CompositionRoot
         return services;
     }
 
-    /// <summary>The 18 commands and queries; they are stateless, so one instance each.</summary>
+    /// <summary>The commands and queries; they are stateless, so one instance each.</summary>
     public static IServiceCollection AddLeverDeckUseCases(this IServiceCollection services)
     {
         services.AddSingleton<ExecuteAction>();
@@ -96,6 +97,11 @@ internal static class CompositionRoot
         services.AddSingleton<SaveIcon>();
         services.AddSingleton<DeleteIcon>();
         services.AddSingleton<GetIcons>();
+
+        services.AddSingleton<GetSounds>();
+        services.AddSingleton<UploadSound>();
+        services.AddSingleton<RenameSound>();
+        services.AddSingleton<DeleteSound>();
         return services;
     }
 

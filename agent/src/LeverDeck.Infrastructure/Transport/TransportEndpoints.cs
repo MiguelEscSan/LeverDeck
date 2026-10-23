@@ -1,4 +1,5 @@
 using LeverDeck.Infrastructure.Icons;
+using LeverDeck.Infrastructure.Sounds;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -32,6 +33,10 @@ public static class TransportEndpoints
             context.RequestServices.GetRequiredService<PairingRedeemEndpoint>().HandleAsync(context)));
         app.MapGet(IconEndpoint.Route, (RequestDelegate)(context =>
             context.RequestServices.GetRequiredService<IconEndpoint>().HandleAsync(context)));
+        app.MapPut(SoundEndpoint.Route, (RequestDelegate)(context =>
+            context.RequestServices.GetRequiredService<SoundEndpoint>().PutAsync(context)));
+        app.MapGet(SoundEndpoint.Route, (RequestDelegate)(context =>
+            context.RequestServices.GetRequiredService<SoundEndpoint>().GetAsync(context)));
         app.Map(DevicePath, (RequestDelegate)(context =>
             context.RequestServices.GetRequiredService<WebSocketSessions>().HandleDeviceAsync(context)));
         app.Map(AdminPath, (RequestDelegate)(context =>
@@ -50,6 +55,7 @@ public static class TransportEndpoints
         services.AddSingleton<WebSocketSessions>();
         services.AddSingleton<PairingRedeemEndpoint>();
         services.AddSingleton<IconEndpoint>();
+        services.AddSingleton<SoundEndpoint>();
         services.AddSingleton<EventFanOut>();
         services.AddHostedService(provider => provider.GetRequiredService<EventFanOut>());
         return services;

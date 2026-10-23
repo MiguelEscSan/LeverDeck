@@ -338,6 +338,7 @@ public sealed class ActionCatalogTests
             typeof(LaunchGame),
             typeof(ChangePage),
             typeof(SwitchProfile),
+            typeof(PlaySound),
         ];
 
         Assert.Equal(expected, ActionCatalog.All);

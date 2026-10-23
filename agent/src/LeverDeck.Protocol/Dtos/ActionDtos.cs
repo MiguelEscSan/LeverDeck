@@ -12,6 +12,7 @@ namespace LeverDeck.Protocol.Dtos;
 [JsonDerivedType(typeof(LaunchGameActionDto), "launchGame")]
 [JsonDerivedType(typeof(ChangePageActionDto), "changePage")]
 [JsonDerivedType(typeof(SwitchProfileActionDto), "switchProfile")]
+[JsonDerivedType(typeof(PlaySoundActionDto), "playSound")]
 public abstract record ActionDto
 {
     private protected ActionDto()
@@ -35,3 +36,6 @@ public sealed record LaunchGameActionDto(GameStoreDto Store, string GameId) : Ac
 public sealed record ChangePageActionDto(PageTargetDto Target, int? PageIndex) : ActionDto;
 
 public sealed record SwitchProfileActionDto(Guid ProfileId) : ActionDto;
+
+/// <summary>Plays an uploaded sound clip on the PC; <see cref="SoundId"/> is <c>sound-</c> and 32 hex digits.</summary>
+public sealed record PlaySoundActionDto(string SoundId) : ActionDto;

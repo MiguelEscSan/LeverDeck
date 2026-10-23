@@ -20,3 +20,6 @@ public sealed record SettingsUpdatedEvent(SettingsPayload Payload) : EventMessag
 public sealed record ObsSceneChangedEvent(ObsSceneChangedPayload Payload) : EventMessage;
 
 public sealed record IconsChangedEvent(IconsPayload Payload) : EventMessage;
+
+/// <summary>Every connection: phones list the clips too.</summary>
+public sealed record SoundsChangedEvent(SoundsPayload Payload) : EventMessage;

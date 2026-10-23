@@ -5,6 +5,7 @@ using LeverDeck.Application.Icons;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
+using LeverDeck.Application.Sounds;
 using LeverDeck.Application.Status;
 using LeverDeck.Application.Tests.Fakes;
 
@@ -37,10 +38,20 @@ internal sealed class Harness
 
     public InMemoryIconStore Icons { get; } = new();
 
+    public InMemorySoundStore Sounds { get; } = new();
+
     /// <summary>Total writes to every repository and the pairing store, to prove a call had no side effects.</summary>
-    public int RepositoryWrites => Profiles.Writes + Devices.Writes + Settings.Writes + Icons.Writes;
+    public int RepositoryWrites => Profiles.Writes + Devices.Writes + Settings.Writes + Icons.Writes + Sounds.Writes;
 
     public ConnectDevice ConnectDevice() => new(Devices, Hasher, Clock, Events);
+
+    public GetSounds GetSounds() => new(Sounds);
+
+    public UploadSound UploadSound() => new(Sounds, Events);
+
+    public RenameSound RenameSound() => new(Sounds, Events);
+
+    public DeleteSound DeleteSound() => new(Sounds, Profiles, Events);
 
     public ExecuteAction ExecuteAction() => new(Profiles, Settings, Executor);
 

@@ -55,3 +55,10 @@ public sealed record IconIdPayload(string IconId);
 
 /// <summary>The uploaded icons' ids; each is served as <c>/api/icons/&lt;id&gt;.png</c>.</summary>
 public sealed record IconsPayload(IReadOnlyList<string> Icons);
+
+public sealed record RenameSoundPayload(string SoundId, string Name);
+
+public sealed record SoundIdPayload(string SoundId);
+
+/// <summary>The uploaded sound clips, by name.</summary>
+public sealed record SoundsPayload(IReadOnlyList<SoundDto> Sounds);

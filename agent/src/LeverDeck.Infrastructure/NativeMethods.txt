@@ -6,3 +6,5 @@ DnsServiceFreeInstance
 DnsServiceRegister
 DnsServiceDeRegister
 DNS_REQUEST_PENDING
+PlaySound
+SND_FLAGS

@@ -1,5 +1,6 @@
 using LeverDeck.Application.Actions.Ports;
 using LeverDeck.Application.Settings.Ports;
+using LeverDeck.Application.Sounds.Ports;
 using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Apps;
 using LeverDeck.Domain.Common;
@@ -48,6 +49,16 @@ public sealed class AgentActionExecutorTests
         }
     }
 
+    /// <summary>Records a clip played on the shell's list, so the coverage test counts every route the same way.</summary>
+    private sealed class RecordingSounds(RecordingShell shell, bool accept = true) : ISoundPlayer
+    {
+        public bool Play(LeverDeck.Domain.Sounds.SoundId sound)
+        {
+            shell.Calls.Add($"play {sound}");
+            return accept;
+        }
+    }
+
     private sealed class FixedSettings(AgentSettings settings) : ISettingsRepository
     {
         public Task<AgentSettings> GetAsync(CancellationToken cancellationToken) => Task.FromResult(settings);
@@ -65,7 +76,8 @@ public sealed class AgentActionExecutorTests
     private static (AgentActionExecutor Executor, RecordingKeys Keys, RecordingShell Shell) Create(
         AgentSettings? settings = null,
         bool shellAccepts = true,
-        bool fileExists = true)
+        bool fileExists = true,
+        bool soundAccepts = true)
     {
         var keys = new RecordingKeys();
         var shell = new RecordingShell(shellAccepts);
@@ -73,8 +85,34 @@ public sealed class AgentActionExecutorTests
             keys,
             shell,
             new FixedSettings(settings ?? AgentSettings.CreateDefault()),
+            new RecordingSounds(shell, soundAccepts),
             _ => fileExists);
         return (executor, keys, shell);
+    }
+
+    [Fact]
+    public async Task PlaySound_PlaysTheClipOnTheAgent()
+    {
+        var (executor, keys, shell) = Create();
+        var clip = new LeverDeck.Domain.Sounds.SoundId("sound-0123456789abcdef0123456789abcdef");
+
+        var result = await executor.ExecuteAsync(new PlaySound(clip), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal([$"play {clip}"], shell.Calls);
+        Assert.Empty(keys.Executed);
+    }
+
+    [Fact]
+    public async Task PlaySound_WhenWindowsRefuses_FailsWithActionFailed()
+    {
+        var (executor, _, _) = Create(soundAccepts: false);
+
+        var result = await executor.ExecuteAsync(
+            new PlaySound(new LeverDeck.Domain.Sounds.SoundId("sound-0123456789abcdef0123456789abcdef")),
+            CancellationToken.None);
+
+        Assert.Equal(DomainErrorCode.ActionFailed, result.Error?.Code);
     }
 
     public static TheoryData<DomainAction> Samples() => [.. JsonProfileRepositoryTests.DomainActionSamples()];

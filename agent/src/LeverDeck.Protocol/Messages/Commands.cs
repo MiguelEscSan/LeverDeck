@@ -33,3 +33,8 @@ public sealed record UnregisterAppCommand(string RequestId, AppIdPayload Payload
 public sealed record SaveIconCommand(string RequestId, SaveIconPayload Payload) : CommandMessage(RequestId);
 
 public sealed record DeleteIconCommand(string RequestId, IconIdPayload Payload) : CommandMessage(RequestId);
+
+/// <summary>Renames an uploaded sound clip. Uploads are not commands: they go over HTTP (<c>PUT /api/sounds/&lt;id&gt;.wav</c>).</summary>
+public sealed record RenameSoundCommand(string RequestId, RenameSoundPayload Payload) : CommandMessage(RequestId);
+
+public sealed record DeleteSoundCommand(string RequestId, SoundIdPayload Payload) : CommandMessage(RequestId);

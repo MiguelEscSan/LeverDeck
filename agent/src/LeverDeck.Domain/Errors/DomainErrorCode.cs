@@ -25,4 +25,7 @@ public enum DomainErrorCode
 
     /// <summary>An uploaded icon that does not exist.</summary>
     IconNotFound,
+
+    /// <summary>An uploaded sound clip that does not exist.</summary>
+    SoundNotFound,
 }

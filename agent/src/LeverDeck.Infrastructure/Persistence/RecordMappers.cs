@@ -2,6 +2,7 @@ using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Apps;
 using LeverDeck.Domain.Devices;
 using LeverDeck.Domain.Profiles;
+using LeverDeck.Domain.Sounds;
 using LeverDeck.Domain.Settings;
 using LeverDeck.Infrastructure.Persistence.Records;
 using LeverDeck.Infrastructure.Security;
@@ -57,6 +58,7 @@ internal static class ActionRecordMapper
         LaunchGame launchGame => new LaunchGameRecord(launchGame.Store, launchGame.GameId),
         ChangePage changePage => new ChangePageRecord(changePage.Destination.Kind, changePage.Destination.Index),
         SwitchProfile switchProfile => new SwitchProfileRecord(switchProfile.Profile.Value),
+        PlaySound playSound => new PlaySoundRecord(playSound.Sound.Value),
         null => throw new ArgumentNullException(nameof(action)),
         _ => throw new ArgumentOutOfRangeException(nameof(action), action.GetType().Name, "Unknown action."),
     };
@@ -71,6 +73,7 @@ internal static class ActionRecordMapper
         LaunchGameRecord launchGame => new LaunchGame(launchGame.Store, launchGame.GameId),
         ChangePageRecord changePage => new ChangePage(ToTarget(changePage)),
         SwitchProfileRecord switchProfile => new SwitchProfile(new ProfileId(switchProfile.ProfileId)),
+        PlaySoundRecord playSound => new PlaySound(new SoundId(playSound.SoundId)),
         null => throw new ArgumentNullException(nameof(record)),
         _ => throw new ArgumentOutOfRangeException(nameof(record), record.GetType().Name, "Unknown action record."),
     };

@@ -22,7 +22,8 @@ public static class ErrorMapper
         DomainErrorCode.ProfileNotFound
             or DomainErrorCode.DeviceNotFound
             or DomainErrorCode.ButtonNotFound
-            or DomainErrorCode.IconNotFound => ErrorCodeDto.NotFound,
+            or DomainErrorCode.IconNotFound
+            or DomainErrorCode.SoundNotFound => ErrorCodeDto.NotFound,
         DomainErrorCode.PairingCodeInvalid => ErrorCodeDto.PairingCodeInvalid,
         DomainErrorCode.PairingCodeExpired => ErrorCodeDto.PairingCodeExpired,
         DomainErrorCode.DeviceRevoked => ErrorCodeDto.DeviceRevoked,

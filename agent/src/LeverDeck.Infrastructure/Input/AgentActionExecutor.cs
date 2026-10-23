@@ -1,5 +1,6 @@
 using LeverDeck.Application.Actions.Ports;
 using LeverDeck.Application.Settings.Ports;
+using LeverDeck.Application.Sounds.Ports;
 using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Common;
 using LeverDeck.Domain.Errors;
@@ -18,10 +19,11 @@ public sealed class AgentActionExecutor : IActionExecutor
     private readonly IActionExecutor _keys;
     private readonly IShellLauncher _shell;
     private readonly ISettingsRepository _settings;
+    private readonly ISoundPlayer _sounds;
     private readonly Func<string, bool> _fileExists;
 
-    public AgentActionExecutor(ISettingsRepository settings)
-        : this(new SendInputActionExecutor(), new WindowsShellLauncher(), settings, File.Exists)
+    public AgentActionExecutor(ISettingsRepository settings, ISoundPlayer sounds)
+        : this(new SendInputActionExecutor(), new WindowsShellLauncher(), settings, sounds, File.Exists)
     {
     }
 
@@ -29,11 +31,13 @@ public sealed class AgentActionExecutor : IActionExecutor
         IActionExecutor keys,
         IShellLauncher shell,
         ISettingsRepository settings,
+        ISoundPlayer sounds,
         Func<string, bool> fileExists)
     {
         _keys = keys;
         _shell = shell;
         _settings = settings;
+        _sounds = sounds;
         _fileExists = fileExists;
     }
 
@@ -50,6 +54,7 @@ public sealed class AgentActionExecutor : IActionExecutor
                 _shell.Open(LaunchUris.For(game)),
                 $"Windows could not start the game. Is {(game.Store == GameStore.Steam ? "Steam" : "the Epic Games Launcher")} installed?"),
             LaunchApp launch => await LaunchAppAsync(launch, cancellationToken).ConfigureAwait(false),
+            PlaySound play => Shell(_sounds.Play(play.Sound), "Windows could not play the sound. Is it still in the library?"),
             ObsScene => Fail(DomainErrorCode.ActionNotExecutable, "OBS actions arrive later."),
             ChangePage or SwitchProfile => Fail(DomainErrorCode.ActionNotExecutable, "This action runs on the client."),
             _ => Fail(DomainErrorCode.ActionNotExecutable, $"{action.GetType().Name} is not supported."),

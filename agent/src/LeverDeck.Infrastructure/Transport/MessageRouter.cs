@@ -6,6 +6,7 @@ using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Security;
 using LeverDeck.Application.Settings;
+using LeverDeck.Application.Sounds;
 using LeverDeck.Application.Status;
 using LeverDeck.Domain.Common;
 using LeverDeck.Infrastructure.ProtocolMapping;
@@ -39,6 +40,8 @@ public sealed partial class MessageRouter(
     GetStoreApps getStoreApps,
     SaveIcon saveIcon,
     DeleteIcon deleteIcon,
+    RenameSound renameSound,
+    DeleteSound deleteSound,
     TransportPayloads payloads,
     ILogger<MessageRouter> logger)
 {
@@ -145,6 +148,15 @@ public sealed partial class MessageRouter(
                 return await BindAsync(id, IconMapper.ToIconId(delete.Payload.IconId), async icon =>
                     Ack(id, await deleteIcon.ExecuteAsync(caller, icon, ct).ConfigureAwait(false))).ConfigureAwait(false);
 
+            case RenameSoundCommand rename:
+                return await BindAsync(id, SoundMapper.ToSoundId(rename.Payload.SoundId), sound =>
+                    BindAsync(id, SoundMapper.ToSoundName(rename.Payload.Name), async name =>
+                        Ack(id, await renameSound.ExecuteAsync(caller, sound, name, ct).ConfigureAwait(false)))).ConfigureAwait(false);
+
+            case DeleteSoundCommand delete:
+                return await BindAsync(id, SoundMapper.ToSoundId(delete.Payload.SoundId), async sound =>
+                    Ack(id, await deleteSound.ExecuteAsync(caller, sound, ct).ConfigureAwait(false))).ConfigureAwait(false);
+
             default:
                 return Invalid(id, $"Unknown command {command.GetType().Name}.");
         }
@@ -197,6 +209,12 @@ public sealed partial class MessageRouter(
                     id,
                     await payloads.IconsAsync(caller, ct).ConfigureAwait(false),
                     payload => new IconsResult(id, payload));
+
+            case GetSoundsQuery:
+                return ResponseMapper.ToResponse(
+                    id,
+                    await payloads.SoundsAsync(caller, ct).ConfigureAwait(false),
+                    payload => new SoundsResult(id, payload));
 
             case GetInstalledGamesQuery:
                 return ResponseMapper.ToResponse(

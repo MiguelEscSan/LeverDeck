@@ -22,3 +22,5 @@ public sealed record PairingSessionChanged : ApplicationEvent;
 public sealed record SettingsUpdated : ApplicationEvent;
 
 public sealed record IconsChanged : ApplicationEvent;
+
+public sealed record SoundsChanged : ApplicationEvent;

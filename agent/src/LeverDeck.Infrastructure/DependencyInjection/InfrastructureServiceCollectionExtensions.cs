@@ -7,6 +7,7 @@ using LeverDeck.Application.Pairing.Ports;
 using LeverDeck.Application.Platform.Ports;
 using LeverDeck.Application.Profiles.Ports;
 using LeverDeck.Application.Settings.Ports;
+using LeverDeck.Application.Sounds.Ports;
 using LeverDeck.Infrastructure.Common;
 using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.Discovery;
@@ -16,6 +17,7 @@ using LeverDeck.Infrastructure.Apps;
 using LeverDeck.Infrastructure.Input;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
+using LeverDeck.Infrastructure.Sounds;
 using LeverDeck.Infrastructure.Platform;
 using LeverDeck.Infrastructure.Security;
 using LeverDeck.Infrastructure.Tls;
@@ -51,6 +53,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<FileIconStore>();
         services.AddSingleton<IIconStore>(provider => provider.GetRequiredService<FileIconStore>());
         services.AddSingleton<IPairingSessionStore, InMemoryPairingSessionStore>();
+        services.AddSingleton<FileSoundStore>();
+        services.AddSingleton<ISoundStore>(provider => provider.GetRequiredService<FileSoundStore>());
+        services.AddSingleton<ISoundPlayer, WinmmSoundPlayer>();
 
         services.AddSingleton<ITokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<ITokenHasher, Sha256TokenHasher>();

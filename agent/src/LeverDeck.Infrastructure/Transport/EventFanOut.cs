@@ -116,6 +116,15 @@ public sealed partial class EventFanOut(
 
                 break;
 
+            case SoundsChanged:
+                // Phones list the clips too, so every connection hears about a change.
+                if (Loaded(await payloads.SoundsAsync(Caller.Admin, cancellationToken).ConfigureAwait(false)) is { } sounds)
+                {
+                    await SendAsync(registry.All(), new SoundsChangedEvent(sounds)).ConfigureAwait(false);
+                }
+
+                break;
+
             default:
                 LogUnhandled(applicationEvent.GetType().Name);
                 break;

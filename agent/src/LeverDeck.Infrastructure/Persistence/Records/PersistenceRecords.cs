@@ -37,6 +37,7 @@ internal sealed record ButtonRecord(
 [JsonDerivedType(typeof(LaunchGameRecord), "launchGame")]
 [JsonDerivedType(typeof(ChangePageRecord), "changePage")]
 [JsonDerivedType(typeof(SwitchProfileRecord), "switchProfile")]
+[JsonDerivedType(typeof(PlaySoundRecord), "playSound")]
 internal abstract record ActionRecord;
 
 internal sealed record HotkeyRecord(KeyModifiers Modifiers, VirtualKey Key) : ActionRecord;
@@ -48,6 +49,8 @@ internal sealed record LaunchAppRecord(Guid AppId) : ActionRecord;
 internal sealed record OpenUrlRecord(string Url) : ActionRecord;
 
 internal sealed record ObsSceneRecord(string SceneName) : ActionRecord;
+
+internal sealed record PlaySoundRecord(string SoundId) : ActionRecord;
 
 internal sealed record LaunchGameRecord(GameStore Store, string GameId) : ActionRecord;
 
@@ -82,3 +85,11 @@ internal sealed record SettingsDocument(
 internal sealed record ObsConnectionRecord(string Host, int Port, string? ProtectedPassword);
 
 internal sealed record RegisteredAppRecord(Guid Id, string DisplayName, string ExecutablePath);
+
+/// <summary>The sound library: one entry per clip, its WAV file is <c>sounds/&lt;id&gt;.wav</c>.</summary>
+internal sealed record SoundsDocument(int SchemaVersion, List<SoundRecord> Sounds)
+{
+    public const int CurrentVersion = 1;
+}
+
+internal sealed record SoundRecord(string Id, string Name, int DurationMs, long SizeBytes);

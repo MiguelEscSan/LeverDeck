@@ -13,5 +13,6 @@ public static class ActionCatalog
         typeof(LaunchGame),
         typeof(ChangePage),
         typeof(SwitchProfile),
+        typeof(PlaySound),
     ];
 }

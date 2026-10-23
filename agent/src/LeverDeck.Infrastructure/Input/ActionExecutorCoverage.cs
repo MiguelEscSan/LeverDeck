@@ -31,5 +31,6 @@ public static class ActionExecutorCoverage
         [typeof(LaunchGame)] = ActionSupport.Executable,
         [typeof(ChangePage)] = ActionSupport.ClientOnly,
         [typeof(SwitchProfile)] = ActionSupport.ClientOnly,
+        [typeof(PlaySound)] = ActionSupport.Executable,
     };
 }

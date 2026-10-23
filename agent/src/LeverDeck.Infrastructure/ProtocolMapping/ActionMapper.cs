@@ -2,6 +2,7 @@ using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Apps;
 using LeverDeck.Domain.Common;
 using LeverDeck.Domain.Profiles;
+using LeverDeck.Domain.Sounds;
 using LeverDeck.Protocol.Dtos;
 using static LeverDeck.Infrastructure.ProtocolMapping.EnumMapping;
 using DomainAction = LeverDeck.Domain.Actions.Action;
@@ -32,6 +33,7 @@ public static class ActionMapper
             Convert<PageTargetKind, PageTargetDto>(changePage.Destination.Kind),
             changePage.Destination.Index),
         SwitchProfile switchProfile => new SwitchProfileActionDto(switchProfile.Profile.Value),
+        PlaySound playSound => new PlaySoundActionDto(playSound.Sound.Value),
         null => throw new ArgumentNullException(nameof(action)),
         _ => throw new ArgumentOutOfRangeException(nameof(action), action.GetType().Name, "Unknown action."),
     };
@@ -50,6 +52,7 @@ public static class ActionMapper
         LaunchGameActionDto launchGame => new LaunchGame(Convert<GameStoreDto, GameStore>(launchGame.Store), launchGame.GameId),
         ChangePageActionDto changePage => new ChangePage(ToTarget(changePage)),
         SwitchProfileActionDto switchProfile => new SwitchProfile(new ProfileId(switchProfile.ProfileId)),
+        PlaySoundActionDto playSound => new PlaySound(new SoundId(playSound.SoundId ?? string.Empty)),
         _ => throw new ArgumentOutOfRangeException(nameof(dto), dto.GetType().Name, "Unknown action type."),
     };
 

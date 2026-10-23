@@ -4,6 +4,7 @@ using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Security;
 using LeverDeck.Application.Settings;
+using LeverDeck.Application.Sounds;
 using LeverDeck.Domain.Common;
 using LeverDeck.Domain.Profiles;
 using LeverDeck.Infrastructure.ProtocolMapping;
@@ -21,6 +22,7 @@ public sealed class TransportPayloads(
     GetPairingSession getPairingSession,
     GetSettings getSettings,
     GetIcons getIcons,
+    GetSounds getSounds,
     ConnectionRegistry registry,
     PairingLinks links)
 {
@@ -50,6 +52,11 @@ public sealed class TransportPayloads(
         Map(
             await getIcons.ExecuteAsync(caller, cancellationToken).ConfigureAwait(false),
             icons => new IconsPayload([.. icons.Select(icon => icon.Value)]));
+
+    public async Task<Result<SoundsPayload>> SoundsAsync(Caller caller, CancellationToken cancellationToken) =>
+        Map(
+            await getSounds.ExecuteAsync(caller, cancellationToken).ConfigureAwait(false),
+            clips => new SoundsPayload([.. clips.Select(SoundMapper.ToDto)]));
 
     private static Result<TOut> Map<TIn, TOut>(Result<TIn> result, Func<TIn, TOut> map) =>
         result.IsSuccess ? Result.Success(map(result.Value)) : Result.Failure<TOut>(result.Error!);

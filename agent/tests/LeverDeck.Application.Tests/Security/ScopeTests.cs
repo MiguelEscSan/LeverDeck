@@ -1,9 +1,11 @@
 using LeverDeck.Application.Security;
+using LeverDeck.Application.Sounds;
 using LeverDeck.Domain.Apps;
 using LeverDeck.Domain.Common;
 using LeverDeck.Domain.Devices;
 using LeverDeck.Domain.Errors;
 using LeverDeck.Domain.Profiles;
+using LeverDeck.Domain.Sounds;
 
 namespace LeverDeck.Application.Tests.Security;
 
@@ -62,6 +64,14 @@ public sealed class ScopeTests
             h.DeleteIcon().ExecuteAsync(c, new IconId("custom-0123456789abcdef0123456789abcdef"), CancellationToken.None)),
         ["GetIcons"] = (CallerScope.Admin, async (h, c) =>
             await h.GetIcons().ExecuteAsync(c, CancellationToken.None)),
+        ["UploadSound"] = (CallerScope.Admin, (h, c) =>
+            h.UploadSound().ExecuteAsync(c, new SoundId("sound-0123456789abcdef0123456789abcdef"), new SoundName("Clip"), Sounds.SoundUseCaseTests.WaveBytes(176400), CancellationToken.None)),
+        ["RenameSound"] = (CallerScope.Admin, (h, c) =>
+            h.RenameSound().ExecuteAsync(c, new SoundId("sound-0123456789abcdef0123456789abcdef"), new SoundName("Clip"), CancellationToken.None)),
+        ["DeleteSound"] = (CallerScope.Admin, (h, c) =>
+            h.DeleteSound().ExecuteAsync(c, new SoundId("sound-0123456789abcdef0123456789abcdef"), CancellationToken.None)),
+        ["GetSounds"] = (CallerScope.Device, async (h, c) =>
+            await h.GetSounds().ExecuteAsync(c, CancellationToken.None)),
     };
 
     private static readonly Dictionary<CallerScope, Caller> Callers = new()

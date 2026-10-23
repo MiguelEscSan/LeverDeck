@@ -152,6 +152,7 @@ public sealed class JsonProfileRepositoryTests : IDisposable
         new Hotkey(KeyModifiers.None, VirtualKey.F13),
         new MediaKey(MediaKeyKind.VolumeUp),
         new LaunchApp(AppId.New()),
+        new PlaySound(new LeverDeck.Domain.Sounds.SoundId("sound-0123456789abcdef0123456789abcdef")),
         new OpenUrl(new Uri("https://example.com/path?q=1")),
         new ObsScene("Gaming"),
         new LaunchGame(GameStore.Steam, "570"),
