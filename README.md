@@ -15,6 +15,24 @@ tray, serving your phones; open it again from the Start menu or the tray icon. T
 WebView2 Runtime, which Windows 11 and an up-to-date Windows 10 already have. LeverDeck updates itself from GitHub
 Releases; an update is applied the next time it starts.
 
+## One phone, several PCs
+
+Over the LAN, one phone can be paired with every PC that runs LeverDeck. Each PC answers to its own name
+(`leverdeck-<pc>.local`), which the phone's browser treats as a separate site. So each PC keeps its own pairing and
+token, and pairing one PC never undoes another.
+
+- Pair each PC once, by scanning its own QR code. After that, each one reconnects on its own.
+- Installed as an app, each PC gets its own icon on the phone, and that icon controls that PC only. There is no PC
+  switcher inside the app. On an iPhone, add every PC to the home screen; otherwise Safari may clear its data and that
+  PC asks to pair again.
+- The names come from each computer's name. If two PCs would get the same name, give one of them another name with
+  `LeverDeck__Mdns__HostName`.
+
+**USB is the exception.** Over a cable (`adb reverse`) the phone always opens `localhost:8765`, whichever PC is behind
+it, so the browser sees one site and keeps one pairing. Pair over USB with PC A, then plug the phone into PC B: B
+rejects A's token and the app goes back to pairing; pairing B replaces the USB pairing with A. With two PCs, use the LAN
+for both, or USB for only one of them.
+
 ## Requirements (from source)
 
 - Windows 10 or 11.
