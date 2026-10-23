@@ -193,12 +193,19 @@ internal sealed unsafe partial class TrayIcon(
     }
 
     /// <summary>
-    /// The exe's own icon (<c>ApplicationIcon</c> in the project, which the SDK stores under the id 32512), or the
-    /// system's generic one when the exe has none (a build without the icon).
+    /// The exe's own icon (<c>ApplicationIcon</c> in the project) at the small-icon size the notification area shows, so
+    /// Windows picks the .ico's own small frame instead of scaling the large one down; the system's generic icon when
+    /// the exe has none (a build without the icon). Shared, so repeated calls return the same handle and leak nothing.
     /// </summary>
     private static nint AppIcon()
     {
-        var own = NativeTray.LoadIcon(NativeTray.GetModuleHandle(0), NativeTray.ApplicationIcon);
+        var own = NativeTray.LoadImage(
+            NativeTray.GetModuleHandle(0),
+            NativeTray.OwnIconId,
+            NativeTray.ImageIcon,
+            NativeTray.GetSystemMetrics(NativeTray.SmCxSmIcon),
+            NativeTray.GetSystemMetrics(NativeTray.SmCySmIcon),
+            NativeTray.LrShared);
         return own != 0 ? own : NativeTray.LoadIcon(0, NativeTray.ApplicationIcon);
     }
 

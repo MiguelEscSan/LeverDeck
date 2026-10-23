@@ -48,6 +48,13 @@ Out of scope: the README install guide (Phase 8, separate), code signing, an ins
 ## Progress
 
 - Branch `feat/exe-icon-release` created from `main` (dd90d97). No tags exist yet.
+- Review (user granted, high risk, 4 lenses): approved and acknowledged; 1 warning and 7 suggestions, all fixed at the
+  user's request: release split into a read-only `build` job (`persist-credentials: false`) and a write-only `release`
+  job with no package code; actions pinned to SHAs (checkout v4.4.0, setup-node v4.4.0, setup-dotnet v4.3.1,
+  upload-artifact v4.6.2, download-artifact v4.3.0); re-runs upload `--clobber` to an existing release; tag checked
+  against a semver pattern and trigger narrowed to `v[0-9]*`; one `PUBLISH_DIR` / `DOWNLOAD_DIR`; `OwnIconId` constant;
+  tray loads the small frame with `LoadImage` (`LR_SHARED`). Checks: `dotnet build` 0 errors, `dotnet test` 1157
+  passed, workflow parses, tag regex accepts `v0.1.0` / `v1.2.3-beta.1` and refuses `vnext` / `v1.2`.
 
 ## Next step
 

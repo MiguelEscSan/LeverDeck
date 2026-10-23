@@ -37,6 +37,17 @@ internal static unsafe partial class NativeTray
     /// <summary>IDI_APPLICATION, the standard application icon.</summary>
     public static readonly nint ApplicationIcon = 32512;
 
+    /// <summary>
+    /// The resource id the .NET SDK gives the exe's own icon group (<c>ApplicationIcon</c> in the project). It happens
+    /// to equal <see cref="ApplicationIcon"/>, but names a resource of this module, not the system's stock icon.
+    /// </summary>
+    public static readonly nint OwnIconId = 32512;
+
+    public const uint ImageIcon = 1;
+    public const uint LrShared = 0x8000;
+    public const int SmCxSmIcon = 49;
+    public const int SmCySmIcon = 50;
+
     /// <summary>NOTIFYICONDATAW, the layout the Windows 7+ shell expects (the balloon fields are unused).</summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct NotifyIconData
@@ -144,6 +155,12 @@ internal static unsafe partial class NativeTray
 
     [LibraryImport("user32.dll", EntryPoint = "LoadIconW")]
     public static partial nint LoadIcon(nint instance, nint iconName);
+
+    [LibraryImport("user32.dll", EntryPoint = "LoadImageW", SetLastError = true)]
+    public static partial nint LoadImage(nint instance, nint name, uint type, int width, int height, uint flags);
+
+    [LibraryImport("user32.dll", EntryPoint = "GetSystemMetrics")]
+    public static partial int GetSystemMetrics(int index);
 
     [LibraryImport("user32.dll", EntryPoint = "CreatePopupMenu", SetLastError = true)]
     public static partial nint CreatePopupMenu();
