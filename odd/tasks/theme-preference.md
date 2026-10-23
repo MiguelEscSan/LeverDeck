@@ -64,3 +64,7 @@ Strategy: `ask-on-risk`. Forecast about 350 authored changed lines.
 ## Progress
 
 - Branch `feat/theme-preference` created from `main` (fe815be).
+- T1 committed (`8857867`), T2 committed (`f9f60f0`).
+- Review: assessed medium, `slice_budget_reached` (737 changed lines over both commits); consent declined by the user
+  for that candidate.
+- Next: push and open a PR (the user's call).
