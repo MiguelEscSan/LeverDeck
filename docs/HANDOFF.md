@@ -24,8 +24,8 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
   own window that shows the existing Angular editor through WebView2 (no browser, no token URL, no console:
   `WinExe` in Release); closing the window keeps the agent in the tray for the phones; a second launch shows the
   running instance's window. Logs go to a file under the data directory; every start of the agent deletes all
-  existing logs and begins a new one (no previous log is kept), with a size cap within a session. Whether the window
-  runs under Native AOT or needs a single-file publish is settled by a spike. A native UI rewrite was rejected: it
+  existing logs and begins a new one (no previous log is kept), with a size cap within a session. A spike settled that
+  the window runs under Native AOT (source-generated COM, statically linked WebView2 loader, one ~1.9 MB exe). A native UI rewrite was rejected: it
   would duplicate the editor, and the phones need the PWA anyway.
 - **Frontend:** **Angular** PWA (`@angular/pwa`), standalone, Signals, `OnPush`. The user knows Angular well,
   and the UI will grow beyond the grid (profiles, settings, button editor).

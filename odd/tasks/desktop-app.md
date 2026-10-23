@@ -36,9 +36,9 @@ Out of scope: macOS (Phase 9), a native UI rewrite, code signing.
 
 ## Tasks
 
-- [ ] T1 — Spike: WebView2 window under Native AOT vs the official package + single-file. Route: delegated worker in
-      the scratchpad (no repository changes). Named uncertainty: whether WebView2's COM API works with `ComWrappers`
-      under AOT.
+- [x] T1 — Spike: WebView2 window under Native AOT vs the official package + single-file. Route: delegated worker in
+      the scratchpad (no repository changes). Result: AOT works (static loader, 1.9 MB, exit 0 in 6/6 runs, 0 warnings);
+      WinForms single-file works too (117 MB, 49 MB working set). Chosen: Native AOT. Details in ROADMAP Phase 8b.
 - [ ] T2+ — Planned after the spike (GUI subsystem, window, single instance, installer).
 
 ## Progress

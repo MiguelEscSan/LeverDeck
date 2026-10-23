@@ -360,9 +360,16 @@ LeverDeck installs and runs like Spotify or Discord: a setup program installs it
 agent in the tray serving the phones. The UI stays the Angular editor; only where it is shown changes (decided
 2026-10-23, option A over rewriting the editor in a native UI toolkit).
 
-- [ ] Spike: a WebView2 window inside the Native AOT exe (COM through `ComWrappers`/CsWin32), versus the official
-      `Microsoft.Web.WebView2` package with a self-contained single-file publish (the HANDOFF fallback when a dependency
-      is not AOT-compatible). Pick one from the spike's evidence.
+- [x] Spike: a WebView2 window inside the Native AOT exe versus WinForms + the official package published
+      single-file. **Decided: Native AOT.** Source-generated COM (`[GeneratedComInterface]` / `[GeneratedComClass]`,
+      IIDs and vtable order from the package's `WebView2.h`) with `WebView2LoaderStatic.lib` linked in through
+      `DirectPInvoke`: one 1.9 MB exe, no trim/AOT warnings, ~0.4 s to the first page, ~21 MB working set; the
+      single-file WinForms route works too but ships 117 MB and uses ~49 MB. Notes for the move into `LeverDeck.App`:
+      the tray thread must become STA and host the window too (one UI thread; Kestrel unaffected); the environment
+      callback can arrive re-entrantly; call `controller.Close()` before exit; set per-monitor v2 DPI before any
+      window and resize on `WM_SIZE`/`WM_DPICHANGED`; always pass the WebView2 user data folder
+      (`<DataDirectory>/webview2`), since the default next to the exe is replaced on each Velopack update; a failing
+      `CreateCoreWebView2EnvironmentWithOptions` HRESULT is where a missing runtime is reported.
 - [ ] GUI subsystem: `OutputType` `WinExe` in Release (no console window), `Exe` in Debug so `dotnet run` keeps its
       logs; Release logs go to a file under `<DataDirectory>/logs`.
 - [ ] Logs never grow without bound: every start of the agent (Windows sign-in, or quitting from the tray and opening
