@@ -62,6 +62,10 @@ Strategy: `ask-on-risk`. Forecast about 450 authored changed lines (UI rewrite p
   then GREEN) so AppList no longer re-pages with `Number.MAX_SAFE_INTEGER`. Parent re-run: lint pass, 374 tests pass,
   build complete. Committed as the T2 work unit.
 
+- T2 committed (`a90ccce`). Slice from `main` assessed medium, `slice_budget_reached` (9 files, 1411 changed lines,
+  above the ~450 forecast because AppList was rewritten); review consent declined by the user for that candidate.
+
 ## Next step
 
-Assess the slice from `main`; check the dialog in the running app (agent + embedded PWA), not done yet.
+Check the dialog in the running app (agent + embedded PWA): not done. Then push / PR, which are the user's call; the
+branch is over the ~400-line delivery budget, so decide single PR vs. chained PRs at that point.
