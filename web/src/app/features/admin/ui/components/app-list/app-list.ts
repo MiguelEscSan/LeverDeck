@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import type { RegisteredAppDto } from '../../../../../core/protocol';
+import type { RegisteredAppDto, StoreAppDto } from '../../../../../core/protocol';
 import {
   APP_NAME_MAX_LENGTH,
   APP_PATH_MAX_LENGTH,
   appFormError,
   cleanPath,
   nameFromPath,
+  storeAppPath,
 } from '../../../domain/app-registration';
 
 /** A new app to register: its name and the full path of its executable. */
@@ -56,6 +57,29 @@ export interface AppRegistration {
                 Remove
               </button>
             }
+          </li>
+        }
+      </ul>
+    }
+
+    @if (storeApps().length > 0) {
+      <h3 class="sub-title">Microsoft Store apps</h3>
+      <ul>
+        @for (store of storeApps(); track store.appUserModelId) {
+          <li class="app">
+            <div class="info">
+              <span class="name">{{ store.name }}</span>
+              <span class="path" [attr.title]="store.appUserModelId">{{ store.appUserModelId }}</span>
+            </div>
+            <button
+              class="ld-btn"
+              type="button"
+              [disabled]="busy() || isRegistered(store)"
+              [attr.aria-label]="'Add ' + store.name"
+              (click)="registerStore.emit(store)"
+            >
+              {{ isRegistered(store) ? 'Added' : 'Add' }}
+            </button>
           </li>
         }
       </ul>
@@ -182,7 +206,14 @@ export class AppList {
   readonly busy = input(false);
 
   readonly register = output<AppRegistration>();
+  readonly storeApps = input<readonly StoreAppDto[]>([]);
+  readonly registerStore = output<StoreAppDto>();
   readonly remove = output<string>();
+
+  protected isRegistered(store: StoreAppDto): boolean {
+    const target = storeAppPath(store.appUserModelId);
+    return this.apps().some((app) => app.path === target);
+  }
 
   protected readonly nameMaxLength = APP_NAME_MAX_LENGTH;
   protected readonly pathMaxLength = APP_PATH_MAX_LENGTH;

@@ -63,6 +63,7 @@ internal static class CompositionRoot
 
         services.AddSingleton<GetAgentStatus>();
         services.AddSingleton<GetInstalledGames>();
+        services.AddSingleton<GetStoreApps>();
 
         services.AddSingleton<SaveIcon>();
         services.AddSingleton<DeleteIcon>();

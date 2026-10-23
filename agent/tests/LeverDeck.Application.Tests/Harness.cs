@@ -33,6 +33,8 @@ internal sealed class Harness
 
     public FakeGameLibrary Games { get; } = new();
 
+    public FakeStoreAppCatalog StoreApps { get; } = new();
+
     public InMemoryIconStore Icons { get; } = new();
 
     /// <summary>Total writes to every repository and the pairing store, to prove a call had no side effects.</summary>
@@ -75,6 +77,8 @@ internal sealed class Harness
     public static GetAgentStatus GetAgentStatus() => new();
 
     public GetInstalledGames GetInstalledGames() => new(Games);
+
+    public GetStoreApps GetStoreApps() => new(StoreApps);
 
     public SaveIcon SaveIcon() => new(Icons, Events);
 

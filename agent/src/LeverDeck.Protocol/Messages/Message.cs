@@ -42,6 +42,7 @@ public abstract record CommandMessage([property: JsonPropertyOrder(-1)] string R
 [JsonDerivedType(typeof(GetSettingsQuery), "getSettings")]
 [JsonDerivedType(typeof(GetAgentStatusQuery), "getAgentStatus")]
 [JsonDerivedType(typeof(GetInstalledGamesQuery), "getInstalledGames")]
+[JsonDerivedType(typeof(GetStoreAppsQuery), "getStoreApps")]
 [JsonDerivedType(typeof(GetIconsQuery), "getIcons")]
 public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
@@ -54,6 +55,7 @@ public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string Req
 [JsonDerivedType(typeof(SettingsResult), "settings")]
 [JsonDerivedType(typeof(AgentStatusResult), "agentStatus")]
 [JsonDerivedType(typeof(InstalledGamesResult), "installedGames")]
+[JsonDerivedType(typeof(StoreAppsResult), "storeApps")]
 [JsonDerivedType(typeof(IconsResult), "icons")]
 public abstract record QueryResultMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 

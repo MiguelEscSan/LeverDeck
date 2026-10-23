@@ -46,6 +46,13 @@ public sealed record AgentStatusResult(string RequestId, AgentStatusPayload Payl
 
 public sealed record InstalledGamesResult(string RequestId, InstalledGamesPayload Payload) : QueryResultMessage(RequestId);
 
+public sealed record GetStoreAppsQuery(string RequestId) : QueryMessage(RequestId)
+{
+    public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;
+}
+
+public sealed record StoreAppsResult(string RequestId, StoreAppsPayload Payload) : QueryResultMessage(RequestId);
+
 public sealed record GetIconsQuery(string RequestId) : QueryMessage(RequestId)
 {
     public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;

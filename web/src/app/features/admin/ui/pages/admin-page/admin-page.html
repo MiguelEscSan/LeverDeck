@@ -47,6 +47,8 @@
           [apps]="library.apps()"
           [busy]="library.busy()"
           (register)="registerApp($event, appList)"
+          [storeApps]="library.storeApps()"
+          (registerStore)="library.registerStoreApp($event)"
           (remove)="library.unregisterApp($event)"
         />
       } @else if (view() === 'icons') {

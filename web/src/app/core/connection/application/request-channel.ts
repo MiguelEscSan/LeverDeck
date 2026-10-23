@@ -13,6 +13,7 @@ import type {
   QueryMessage,
   QueryResultMessage,
   SettingsResult,
+  StoreAppsResult,
 } from '../../protocol';
 import type { IncomingMessage, OutgoingMessage } from '../domain/messages';
 import { RequestError } from '../domain/request-error';
@@ -28,6 +29,7 @@ export interface QueryResults {
   getSettings: SettingsResult;
   getAgentStatus: AgentStatusResult;
   getInstalledGames: InstalledGamesResult;
+  getStoreApps: StoreAppsResult;
   getIcons: IconsResult;
 }
 

@@ -46,6 +46,8 @@ public sealed record ObsSceneChangedPayload(string SceneName);
 
 public sealed record InstalledGamesPayload(IReadOnlyList<InstalledGameDto> Games);
 
+public sealed record StoreAppsPayload(IReadOnlyList<StoreAppDto> Apps);
+
 /// <summary><see cref="Data"/> is the PNG image in base64 (at most 256 KiB once decoded).</summary>
 public sealed record SaveIconPayload(string IconId, string Data);
 

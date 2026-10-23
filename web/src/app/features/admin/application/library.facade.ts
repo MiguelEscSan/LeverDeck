@@ -3,8 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminConnectionFacade } from '../../../core/connection/application/connection.facade';
 import { RequestError } from '../../../core/connection/domain/request-error';
 import { customIconId } from '../../../core/keys/domain/key-icons';
-import type { EventMessage, InstalledGameDto, RegisteredAppDto } from '../../../core/protocol';
-import { cleanPath } from '../domain/app-registration';
+import type { EventMessage, InstalledGameDto, RegisteredAppDto, StoreAppDto } from '../../../core/protocol';
+import { cleanPath, storeAppPath } from '../domain/app-registration';
 import { IconEncoder } from './icon-encoder.port';
 import { IdSource } from './id-source.port';
 
@@ -22,6 +22,7 @@ export class LibraryFacade {
   private readonly appsState = signal<RegisteredAppDto[]>([]);
   private readonly gamesState = signal<InstalledGameDto[]>([]);
   private readonly gamesLoadingState = signal(false);
+  private readonly storeAppsState = signal<StoreAppDto[]>([]);
   private readonly busyState = signal(false);
   private readonly errorState = signal<string | null>(null);
   private readonly iconsState = signal<string[]>([]);
@@ -30,6 +31,7 @@ export class LibraryFacade {
   readonly apps = this.appsState.asReadonly();
   readonly games = this.gamesState.asReadonly();
   readonly gamesLoading = this.gamesLoadingState.asReadonly();
+  readonly storeApps = this.storeAppsState.asReadonly();
   readonly busy = this.busyState.asReadonly();
   readonly error = this.errorState.asReadonly();
   /** Uploaded icon ids. */
@@ -43,6 +45,7 @@ export class LibraryFacade {
           void this.loadApps();
           void this.loadIcons();
           void this.refreshGames();
+          void this.refreshStoreApps();
         });
       }
     });
@@ -58,6 +61,20 @@ export class LibraryFacade {
     } finally {
       this.gamesLoadingState.set(false);
     }
+  }
+
+  /** Reads the Microsoft Store apps in the Start menu; they are listed again each time the editor connects. */
+  async refreshStoreApps(): Promise<void> {
+    try {
+      this.storeAppsState.set((await this.connection.query('getStoreApps', {})).apps);
+    } catch {
+      this.errorState.set("Couldn't read the Microsoft Store apps.");
+    }
+  }
+
+  /** Registers a Store app by its AppUserModelId; resolves to its new id, or `null` when the agent refused it. */
+  registerStoreApp(app: StoreAppDto): Promise<string | null> {
+    return this.registerApp(app.name, storeAppPath(app.appUserModelId));
   }
 
   /** Registers an executable; resolves to its new id, or `null` when the agent refused it (see {@link error}). */

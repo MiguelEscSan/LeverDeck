@@ -39,6 +39,8 @@ internal static class Samples
 
     public static InstalledGameDto Game { get; } = new(GameStoreDto.Steam, "570", "Dota 2");
 
+    public static StoreAppDto StoreApp { get; } = new("Spotify", "SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify");
+
     public const string IconId = "custom-0123456789abcdef0123456789abcdef";
 
     public static IReadOnlyList<ActionDto> Actions { get; } =
@@ -75,6 +77,7 @@ internal static class Samples
         new GetSettingsQuery("q5"),
         new GetAgentStatusQuery("q6"),
         new GetInstalledGamesQuery("q7"),
+        new GetStoreAppsQuery("q8"),
         new GetIconsQuery("q8"),
         new ProfilesResult("q1", new ProfilesPayload([Summary])),
         new ProfileResult("q2", new ProfilePayload(Profile)),
@@ -83,6 +86,7 @@ internal static class Samples
         new SettingsResult("q5", new SettingsPayload(Settings)),
         new AgentStatusResult("q6", new AgentStatusPayload("1.0.0", ProtocolInfo.ProtocolVersion, false)),
         new InstalledGamesResult("q7", new InstalledGamesPayload([Game])),
+        new StoreAppsResult("q8", new StoreAppsPayload([StoreApp])),
         new IconsResult("q8", new IconsPayload([IconId])),
         new AckMessage("r1"),
         new AckMessage("r10", new AppRegisteredPayload(AppId)),
@@ -137,6 +141,8 @@ internal static class Samples
         new IconIdPayload(IconId),
         new IconsPayload([IconId]),
         new InstalledGamesPayload([Game, new InstalledGameDto(GameStoreDto.Epic, "Fortnite", "Fortnite")]),
+        StoreApp,
+        new StoreAppsPayload([StoreApp]),
     ];
 
     public static IEnumerable<object> All => [.. Messages, .. Actions, .. Dtos];

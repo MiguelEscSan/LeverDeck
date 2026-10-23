@@ -163,6 +163,24 @@ public sealed class AgentActionExecutorTests
     }
 
     [Fact]
+    public async Task LaunchApp_StoreApp_StartsItsShellTargetWithoutCheckingAFile()
+    {
+        const string spotify = @"shell:AppsFolder\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify";
+        var app = AppId.New();
+        var settings = AgentSettings.Restore(
+            false,
+            GridSize.FiveByThree,
+            null,
+            [new RegisteredApp(app, "Spotify", spotify)]);
+        var (executor, _, shell) = Create(settings, fileExists: false);
+
+        var result = await executor.ExecuteAsync(new LaunchApp(app), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal([$"start {spotify}"], shell.Calls);
+    }
+
+    [Fact]
     public async Task LaunchApp_UnregisteredApp_IsNotExecutable()
     {
         var (executor, _, shell) = Create(SettingsWith(AppId.New()));

@@ -16,9 +16,20 @@ export function nameFromPath(path: string): string {
   return file.replace(/\.exe$/i, '').slice(0, APP_NAME_MAX_LENGTH);
 }
 
+/** The shell target of a Microsoft Store app, launched by its AppUserModelId (as the agent's RegisteredApp accepts it). */
+export const STORE_APP_PREFIX = 'shell:AppsFolder\\';
+
+const APP_USER_MODEL_ID = /^[A-Za-z0-9._-]+![A-Za-z0-9._-]+$/;
+
+/** The path a Store app is registered with: its shell target built from its AppUserModelId. */
+export function storeAppPath(appUserModelId: string): string {
+  return `${STORE_APP_PREFIX}${appUserModelId}`;
+}
+
 /**
- * Why an app would be refused, or `null`: a name of 1–40 characters and a full Windows path (drive or network share)
- * of at most 260 characters with no quotes. The agent checks again and refuses a path that is already registered.
+ * Why an app would be refused, or `null`: a name of 1–40 characters and either a full Windows path (drive or network
+ * share) or a Store app's shell target, at most 260 characters, with no quotes. The agent checks again and refuses a
+ * path that is already registered.
  */
 export function appFormError(name: string, path: string): string | null {
   const trimmedName = name.trim();
@@ -34,6 +45,9 @@ export function appFormError(name: string, path: string): string | null {
   }
   if (cleaned.includes('"')) {
     return 'The path cannot contain quotes or arguments.';
+  }
+  if (cleaned.startsWith(STORE_APP_PREFIX)) {
+    return APP_USER_MODEL_ID.test(cleaned.slice(STORE_APP_PREFIX.length)) ? null : 'This Store app id is not valid.';
   }
   if (!/^(?:[A-Za-z]:\\|\\\\[^\\]+\\[^\\]+)/.test(cleaned)) {
     return 'Use the full path, starting with a drive like C:\\.';

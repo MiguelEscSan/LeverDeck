@@ -5,6 +5,7 @@ import type {
   ButtonDto,
   DeviceDto,
   InstalledGameDto,
+  StoreAppDto,
   PairingSessionDto,
   ProfileDto,
   RegisteredAppDto,
@@ -115,6 +116,8 @@ class FakeLibrary {
   readonly apps = signal<RegisteredAppDto[]>([]);
   readonly games = signal<InstalledGameDto[]>([]);
   readonly gamesLoading = signal(false);
+  readonly storeApps = signal<StoreAppDto[]>([]);
+  readonly registerStoreApp = vi.fn(async () => null);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
   readonly icons = signal<string[]>([]);

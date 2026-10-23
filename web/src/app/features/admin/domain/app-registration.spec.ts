@@ -1,4 +1,4 @@
-import { appFormError, cleanPath, nameFromPath } from './app-registration';
+import { appFormError, cleanPath, nameFromPath, storeAppPath } from './app-registration';
 
 describe('cleanPath', () => {
   it('drops the quotes of "Copy as path" and spaces', () => {
@@ -30,5 +30,18 @@ describe('appFormError', () => {
     expect(appFormError('App', 'app.exe')).toBe('Use the full path, starting with a drive like C:\\.');
     expect(appFormError('App', 'C:\\app.exe" --evil')).toBe('The path cannot contain quotes or arguments.');
     expect(appFormError('App', `C:\\${'x'.repeat(260)}`)).toBe('Use a path of at most 260 characters.');
+  });
+});
+
+describe('Store apps', () => {
+  const spotify = 'SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify';
+
+  it('builds the shell target of a packaged app', () => {
+    expect(storeAppPath(spotify)).toBe(`shell:AppsFolder\\${spotify}`);
+  });
+
+  it('accepts a named Store app and refuses a malformed id', () => {
+    expect(appFormError('Spotify', storeAppPath(spotify))).toBeNull();
+    expect(appFormError('Spotify', 'shell:AppsFolder\\not an id')).toBe('This Store app id is not valid.');
   });
 });

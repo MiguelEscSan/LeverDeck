@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using LeverDeck.Domain.Apps;
 using LeverDeck.Domain.Errors;
 
@@ -31,19 +32,44 @@ public sealed record RegisteredApp
             !trimmedPath.Contains('"', StringComparison.Ordinal),
             DomainErrorCode.ValidationFailed,
             "Executable path must not contain quotes or arguments.");
-        Invariant.Require(
-            Path.IsPathFullyQualified(trimmedPath),
-            DomainErrorCode.ValidationFailed,
-            "Executable path must be absolute.");
+        if (trimmedPath.StartsWith(StoreAppPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            Invariant.Require(
+                IsValidAppUserModelId(trimmedPath[StoreAppPrefix.Length..]),
+                DomainErrorCode.ValidationFailed,
+                "Store app target must be shell:AppsFolder\\<package family name>!<app id>.");
+        }
+        else
+        {
+            Invariant.Require(
+                Path.IsPathFullyQualified(trimmedPath),
+                DomainErrorCode.ValidationFailed,
+                "Executable path must be absolute.");
+        }
 
         Id = id;
         DisplayName = trimmedName;
         ExecutablePath = trimmedPath;
     }
 
+    /// <summary>The shell target of a Microsoft Store app, launched by its AppUserModelId instead of a file.</summary>
+    public const string StoreAppPrefix = @"shell:AppsFolder\";
+
+    private static readonly Regex StoreAppIdPattern = new(
+        @"^[A-Za-z0-9._-]+![A-Za-z0-9._-]+$",
+        RegexOptions.CultureInvariant,
+        TimeSpan.FromSeconds(1));
+
+    /// <summary>Whether a value is a packaged app's AppUserModelId: <c>PackageFamilyName!AppId</c>, nothing else.</summary>
+    public static bool IsValidAppUserModelId(string value) => StoreAppIdPattern.IsMatch(value);
+
     public AppId Id { get; }
 
     public string DisplayName { get; }
 
+    /// <summary>The executable path, or the <see cref="StoreAppPrefix"/> target of a Store app.</summary>
     public string ExecutablePath { get; }
+
+    /// <summary>Whether this app is launched through the Start menu's AppUserModelId rather than a file.</summary>
+    public bool IsStoreApp => ExecutablePath.StartsWith(StoreAppPrefix, StringComparison.OrdinalIgnoreCase);
 }

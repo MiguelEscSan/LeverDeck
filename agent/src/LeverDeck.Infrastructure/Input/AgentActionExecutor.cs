@@ -65,7 +65,8 @@ public sealed class AgentActionExecutor : IActionExecutor
             return Fail(DomainErrorCode.ActionNotExecutable, $"App {launch.App} is not registered.");
         }
 
-        if (!_fileExists(app.ExecutablePath))
+        // A Store app has no file to check: the shell resolves its AppUserModelId when it starts.
+        if (!app.IsStoreApp && !_fileExists(app.ExecutablePath))
         {
             return Fail(DomainErrorCode.ActionFailed, $"{app.DisplayName} is no longer at {app.ExecutablePath}.");
         }

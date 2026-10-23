@@ -104,4 +104,28 @@ public sealed class RegisteredAppTests
     {
         DomainAssert.Violates(DomainErrorCode.ValidationFailed, () => _ = new RegisteredApp(AppId.New(), "App", path));
     }
+
+    private const string Spotify = @"shell:AppsFolder\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify";
+
+    [Fact]
+    public void Constructor_StoreAppTarget_IsAcceptedAndMarkedAsStoreApp()
+    {
+        var app = new RegisteredApp(AppId.New(), "Spotify", Spotify);
+
+        Assert.True(app.IsStoreApp);
+        Assert.Equal(Spotify, app.ExecutablePath);
+        Assert.False(new RegisteredApp(AppId.New(), "Discord", Discord).IsStoreApp);
+    }
+
+    [Theory]
+    [InlineData(@"shell:AppsFolder\SpotifyAB.SpotifyMusic_zpdnekdrzrea0")]
+    [InlineData(@"shell:AppsFolder\Spot ify!Spotify")]
+    [InlineData(@"shell:AppsFolder\Spotify!Spotify;calc")]
+    [InlineData(@"shell:AppsFolder\!Spotify")]
+    [InlineData(@"shell:AppsFolder\")]
+    [InlineData(@"shell:Other\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify")]
+    public void Constructor_InvalidStoreAppTarget_ThrowsValidationFailed(string path)
+    {
+        DomainAssert.Violates(DomainErrorCode.ValidationFailed, () => _ = new RegisteredApp(AppId.New(), "App", path));
+    }
 }

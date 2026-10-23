@@ -147,6 +147,7 @@ export type QueryMessage =
   | GetSettingsQuery
   | GetAgentStatusQuery
   | GetInstalledGamesQuery
+  | GetStoreAppsQuery
   | GetIconsQuery;
 
 export type QueryResultMessage =
@@ -157,6 +158,7 @@ export type QueryResultMessage =
   | SettingsResult
   | AgentStatusResult
   | InstalledGamesResult
+  | StoreAppsResult
   | IconsResult;
 
 export interface AckMessage {
@@ -350,6 +352,13 @@ export interface GetProfilesQuery {
 export interface GetSettingsQuery {
   kind: 'query';
   type: 'getSettings';
+  requestId: string;
+  payload: EmptyPayload;
+}
+
+export interface GetStoreAppsQuery {
+  kind: 'query';
+  type: 'getStoreApps';
   requestId: string;
   payload: EmptyPayload;
 }
@@ -633,6 +642,22 @@ export interface StartPairingCommand {
   type: 'startPairing';
   requestId: string;
   payload: EmptyPayload;
+}
+
+export interface StoreAppDto {
+  name: string;
+  appUserModelId: string;
+}
+
+export interface StoreAppsPayload {
+  apps: StoreAppDto[];
+}
+
+export interface StoreAppsResult {
+  kind: 'queryResult';
+  type: 'storeApps';
+  requestId: string;
+  payload: StoreAppsPayload;
 }
 
 export interface SwitchProfileActionDto {

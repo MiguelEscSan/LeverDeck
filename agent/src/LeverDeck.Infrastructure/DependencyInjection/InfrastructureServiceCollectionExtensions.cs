@@ -12,6 +12,7 @@ using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.Discovery;
 using LeverDeck.Infrastructure.Games;
 using LeverDeck.Infrastructure.Icons;
+using LeverDeck.Infrastructure.Apps;
 using LeverDeck.Infrastructure.Input;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
@@ -58,6 +59,7 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddSingleton<IActionExecutor, AgentActionExecutor>();
         services.AddSingleton<IGameLibrary, InstalledGameLibrary>();
+        services.AddSingleton<IStoreAppCatalog, StartMenuStoreAppCatalog>();
 
         // mDNS: our own responder answers A queries for leverdeck.local (Windows does not for DnsServiceRegister's
         // target host); the native registration still publishes the _http._tcp service records.

@@ -36,6 +36,7 @@ public sealed partial class MessageRouter(
     UnregisterApp unregisterApp,
     GetAgentStatus getAgentStatus,
     GetInstalledGames getInstalledGames,
+    GetStoreApps getStoreApps,
     SaveIcon saveIcon,
     DeleteIcon deleteIcon,
     TransportPayloads payloads,
@@ -202,6 +203,12 @@ public sealed partial class MessageRouter(
                     id,
                     await getInstalledGames.ExecuteAsync(caller, ct).ConfigureAwait(false),
                     games => new InstalledGamesResult(id, new InstalledGamesPayload([.. games.Select(GameMapper.ToDto)])));
+
+            case GetStoreAppsQuery:
+                return ResponseMapper.ToResponse(
+                    id,
+                    await getStoreApps.ExecuteAsync(caller, ct).ConfigureAwait(false),
+                    apps => new StoreAppsResult(id, new StoreAppsPayload([.. apps.Select(app => new StoreAppDto(app.Name, app.AppUserModelId))])));
 
             default:
                 return Invalid(id, $"Unknown query {query.GetType().Name}.");
