@@ -24,7 +24,8 @@ export class PairingPage {
   private readonly window = inject(DOCUMENT).defaultView;
 
   protected readonly nameMaxLength = DEVICE_NAME_MAX_LENGTH;
-  protected readonly host = this.window?.location.hostname ?? 'leverdeck.local';
+  /** The PC this page came from: each PC serves the app under its own name. */
+  protected readonly host = this.window?.location.hostname ?? '';
   protected readonly notice: string | null;
 
   constructor() {

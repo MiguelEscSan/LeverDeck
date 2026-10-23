@@ -25,7 +25,7 @@ Any device with a modern browser becomes a control surface, with no app store, n
 ## Operating Context
 
 - Used beside the PC, during live streams, recording sessions, editing and gaming, often with one hand.
-- Pairing goes through a QR code on the PC; connection is over LAN by the name `leverdeck.local` or over USB with `adb reverse`.
+- Pairing goes through a QR code on the PC; connection is over LAN by the PC's own name (`leverdeck-<pc>.local`, so several PCs can share a network) or over USB with `adb reverse`.
 - Profiles group keys per use case (streaming, editing, media, games).
 
 ## Capabilities and Constraints

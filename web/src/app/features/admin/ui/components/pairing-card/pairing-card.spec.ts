@@ -4,7 +4,7 @@ import { PairingCard } from './pairing-card';
 
 const session: PairingSessionDto = {
   code: '472915',
-  qrUrl: 'http://leverdeck.local:8765/pair?code=472915',
+  qrUrl: 'http://leverdeck-office-pc.local:8765/pair?code=472915',
   fallbackUrl: 'http://192.168.1.20:8765/pair?code=472915',
   expiresAt: '2026-10-22T08:35:00.000Z',
 };
@@ -28,8 +28,15 @@ describe('PairingCard', () => {
     ]);
     expect(element.querySelector('.code')?.getAttribute('aria-label')).toBe('Pairing code 4 7 2 9 1 5');
     expect(element.querySelector('.expiry')?.textContent).toContain('4:32');
-    expect(element.querySelector('.lead')?.textContent).toContain('leverdeck.local:8765');
+    expect(element.querySelector('.lead')?.textContent).toContain('leverdeck-office-pc.local:8765');
     expect(element.querySelector('.fallback')?.textContent).toContain('http://192.168.1.20:8765/pair?code=472915');
+  });
+
+  it('only offers typing the code at an address it could read from the link', async () => {
+    const { element } = await render({ session: { ...session, qrUrl: 'not a link' }, secondsLeft: 272, expired: false });
+
+    expect(element.querySelector('.lead')?.textContent?.replace(/\s+/g, ' ').trim()).toBe("Scan with your phone's camera.");
+    expect(element.querySelector('.fallback')?.textContent).toContain('If the QR link doesn');
   });
 
   it('emits cancel from a live session', async () => {

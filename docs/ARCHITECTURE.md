@@ -58,10 +58,14 @@ served through `ManifestEmbeddedFileProvider` (`LeverDeck.App/WebUi.targets` and
 ## Connectivity
 
 - **Port:** `8765` (HTTP and WebSocket on the same port).
-- **LAN:** the agent advertises itself via mDNS as `leverdeck.local`. Devices always connect by name, never by IP,
-  so the browser origin stays stable when the PC's IP changes.
+- **LAN:** the agent advertises itself via mDNS under a name of its own, `leverdeck-<pc>.local`, so several PCs can
+  run LeverDeck on the same network. The name comes from the computer name (lowercase, accents dropped, anything but
+  `a-z`/`0-9` turned into `-`, at most 63 characters, a random suffix when nothing is left), is chosen once and kept in
+  `hostname` in the data directory, so renaming the PC does not break paired devices; `LeverDeck__Mdns__HostName`
+  overrides it (a label or `label.local`). Devices always connect by name, never by IP, so the browser origin stays
+  stable when the PC's IP changes. Each PC is its own origin on the phone: its own pairing, token and PWA install.
 - **mDNS responder:** Windows publishes the `DnsServiceRegister` service records but does not answer A queries for
-  their target host, so the agent answers queries for `leverdeck.local` itself (RFC 6762, BCL sockets only). It binds
+  their target host, so the agent answers queries for its name itself (RFC 6762, BCL sockets only). It binds
   UDP `5353` with `SO_REUSEADDR` and without exclusive use, so it shares the port with Windows' own listener
   (Dnscache) and other responders, joins `224.0.0.251` on the LAN interface chosen by `LanAddressSelector`, sends
   with IP TTL 255, and keeps multicast loopback on (in Winsock it governs receiving, so the PC's own resolver queries
@@ -71,23 +75,24 @@ served through `ManifestEmbeddedFileProvider` (`LeverDeck.App/WebUi.targets` and
   (§5.4); legacy resolvers (source port other than 5353) get a unicast answer with their query ID, the question and
   TTL 10 s. Responses, malformed packets, non-zero opcodes or response codes and other names are ignored. It sends
   two announcements one second apart on start and on address change, and a goodbye (TTL 0) on stop. No probing or
-  known-answer suppression; another host answering for the name with a different address is logged as a warning.
+  known-answer suppression; another host answering for the name with a different address is logged as a warning
+  that names `LeverDeck__Mdns__HostName`, the way to give this PC another name.
 - **USB (Android):** `adb reverse tcp:8765 tcp:8765`. The device connects to `localhost:8765`.
   `localhost` is a secure context, so the full PWA (service worker, Wake Lock) works over USB.
-- **HTTPS over LAN (optional):** a `mkcert` certificate issued for `leverdeck.local`, with its CA installed on the device.
+- **HTTPS over LAN (optional):** a `mkcert` certificate issued for the PC's mDNS name, with its CA installed on the device.
   Without it, the LAN version works as a regular web page but is not installable.
 - **Firewall:** allow UDP `5353` (mDNS) and TCP `8765` on the **private** network profile only.
 - **Fallback:** the pairing QR also carries the current IP in case `.local` does not resolve on a device.
 
 ## Pairing and authentication
 
-1. The agent shows a QR code with `http://leverdeck.local:8765/pair?code=<one-time-code>`.
+1. The agent shows a QR code with `http://leverdeck-<pc>.local:8765/pair?code=<one-time-code>`.
 2. The device redeems the one-time code and receives a long-lived **device token**.
 3. The PWA stores the token in browser storage. The agent stores only a **hash** of it in `devices.json`.
 4. Every WebSocket connection authenticates with the token. Unknown or revoked tokens are rejected.
 5. Devices can be revoked from the PC.
 
-Browser storage is per origin: `leverdeck.local:8765` and `localhost:8765` are different origins, so USB and LAN
+Browser storage is per origin: `leverdeck-<pc>.local:8765` and `localhost:8765` are different origins, so USB and LAN
 are paired separately (once each). On iOS the PWA must be added to the home screen, otherwise Safari may evict its storage.
 
 ### Desktop editor (admin)
@@ -151,7 +156,7 @@ cases (as the admin), so a query result and an event never disagree.
 | `IconsChanged` | `iconsChanged { icons }` | admin connections |
 
 Events published while a command runs reach the clients before that command's `ack`. `qrUrl` is
-`http://leverdeck.local:8765/pair?code=<code>`; `fallbackUrl` uses the LAN IPv4 address chosen as for mDNS, or is
+`http://leverdeck-<pc>.local:8765/pair?code=<code>`; `fallbackUrl` uses the LAN IPv4 address chosen as for mDNS, or is
 `null` when there is none.
 
 ## Persistence
@@ -233,7 +238,7 @@ runtime (`win-x64`).
 | Steam/Epic games | Store URIs built from validated ids: `steam://rungameid/<id>`, `com.epicgames.launcher://apps/<AppName>?action=launch&silent=true` |
 | Installed games (`IGameLibrary`) | `InstalledGameLibrary`: Steam's `libraryfolders.vdf` and `appmanifest_*.acf` (folder from the `SteamPath` registry value, else Program Files (x86)), and the Epic launcher's `*.item` manifests under ProgramData |
 | OBS | obs-websocket client (library to confirm AOT compatibility) |
-| mDNS | `MdnsHostNameResponder` (UDP 5353 responder for the `leverdeck.local` A record, see Connectivity) plus native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32 for the service records, combined by `CompositeServiceAdvertiser` and run as a hosted service |
+| mDNS | `MdnsHostNameResponder` (UDP 5353 responder for the A record of the PC's `leverdeck-<pc>.local` name, see Connectivity) plus native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32 for the service records, combined by `CompositeServiceAdvertiser` and run as a hosted service |
 | Persistence | JSON files (see Persistence) |
 | Secrets at rest | DPAPI (`ProtectedData`, current user) |
 | Config paths | `Environment.GetFolderPath` / known folders |

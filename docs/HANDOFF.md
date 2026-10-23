@@ -28,7 +28,7 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 - **Light CQRS:** commands vs queries vs pushed events. No buses, mediators, separate read models or event sourcing.
 - **Contract:** defined as C# records in `LeverDeck.Protocol`; TypeScript types generated at build time
   (TypeGen, to confirm at scaffold time), never edited by hand.
-- **Connectivity:** HTTP + WebSocket on port `8765`. LAN via mDNS name **`leverdeck.local`** (connect by name so the
+- **Connectivity:** HTTP + WebSocket on port `8765`. LAN via a per-PC mDNS name **`leverdeck-<pc>.local`** (connect by name so the
   browser origin survives IP changes; the user cannot configure the router). USB on Android via `adb reverse`.
   Optional `mkcert` certificate for HTTPS over LAN.
 - **Pairing:** QR with a one-time code → long-lived device token stored in the browser; the agent keeps only a hash in
@@ -95,7 +95,7 @@ Not verified yet (the last session could not check these):
   workload, then `dotnet publish src/LeverDeck.App -c Release -r win-x64 -o ../artifacts/leverdeck -p:BuildWebUi=true`
   from `agent/`, with the Visual Studio Installer folder on `PATH` (see CLAUDE.md). Check the trimming and AOT warnings.
 - HTTPS end to end: install `mkcert`, run `mkcert -install`, set `LeverDeck__Https__Enabled=true`, install the root CA
-  (`mkcert -CAROOT`) on the phone, then pair over `https://leverdeck.local:8765`.
+  (`mkcert -CAROOT`) on the phone, then pair over `https://leverdeck-<pc>.local:8765` (the agent logs its name at start).
 - The firewall rule: run the `netsh` command from the log once as administrator if the agent is not elevated. A
   pre-existing rule named `leverdeck` (UDP, any port) is unrelated and was left alone.
 

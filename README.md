@@ -3,7 +3,7 @@
 Turn any phone or tablet into a Stream Deck–style control surface for your Windows PC.
 
 - One executable on the PC (.NET), serving an installable PWA (Angular).
-- Connects over the LAN (`leverdeck.local`) or USB (`adb reverse`).
+- Connects over the LAN (each PC by its own name, `leverdeck-<pc>.local`) or USB (`adb reverse`).
 - Pair once with a QR code; profiles live on the PC and sync to every device.
 - Free and local: no accounts, no cloud, no app stores.
 
@@ -15,7 +15,7 @@ Turn any phone or tablet into a Stream Deck–style control surface for your Win
 
 ## HTTPS on the LAN (optional)
 
-HTTP works without any setup. HTTPS lets phones pair over `https://leverdeck.local:8765` with a certificate the
+HTTP works without any setup. HTTPS lets phones pair over `https://leverdeck-<pc>.local:8765` with a certificate the
 phone trusts. Run once from the repository root:
 
 ```powershell

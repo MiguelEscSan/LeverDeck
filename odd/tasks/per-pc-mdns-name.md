@@ -66,12 +66,18 @@ Strategy: `ask-on-risk`. Forecast about 350 authored changed lines.
       `LeverDeck:Mdns:HostName=leverdeck-test`.
 - [x] T4 — Conflict warning names the override. Route: delegated writer. New responder test checks the warning.
       Checks: `dotnet build LeverDeck.slnx` clean; `dotnet test LeverDeck.slnx` 1156 passed.
-- [ ] T5 — Web fallback literals and docs. Route: inline (mechanical edits).
+- [x] T5 — Web fallback literals and docs. Route: inline (mechanical edits). RED: new pairing-card spec (unreadable
+      link) failed; GREEN 5/5. Pairing card hides "open <host>" when the link cannot be read; pairing page uses
+      `location.hostname`. ARCHITECTURE, README, PRODUCT, HANDOFF and open ROADMAP checks updated.
 
 ## Progress
 
 - Branch `feat/per-pc-mdns-name` created from `main` (d66933c).
+- T1–T4 committed (`0b810ec`). Parent re-run: `dotnet build` 0 errors, `dotnet test` 1156 passed; the
+  `IServiceAdvertiser` doc comment was fixed by the parent.
+- T5 committed with this document. Parent re-run: `npm run lint` pass, `npm test` 375 passed.
 
 ## Next step
 
-T1–T4 via one writer.
+Manual check on two PCs (owner): each logs its own name, `ping leverdeck-<pc>.local` from the phone's network, pair
+the phone with both. Re-pair existing devices once. T6 (show the PC name) stays for later.

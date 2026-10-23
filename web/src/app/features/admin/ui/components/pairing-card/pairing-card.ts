@@ -16,7 +16,7 @@ import { QrCode } from '../qr-code/qr-code';
     <h2 id="pairing-title">Pair a device</h2>
     @if (live(); as session) {
       <p class="lead">
-        Scan with your phone's camera, or open <strong>{{ host() }}</strong> on it and type the code.
+        Scan with your phone's camera@if (host(); as address) {, or open <strong>{{ address }}</strong> on it and type the code}.
       </p>
       <app-qr-code class="qr" [text]="session.qrUrl" label="Pairing QR code" />
       <p class="code" [attr.aria-label]="'Pairing code ' + spokenCode()">
@@ -29,7 +29,7 @@ import { QrCode } from '../qr-code/qr-code';
       </p>
       @if (session.fallbackUrl; as fallback) {
         <p class="fallback">
-          If <strong>{{ host() }}</strong> doesn't open, use <strong class="url">{{ fallback }}</strong>
+          If <strong>{{ host() ?? 'the QR link' }}</strong> doesn't open, use <strong class="url">{{ fallback }}</strong>
         </p>
       }
       <button class="ld-btn" type="button" [disabled]="busy()" (click)="cancelPairing.emit()">Cancel</button>
@@ -125,8 +125,9 @@ export class PairingCard {
   protected readonly digits = computed(() => [...(this.session()?.code ?? '')]);
   protected readonly spokenCode = computed(() => this.digits().join(' '));
   protected readonly countdown = computed(() => formatCountdown(this.secondsLeft()));
+  /** The PC's own name from the QR link (each PC has one), or `null` when the link cannot be read. */
   protected readonly host = computed(() => {
     const session = this.session();
-    return (session && pairingHost(session.qrUrl)) ?? 'leverdeck.local';
+    return session ? pairingHost(session.qrUrl) : null;
   });
 }

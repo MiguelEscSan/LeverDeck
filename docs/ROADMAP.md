@@ -295,7 +295,7 @@ generated folder is never edited.
       Development-only, loopback-only `POST /debug/execute` compiled into Debug builds only.
 - [x] Manual check: input reaching the PC through `/debug/execute` — the "Vol -" media key lowered the volume twice
       (HTTP 200 `{"ok":true}`, confirmed by the owner, 2026-10-22).
-- [ ] Manual check (owner): `ping leverdeck.local` from another device.
+- [ ] Manual check (owner): `ping leverdeck-<pc>.local` (the name the agent logs) from another device.
 
 **Done when:** a debug endpoint can trigger a hotkey on the PC, and `ping leverdeck.local` resolves from another device.
 
@@ -312,7 +312,7 @@ generated folder is never edited.
 - [x] Build output embedded in the agent with `ManifestEmbeddedFileProvider`, with an SPA fallback to `index.html`
       (never under `/api`, `/ws`, `/admin/ws`, `/debug`, `/health`), `no-cache` for `index.html`, `ngsw*` and the
       manifest, one-year `immutable` for hashed bundles. Without a web build the agent embeds a fallback page.
-- [ ] Manual (owner): open `http://leverdeck.local:8765` on the phone and see the shell load from the exe.
+- [ ] Manual (owner): open `http://leverdeck-<pc>.local:8765` on the phone and see the shell load from the exe.
 
 **Done when:** opening `http://leverdeck.local:8765` on the phone loads the PWA from the exe.
 
