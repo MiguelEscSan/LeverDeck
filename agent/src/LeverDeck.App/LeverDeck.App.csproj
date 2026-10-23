@@ -6,6 +6,8 @@
     <RootNamespace>LeverDeck.App</RootNamespace>
     <PublishAot>true</PublishAot>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <!-- The four-key mark of the PWA (web/public/icons), for Explorer, the taskbar and the tray. -->
+    <ApplicationIcon>leverdeck.ico</ApplicationIcon>
     <!-- The tray icon calls Win32 through LibraryImport and UnmanagedCallersOnly, which need unsafe code. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>

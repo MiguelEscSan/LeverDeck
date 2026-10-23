@@ -181,7 +181,7 @@ internal sealed unsafe partial class TrayIcon(
             uID = IconId,
             uFlags = flags,
             uCallbackMessage = NativeTray.WmTrayIcon,
-            hIcon = NativeTray.LoadIcon(0, NativeTray.ApplicationIcon),
+            hIcon = AppIcon(),
         };
 
         Tooltip.AsSpan().CopyTo(new Span<char>(data.szTip, Tooltip.Length));
@@ -190,6 +190,16 @@ internal sealed unsafe partial class TrayIcon(
         {
             LogNativeFailed("Shell_NotifyIcon", Marshal.GetLastPInvokeError());
         }
+    }
+
+    /// <summary>
+    /// The exe's own icon (<c>ApplicationIcon</c> in the project, which the SDK stores under the id 32512), or the
+    /// system's generic one when the exe has none (a build without the icon).
+    /// </summary>
+    private static nint AppIcon()
+    {
+        var own = NativeTray.LoadIcon(NativeTray.GetModuleHandle(0), NativeTray.ApplicationIcon);
+        return own != 0 ? own : NativeTray.LoadIcon(0, NativeTray.ApplicationIcon);
     }
 
     private void ShowMenu(nint hwnd)
