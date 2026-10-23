@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { RegisteredAppDto, StoreAppDto } from '../../../../../core/protocol';
 import {
   APP_NAME_MAX_LENGTH,
@@ -8,6 +8,7 @@ import {
   nameFromPath,
   storeAppPath,
 } from '../../../domain/app-registration';
+import { pageOf } from '../../../domain/store-apps-page';
 
 /** A new app to register: its name and the full path of its executable. */
 export interface AppRegistration {
@@ -64,12 +65,20 @@ export interface AppRegistration {
 
     @if (storeApps().length > 0) {
       <h3 class="sub-title">Microsoft Store apps</h3>
+      <input
+        class="ld-field"
+        type="search"
+        autocomplete="off"
+        placeholder="Search Store apps"
+        aria-label="Search Store apps"
+        [value]="storeQuery()"
+        (input)="onStoreQuery($event)"
+      />
       <ul>
-        @for (store of storeApps(); track store.appUserModelId) {
+        @for (store of storeView().items; track store.appUserModelId) {
           <li class="app">
             <div class="info">
               <span class="name">{{ store.name }}</span>
-              <span class="path" [attr.title]="store.appUserModelId">{{ store.appUserModelId }}</span>
             </div>
             <button
               class="ld-btn"
@@ -81,8 +90,26 @@ export interface AppRegistration {
               {{ isRegistered(store) ? 'Added' : 'Add' }}
             </button>
           </li>
+        } @empty {
+          <li class="hint">No apps match “{{ storeQuery() }}”.</li>
         }
       </ul>
+      @if (storeView().pageCount > 1) {
+        <nav class="pager" aria-label="Store apps pages">
+          <button class="ld-btn" type="button" [disabled]="storeView().page === 0" (click)="storePage.set(storeView().page - 1)">
+            Previous
+          </button>
+          <span class="hint">{{ storeView().page + 1 }} / {{ storeView().pageCount }}</span>
+          <button
+            class="ld-btn"
+            type="button"
+            [disabled]="storeView().page >= storeView().pageCount - 1"
+            (click)="storePage.set(storeView().page + 1)"
+          >
+            Next
+          </button>
+        </nav>
+      }
     }
 
     <form class="form" novalidate (submit)="submit($event)">
@@ -134,6 +161,13 @@ export interface AppRegistration {
       margin: 0;
       padding: 0;
       list-style: none;
+    }
+
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ld-space-2);
     }
 
     .app {
@@ -209,6 +243,15 @@ export class AppList {
   readonly storeApps = input<readonly StoreAppDto[]>([]);
   readonly registerStore = output<StoreAppDto>();
   readonly remove = output<string>();
+
+  protected readonly storeQuery = signal('');
+  protected readonly storePage = signal(0);
+  protected readonly storeView = computed(() => pageOf(this.storeApps(), this.storeQuery(), this.storePage()));
+
+  protected onStoreQuery(event: Event): void {
+    this.storeQuery.set((event.target as HTMLInputElement).value);
+    this.storePage.set(0);
+  }
 
   protected isRegistered(store: StoreAppDto): boolean {
     const target = storeAppPath(store.appUserModelId);

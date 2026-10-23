@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using LeverDeck.Application.Settings;
 using LeverDeck.Application.Settings.Ports;
@@ -90,7 +91,11 @@ public sealed class StartMenuStoreAppCatalog : IStoreAppCatalog
         }
     }
 
-    private static ProcessStartInfo GetStartAppsStartInfo()
+    /// <summary>
+    /// A PowerShell call whose output is UTF-8: the console code page would turn accented names into replacement
+    /// characters. The command runs as given, so callers pass only fixed scripts.
+    /// </summary>
+    internal static ProcessStartInfo CreatePowerShell(string command)
     {
         var start = new ProcessStartInfo("powershell.exe")
         {
@@ -98,11 +103,16 @@ public sealed class StartMenuStoreAppCatalog : IStoreAppCatalog
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
         };
         start.ArgumentList.Add("-NoProfile");
         start.ArgumentList.Add("-NonInteractive");
         start.ArgumentList.Add("-Command");
-        start.ArgumentList.Add("Get-StartApps | ConvertTo-Json -Compress");
+        start.ArgumentList.Add($"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {command}");
         return start;
     }
+
+    private static ProcessStartInfo GetStartAppsStartInfo() =>
+        CreatePowerShell("Get-StartApps | ConvertTo-Json -Compress");
 }

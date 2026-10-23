@@ -72,3 +72,16 @@ public sealed class StartMenuStoreAppCatalogTests
         Assert.Empty(StartMenuStoreAppCatalog.Parse(json));
     }
 }
+
+public sealed class StartMenuPowerShellTests
+{
+    [Fact]
+    public async Task CreatePowerShell_WritesUtf8SoAccentedNamesSurvive()
+    {
+        var start = StartMenuStoreAppCatalog.CreatePowerShell("Write-Output 'Asistencia rápida ñ'");
+
+        var output = await StartMenuStoreAppCatalog.RunAsync(start, TimeSpan.FromSeconds(20), CancellationToken.None);
+
+        Assert.Equal("Asistencia rápida ñ", output.Trim());
+    }
+}
