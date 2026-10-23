@@ -13,8 +13,8 @@ public sealed class StartMenuStoreAppCatalog : IStoreAppCatalog
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
-    public Task<IReadOnlyList<StoreApp>> ListInstalledAsync(CancellationToken cancellationToken) =>
-        Task.Run<IReadOnlyList<StoreApp>>(() => Parse(RunGetStartApps()), cancellationToken);
+    public async Task<IReadOnlyList<StoreApp>> ListInstalledAsync(CancellationToken cancellationToken) =>
+        Parse(await RunAsync(GetStartAppsStartInfo(), Timeout, cancellationToken).ConfigureAwait(false));
 
     /// <summary>Reads the JSON that <c>ConvertTo-Json</c> writes: an array, or one object when there is a single app.</summary>
     internal static IReadOnlyList<StoreApp> Parse(string json)
@@ -37,7 +37,60 @@ public sealed class StartMenuStoreAppCatalog : IStoreAppCatalog
         }
     }
 
-    private static string RunGetStartApps()
+    /// <summary>
+    /// Runs a process and returns its standard output. Both streams are drained while the process runs, so a full
+    /// pipe cannot deadlock it. When the timeout or the token fires first, the process tree is killed and the result is
+    /// empty. A process that cannot be started also gives an empty result.
+    /// </summary>
+    internal static async Task<string> RunAsync(ProcessStartInfo start, TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var process = Process.Start(start);
+            if (process is null)
+            {
+                return string.Empty;
+            }
+
+            using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            limit.CancelAfter(timeout);
+            var output = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
+            var errors = process.StandardError.ReadToEndAsync(CancellationToken.None);
+
+            try
+            {
+                await process.WaitForExitAsync(limit.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                KillTree(process);
+                await Task.WhenAll(output, errors).ConfigureAwait(false);
+                return string.Empty;
+            }
+
+            await Task.WhenAll(output, errors).ConfigureAwait(false);
+            return output.Result;
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>Kills the process and its children; a process that already exited is left alone.</summary>
+    private static void KillTree(Process process)
+    {
+        try
+        {
+            process.Kill(entireProcessTree: true);
+        }
+        catch (InvalidOperationException)
+        {
+            // Already exited between the timeout and the kill.
+        }
+    }
+
+    private static ProcessStartInfo GetStartAppsStartInfo()
     {
         var start = new ProcessStartInfo("powershell.exe")
         {
@@ -50,22 +103,6 @@ public sealed class StartMenuStoreAppCatalog : IStoreAppCatalog
         start.ArgumentList.Add("-NonInteractive");
         start.ArgumentList.Add("-Command");
         start.ArgumentList.Add("Get-StartApps | ConvertTo-Json -Compress");
-
-        try
-        {
-            using var process = Process.Start(start);
-            if (process is null)
-            {
-                return string.Empty;
-            }
-
-            var output = process.StandardOutput.ReadToEnd();
-            process.StandardError.ReadToEnd();
-            return process.WaitForExit(Timeout) ? output : string.Empty;
-        }
-        catch (System.ComponentModel.Win32Exception)
-        {
-            return string.Empty;
-        }
+        return start;
     }
 }

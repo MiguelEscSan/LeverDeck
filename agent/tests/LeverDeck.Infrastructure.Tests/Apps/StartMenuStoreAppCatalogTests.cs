@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using LeverDeck.Application.Settings;
 using LeverDeck.Infrastructure.Apps;
 
@@ -39,6 +40,28 @@ public sealed class StartMenuStoreAppCatalogTests
         const string json = """[{ "Name": "Broken" }, { "Name": "Tool", "AppID": "Vendor.Tool_abc!Tool" }]""";
 
         Assert.Equal([new StoreApp("Tool", "Vendor.Tool_abc!Tool")], StartMenuStoreAppCatalog.Parse(json));
+    }
+
+    [Fact]
+    public async Task RunAsync_KillsAProcessThatOutlivesItsTimeout()
+    {
+        var start = new ProcessStartInfo("powershell.exe")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        start.ArgumentList.Add("-NoProfile");
+        start.ArgumentList.Add("-NonInteractive");
+        start.ArgumentList.Add("-Command");
+        start.ArgumentList.Add("Start-Sleep -Seconds 60");
+        var stopwatch = Stopwatch.StartNew();
+
+        var output = await StartMenuStoreAppCatalog.RunAsync(start, TimeSpan.FromSeconds(2), CancellationToken.None);
+
+        Assert.Empty(output);
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(30));
     }
 
     [Theory]
