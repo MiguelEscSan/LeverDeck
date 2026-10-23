@@ -121,7 +121,8 @@ describe('pages', () => {
     expect(removed.pages[0].buttons.map((button) => button.id)).toEqual(['b3']);
 
     const single = value(removePage(profile(), 1));
-    expect(removePage(single, 0)).toEqual({ ok: false, error: 'A profile keeps at least one page.' });
+    const cleared = value(removePage(single, 0));
+    expect(cleared.pages).toEqual([{ index: 0, buttons: [] }]);
   });
 });
 

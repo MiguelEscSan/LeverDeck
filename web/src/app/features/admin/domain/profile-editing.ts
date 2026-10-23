@@ -114,10 +114,10 @@ export function addPage(profile: ProfileDto): EditResult {
   return ok({ ...profile, pages: [...sortedPages(profile), { index: profile.pages.length, buttons: [] }] });
 }
 
-/** Removes a page and renumbers the ones after it; the last page stays. */
+/** Removes a page and renumbers the ones after it. The last page is cleared instead, so a profile always keeps one. */
 export function removePage(profile: ProfileDto, pageIndex: number): EditResult {
   if (profile.pages.length <= 1) {
-    return fail('A profile keeps at least one page.');
+    return ok({ ...profile, pages: [{ index: 0, buttons: [] }] });
   }
   const pages = sortedPages(profile)
     .filter((page) => page.index !== pageIndex)
