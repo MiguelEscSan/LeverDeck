@@ -26,8 +26,10 @@ Agent (run from `agent/`):
 - Build: `dotnet build LeverDeck.slnx`
 - Test: `dotnet test LeverDeck.slnx`
 - Run: `dotnet run --project src/LeverDeck.App` (listens on `http://0.0.0.0:8765`, `GET /health`, and logs the
-  desktop editor URL with the admin token). Data lives in `%APPDATA%\LeverDeck\`; override it with
-  `LeverDeck__DataDirectory=<absolute path>`. Turn mDNS off with `LeverDeck__Mdns__Enabled=false`.
+  desktop editor URL with the admin token; Debug only, Release logs to `<DataDirectory>/logs`). It opens the editor
+  window too; a second `dotnet run` only shows the first one's window (single instance), and `--background` starts it
+  in the tray only. Data lives in `%APPDATA%\LeverDeck\`; override it with `LeverDeck__DataDirectory=<absolute path>`.
+  Turn mDNS off with `LeverDeck__Mdns__Enabled=false`, the tray and window with `LeverDeck__Desktop__Enabled=false`.
 - Manual input check (Debug build, Development environment, loopback only, so `dotnet run`). The first start writes
   `profiles.json` with a "Default" profile; take a profile id and a button id from it, then:
   `curl -X POST http://localhost:8765/debug/execute -H "content-type: application/json" -d "{\"profileId\":\"<id>\",\"pageIndex\":0,\"buttonId\":\"<id>\"}"`
@@ -39,6 +41,10 @@ Agent (run from `agent/`):
   Needs the MSVC build tools; if the linker reports `vswhere.exe` not found, add
   `C:\Program Files (x86)\Microsoft Visual Studio\Installer` to `PATH`. Build `web/` first, or the exe embeds the
   fallback page instead of the PWA.
+- Pack the installer (after a publish; the release workflow does this on version tags): `dotnet tool install -g vpk
+  --version 1.2.161`, then `vpk pack --packId LeverDeck --packVersion <x.y.z> --runtime win-x64 --packDir <folder with
+  only leverdeck.exe> --mainExe leverdeck.exe --icon src/LeverDeck.App/leverdeck.ico --shortcuts StartMenuRoot
+  --noPortable`. Keep the vpk version equal to the `Velopack` package version.
 - Build with the PWA embedded in one step: `dotnet build src/LeverDeck.App -p:BuildWebUi=true` (runs npm in `web/`).
   Without a web build the agent embeds a fallback page; `-p:RequireWebUi=true` makes that an error (CI does this).
 

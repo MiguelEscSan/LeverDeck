@@ -1,9 +1,11 @@
 name: Release
 
-# A version tag (v0.1.0, or v0.2.0-beta.1 for a pre-release) builds, tests and publishes leverdeck.exe, then attaches
-# it to a GitHub Release named after the tag; the exe's file version comes from the tag. The build job, which runs
-# third-party package code, only reads the repository; the release job alone may write, and runs no package code.
-# Re-running the workflow for a tag replaces the exe on its existing release instead of failing.
+# A version tag (v0.1.0, or v0.2.0-beta.1 for a pre-release) builds, tests and publishes leverdeck.exe, packs it with
+# Velopack (vpk) into the per-user installer LeverDeckSetup.exe and the update files the installed app reads
+# (releases.win.json, the .nupkg, RELEASES, assets.win.json), then attaches all of them to a GitHub Release named
+# after the tag; the version comes from the tag. The build job, which runs third-party package code (NuGet, npm, vpk),
+# only reads the repository; the release job alone may write, and runs no package code. Re-running the workflow for
+# a tag replaces the files on its existing release instead of failing.
 # Actions are pinned to commit SHAs (version in the trailing comment).
 on:
   push:
@@ -26,6 +28,10 @@ jobs:
         working-directory: agent
     env:
       PUBLISH_DIR: ${{ github.workspace }}/artifacts/leverdeck
+      PACK_DIR: ${{ github.workspace }}/artifacts/pack
+      RELEASE_DIR: ${{ github.workspace }}/artifacts/release
+      # Keep in step with the Velopack package in agent/Directory.Packages.props.
+      VPK_VERSION: 1.2.161
     steps:
       - name: Check the tag is a version
         working-directory: .
@@ -71,10 +77,37 @@ jobs:
           $version = $env:TAG.TrimStart('v')
           dotnet publish src/LeverDeck.App -c Release -r win-x64 -o $env:PUBLISH_DIR -p:RequireWebUi=true -p:Version=$version
 
+      # The package holds only the exe, like the release: the PWA is embedded and appsettings.json is not needed.
+      - name: Pack the installer (Velopack)
+        working-directory: .
+        shell: pwsh
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          dotnet tool install --global vpk --version $env:VPK_VERSION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force -Path $env:PACK_DIR | Out-Null
+          Copy-Item (Join-Path $env:PUBLISH_DIR 'leverdeck.exe') $env:PACK_DIR
+          vpk pack `
+            --packId LeverDeck `
+            --packVersion $version `
+            --packTitle LeverDeck `
+            --packAuthors MiguelEscSan `
+            --runtime win-x64 `
+            --packDir $env:PACK_DIR `
+            --mainExe leverdeck.exe `
+            --icon agent/src/LeverDeck.App/leverdeck.ico `
+            --shortcuts StartMenuRoot `
+            --noPortable `
+            --outputDir $env:RELEASE_DIR
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Move-Item (Join-Path $env:RELEASE_DIR 'LeverDeck-win-Setup.exe') (Join-Path $env:RELEASE_DIR 'LeverDeckSetup.exe')
+          Copy-Item (Join-Path $env:PUBLISH_DIR 'leverdeck.exe') $env:RELEASE_DIR
+          Get-ChildItem $env:RELEASE_DIR | Format-Table Name, Length
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ env.ARTIFACT }}
-          path: ${{ env.PUBLISH_DIR }}/leverdeck.exe
+          path: ${{ env.RELEASE_DIR }}/*
           if-no-files-found: error
 
   release:
@@ -96,13 +129,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
-          $exe = Join-Path $env:DOWNLOAD_DIR 'leverdeck.exe'
+          foreach ($required in 'leverdeck.exe', 'LeverDeckSetup.exe', 'releases.win.json') {
+            if (-not (Test-Path (Join-Path $env:DOWNLOAD_DIR $required))) {
+              Write-Error "The build artifact has no $required."
+              exit 1
+            }
+          }
+          $files = @(Get-ChildItem $env:DOWNLOAD_DIR -File | ForEach-Object { $_.FullName })
           gh release view $env:TAG --repo $env:REPO *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $env:TAG $exe --repo $env:REPO --clobber
+            gh release upload $env:TAG @files --repo $env:REPO --clobber
           } else {
             $flags = @('--title', "LeverDeck $env:TAG", '--generate-notes')
             if ($env:TAG.Contains('-')) { $flags += '--prerelease' }
-            gh release create $env:TAG $exe --repo $env:REPO @flags
+            gh release create $env:TAG @files --repo $env:REPO @flags
           }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

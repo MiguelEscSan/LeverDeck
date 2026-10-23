@@ -144,6 +144,25 @@ WebView2, so the owner needs no browser and no URL. Windows-only code in `App`, 
   runs in the tray without the window. Any other launch (Start menu, shortcut, the installer's first run) opens the
   window once the server is listening. `--background` is removed before the arguments reach the host configuration.
 
+### Installer and updates (Velopack)
+
+- **Per-user install, no admin.** `LeverDeckSetup.exe` (Velopack) installs into `%LocalAppData%\LeverDeck\current\`
+  with a Start menu shortcut; uninstalling removes them and, through LeverDeck's own uninstall hook
+  (`Desktop/Installer.cs`), the "Start with Windows" Run value. The data directory (`%APPDATA%\LeverDeck`) is the
+  owner's and is kept.
+- **Hooks first.** `VelopackApp.Build().Run()` is the first line of `Main`: Velopack's install, update and uninstall
+  hooks run there and exit, and a downloaded update is applied (the agent restarts with the same arguments, so a
+  sign-in start stays in the background). Velopack marks itself `IsAotCompatible` for net8.0+, and the Native AOT
+  compile shows no warnings with it.
+- **Updates from GitHub Releases.** `Desktop/UpdateCheck.cs` runs only in an installed copy: a minute after the start
+  and every 24 hours it looks for a newer release (`GithubSource`, unauthenticated; pre-releases only for a pre-release
+  install) and downloads it; Velopack applies it at the next start of the agent, so a session is never interrupted.
+  Unauthenticated checks need the repository's releases to be public; on a private repository they fail and are
+  logged as a warning.
+- **Release workflow.** A version tag publishes the AOT exe, packs it with the `vpk` CLI (same version as the
+  `Velopack` package) and attaches `leverdeck.exe`, `LeverDeckSetup.exe`, `releases.win.json`, the full `.nupkg`,
+  `RELEASES` and `assets.win.json` to the GitHub Release. The package holds the exe alone; no delta packages yet.
+
 ### Transport endpoints
 
 All live in `Infrastructure/Transport`, as plain request delegates with source-generated JSON (Native AOT safe).
@@ -234,6 +253,8 @@ Release builds are `WinExe` (no console window), so they log to `<DataDirectory>
   written. Stopping rather than truncating keeps the start of the session, where most problems show.
 - Each line is `<UTC time> <level> <category>: <message>`, followed by the exception if any; every write is flushed.
   The file is opened with `FileShare.Read`, so it can be read while the agent runs.
+- The Release logger keeps `Microsoft.AspNetCore` at `Warning` itself, since the released exe ships without
+  `appsettings.json`; otherwise every request would be logged.
 - **The admin token is never logged in Release.** The log lives next to the DPAPI-protected token; only Debug builds
   print the editor URL with the token (for `dotnet run`).
 

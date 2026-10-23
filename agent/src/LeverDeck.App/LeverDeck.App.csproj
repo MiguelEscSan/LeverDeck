@@ -29,6 +29,8 @@
       source-generated COM interfaces instead.
     -->
     <PackageReference Include="Microsoft.Web.WebView2" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <!-- Installer and updates (ROADMAP Phase 8b); marked IsAotCompatible by Velopack for net8.0 and later. -->
+    <PackageReference Include="Velopack" />
     <InternalsVisibleTo Include="LeverDeck.App.Tests" />
   </ItemGroup>
 

@@ -49,7 +49,7 @@ internal static class CompositionRoot
     }
 
     /// <summary>
-    /// The tray icon, the editor window and the firewall rule, for the owner's desktop only
+    /// The tray icon, the editor window, the update check and the firewall rule, for the owner's desktop only
     /// (<c>LeverDeck:Desktop:Enabled</c>).
     /// </summary>
     public static IServiceCollection AddLeverDeckDesktop(this IServiceCollection services, DesktopLaunch launch)
@@ -59,6 +59,7 @@ internal static class CompositionRoot
         services.AddSingleton<EditorWindow>();
         services.AddSingleton<TrayIcon>();
         services.AddHostedService(provider => provider.GetRequiredService<TrayIcon>());
+        services.AddHostedService<UpdateCheck>();
         services.AddHostedService<FirewallRuleService>();
         return services;
     }

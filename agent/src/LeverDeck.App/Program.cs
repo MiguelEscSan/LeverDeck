@@ -4,6 +4,13 @@ using LeverDeck.App.Desktop;
 using LeverDeck.Infrastructure.Configuration;
 using LeverDeck.Infrastructure.Tls;
 using Microsoft.Extensions.DependencyInjection;
+using Velopack;
+
+// First of all (Velopack's rule): the installer's install, update and uninstall hooks run here and exit, and an update
+// downloaded by UpdateCheck is applied (the agent restarts with the same arguments).
+VelopackApp.Build()
+    .OnBeforeUninstallFastCallback(_ => Installer.BeforeUninstall())
+    .Run();
 
 var launch = Launch.FromArguments(args);
 var builder = WebApplication.CreateSlimBuilder(Launch.HostArguments(args));
