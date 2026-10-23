@@ -1,4 +1,4 @@
-import { pageOf, STORE_APPS_PAGE_SIZE } from './store-apps-page';
+import { pageOf, pageOfApps, REGISTERED_APPS_PAGE_SIZE, STORE_APPS_PAGE_SIZE } from './store-apps-page';
 
 const apps = (count: number) =>
   Array.from({ length: count }, (_, index) => ({ name: `App ${String(index + 1).padStart(2, '0')}` }));
@@ -24,5 +24,33 @@ describe('pageOf', () => {
     expect(pageOf(named, 'RAPIDA', 0).items).toEqual([{ name: 'Asistencia rápida' }]);
     expect(pageOf(named, 'calc', 4).items).toEqual([{ name: 'Calculadora' }]);
     expect(pageOf(named, 'zzz', 0)).toEqual({ items: [], page: 0, pageCount: 1 });
+  });
+});
+
+describe('pageOfApps', () => {
+  const registered = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({
+      appId: `a${index}`,
+      displayName: `App ${index + 1}`,
+      path: `C:\\Apps\\app${index + 1}.exe`,
+    }));
+
+  it('shows a page of the registered apps', () => {
+    const result = pageOfApps(registered(11), '', 1);
+
+    expect(result.items).toHaveLength(11 - REGISTERED_APPS_PAGE_SIZE);
+    expect(result.page).toBe(1);
+    expect(result.pageCount).toBe(2);
+  });
+
+  it('finds an app by its name or its path, ignoring case and accents', () => {
+    const apps = [
+      { appId: 'a1', displayName: 'Música', path: 'shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify' },
+      { appId: 'a2', displayName: 'OBS', path: 'C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe' },
+    ];
+
+    expect(pageOfApps(apps, 'MUSICA', 0).items.map((app) => app.appId)).toEqual(['a1']);
+    expect(pageOfApps(apps, 'obs-studio', 3).items.map((app) => app.appId)).toEqual(['a2']);
+    expect(pageOfApps(apps, 'spotify', 0).items.map((app) => app.appId)).toEqual(['a1']);
   });
 });
