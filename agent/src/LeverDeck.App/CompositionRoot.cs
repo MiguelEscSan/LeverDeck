@@ -52,8 +52,9 @@ internal static class CompositionRoot
     /// The tray icon, the editor window and the firewall rule, for the owner's desktop only
     /// (<c>LeverDeck:Desktop:Enabled</c>).
     /// </summary>
-    public static IServiceCollection AddLeverDeckDesktop(this IServiceCollection services)
+    public static IServiceCollection AddLeverDeckDesktop(this IServiceCollection services, DesktopLaunch launch)
     {
+        services.AddSingleton(launch);
         services.AddSingleton<WindowPlacementStore>();
         services.AddSingleton<EditorWindow>();
         services.AddSingleton<TrayIcon>();

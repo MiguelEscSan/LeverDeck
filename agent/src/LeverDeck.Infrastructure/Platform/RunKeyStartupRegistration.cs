@@ -7,7 +7,9 @@ namespace LeverDeck.Infrastructure.Platform;
 /// <summary>
 /// Starts the agent with the owner's session through the per-user <c>Run</c> key, so no administrator rights are
 /// needed. Only the published <c>leverdeck.exe</c> can be registered: a <c>dotnet run</c> build would register the
-/// dotnet host instead.
+/// dotnet host instead. The command carries <see cref="BackgroundSwitch"/>, so the sign-in start stays in the tray
+/// without opening the window. A value written before that switch existed keeps opening the window at sign-in until
+/// "Start with Windows" is turned off and on again.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class RunKeyStartupRegistration : IStartupRegistration
@@ -15,6 +17,9 @@ public sealed class RunKeyStartupRegistration : IStartupRegistration
     public const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
     public const string ValueName = "LeverDeck";
+
+    /// <summary>Marks the start at Windows sign-in: the agent runs in the tray and does not open its window.</summary>
+    public const string BackgroundSwitch = "--background";
 
     private const string ExecutableName = "leverdeck.exe";
 
@@ -39,7 +44,7 @@ public sealed class RunKeyStartupRegistration : IStartupRegistration
                 $"Start with Windows needs the published {ExecutableName}; this process is '{executablePath}'.");
         }
 
-        return $"\"{executablePath}\"";
+        return $"\"{executablePath}\" {BackgroundSwitch}";
     }
 
     public bool IsEnabled()

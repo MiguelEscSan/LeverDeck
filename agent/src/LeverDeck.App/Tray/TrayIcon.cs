@@ -22,6 +22,7 @@ internal sealed unsafe partial class TrayIcon(
     LeverDeckOptions options,
     AdminTokenStore adminTokens,
     EditorWindow editor,
+    DesktopLaunch launch,
     IStartupRegistration startup,
     IHostApplicationLifetime lifetime,
     ILogger<TrayIcon> logger) : IHostedService, IDisposable
@@ -57,6 +58,12 @@ internal sealed unsafe partial class TrayIcon(
         if (!_ready.Wait(ReadyTimeout, cancellationToken))
         {
             LogNotReady();
+        }
+
+        if (launch.ShowWindowOnStart)
+        {
+            // Hosted services start before Kestrel listens; the window opens once the editor can load.
+            lifetime.ApplicationStarted.Register(RequestShowEditor);
         }
 
         return Task.CompletedTask;

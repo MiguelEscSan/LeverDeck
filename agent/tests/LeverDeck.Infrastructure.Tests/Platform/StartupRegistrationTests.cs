@@ -5,11 +5,11 @@ namespace LeverDeck.Infrastructure.Tests.Platform;
 public sealed class StartupRegistrationTests
 {
     [Fact]
-    public void CommandQuotesThePathOfThePublishedExecutable()
+    public void CommandQuotesThePathOfThePublishedExecutableAndStartsItInTheBackground()
     {
         var command = RunKeyStartupRegistration.CommandFor(@"C:\Program Files\LeverDeck\leverdeck.exe");
 
-        Assert.Equal(@"""C:\Program Files\LeverDeck\leverdeck.exe""", command);
+        Assert.Equal(@"""C:\Program Files\LeverDeck\leverdeck.exe"" --background", command);
     }
 
     [Theory]

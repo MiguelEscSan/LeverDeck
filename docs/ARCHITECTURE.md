@@ -135,6 +135,14 @@ WebView2, so the owner needs no browser and no URL. Windows-only code in `App`, 
   `CreateCoreWebView2EnvironmentWithOptions` fails, the window hides again and a message box says so; for a missing
   runtime it offers Microsoft's WebView2 download page. The tray's "Open in browser" still opens the editor in the
   default browser.
+- **One instance per Windows session.** The first process holds the named mutex `Local\LeverDeck.Agent`. A second
+  launch by the owner finds the running instance's tray window (a message-only window, by its class name), lets it
+  take the foreground and posts it "show the editor", then exits; a second sign-in start just exits. The check runs
+  before the log is started, so a second launch never touches the running instance's log. The rule itself is
+  `Desktop/Launch.cs` (tested); `Desktop/SingleInstance.cs` holds the Windows calls.
+- **Sign-in start stays in the tray.** "Start with Windows" writes `"<exe>" --background` to the Run key; that start
+  runs in the tray without the window. Any other launch (Start menu, shortcut, the installer's first run) opens the
+  window once the server is listening. `--background` is removed before the arguments reach the host configuration.
 
 ### Transport endpoints
 
