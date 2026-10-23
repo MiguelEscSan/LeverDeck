@@ -16,6 +16,10 @@ the editor needs a token URL copied from the log into a browser, and there is no
 
 - Option A: show the existing Angular editor in a native window (WebView2), not a rewrite in a native UI toolkit.
 - No console window for users.
+- Installer: Velopack, per-user install with updates from GitHub Releases.
+- Logs: every start of the agent (Windows sign-in, or quit from the tray and open again) deletes all existing logs and
+  begins a new one; no previous log is kept; a size cap applies within a session. Closing only the window is not a
+  start.
 
 ## Scope
 
