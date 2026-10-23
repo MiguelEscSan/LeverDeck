@@ -89,6 +89,9 @@ const PATHS: ReadonlyMap<string, string> = new Map(KEY_ICONS.map((icon) => [icon
 /** The path of a bundled icon, or `null` for an id outside the set. */
 export const keyIconPath = (iconId: string): string | null => PATHS.get(iconId) ?? null;
 
+/** Whether a key shows an icon (bundled or uploaded) instead of a monogram. An icon key drops its label. */
+export const hasKeyIcon = (iconId: string): boolean => isCustomIconId(iconId) || keyIconPath(iconId) !== null;
+
 /** The placeholder for an unknown icon: the first two letters or digits of the label, else of the icon id. */
 export function keyMonogram(label: string, iconId: string): string {
   const source = (label.trim() || iconId).replace(/[^\p{L}\p{N}]/gu, '');

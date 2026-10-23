@@ -38,7 +38,8 @@ describe('DeckGrid', () => {
     const key = element.querySelector('button');
     expect(key?.getAttribute('aria-label')).toBe('Play/Pause');
     expect(key?.getAttribute('data-color')).toBe('orange');
-    expect(key?.textContent).toContain('Play/Pause');
+    expect(key?.classList).toContain('icon-only');
+    expect(key?.querySelector('.label')).toBeNull();
     expect(element.querySelector('svg path')).not.toBeNull();
   });
 

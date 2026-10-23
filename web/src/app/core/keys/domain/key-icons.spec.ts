@@ -1,4 +1,21 @@
-import { customIconId, customIconUrl, isCustomIconId, KEY_ICONS, keyIconPath, keyMonogram } from './key-icons';
+import {
+  customIconId,
+  customIconUrl,
+  hasKeyIcon,
+  isCustomIconId,
+  KEY_ICONS,
+  keyIconPath,
+  keyMonogram,
+} from './key-icons';
+
+describe('hasKeyIcon', () => {
+  it('is true for a bundled or uploaded icon, false for a placeholder id', () => {
+    expect(hasKeyIcon('play-pause')).toBe(true);
+    expect(hasKeyIcon(customIconId('0123456789abcdef0123456789abcdef'))).toBe(true);
+    expect(hasKeyIcon('obs-scene')).toBe(false);
+    expect(hasKeyIcon('')).toBe(false);
+  });
+});
 
 describe('KEY_ICONS', () => {
   it('has unique kebab-case ids, as the agent requires', () => {

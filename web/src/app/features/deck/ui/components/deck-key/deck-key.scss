@@ -63,6 +63,13 @@
   margin-bottom: 6%;
 }
 
+// An icon key uses the whole face, as on a Stream Deck; the label is not drawn.
+.icon-only .glyph {
+  width: 100%;
+  height: 100%;
+  margin-bottom: 0;
+}
+
 .label {
   position: absolute;
   bottom: 7%;

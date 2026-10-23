@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import {
   customIconUrl,
+  hasKeyIcon,
   isCustomIconId,
   keyIconPath,
   keyMonogram,
@@ -16,7 +17,7 @@ import type { ButtonDto } from '../../../../../core/protocol';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'aria-hidden': 'true', '[attr.data-color]': 'button().color' },
   template: `
-    <span class="face">
+    <span class="face" [class.icon-only]="hasIcon()">
       @if (imageUrl(); as src) {
         <img class="glyph image" [src]="src" alt="" draggable="false" />
       } @else if (path(); as d) {
@@ -24,7 +25,7 @@ import type { ButtonDto } from '../../../../../core/protocol';
       } @else {
         <span class="glyph monogram">{{ monogram() }}</span>
       }
-      @if (button().label) {
+      @if (button().label && !hasIcon()) {
         <span class="label">{{ button().label }}</span>
       }
     </span>
@@ -88,6 +89,13 @@ import type { ButtonDto } from '../../../../../core/protocol';
       object-fit: contain;
     }
 
+    // Same as the deck: an icon key fills the face and draws no label.
+    .icon-only .glyph {
+      width: 100%;
+      height: 100%;
+      margin-bottom: 0;
+    }
+
     svg {
       fill: var(--ld-key-icon);
       filter: drop-shadow(0 2px 0 rgb(0 0 0 / 55%));
@@ -125,4 +133,5 @@ export class KeyFace {
   );
   protected readonly path = computed(() => keyIconPath(this.button().iconId));
   protected readonly monogram = computed(() => keyMonogram(this.button().label, this.button().iconId));
+  protected readonly hasIcon = computed(() => hasKeyIcon(this.button().iconId));
 }
