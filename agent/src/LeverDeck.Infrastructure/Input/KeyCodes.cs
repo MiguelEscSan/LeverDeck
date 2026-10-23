@@ -27,6 +27,13 @@ internal static class KeyCodes
         VirtualKey.PageUp => VIRTUAL_KEY.VK_PRIOR,
         VirtualKey.PageDown => VIRTUAL_KEY.VK_NEXT,
         VirtualKey.PrintScreen => VIRTUAL_KEY.VK_SNAPSHOT,
+        >= VirtualKey.NumPad0 and <= VirtualKey.NumPad9 => VIRTUAL_KEY.VK_NUMPAD0 + (ushort)(key - VirtualKey.NumPad0),
+        VirtualKey.NumPadAdd => VIRTUAL_KEY.VK_ADD,
+        VirtualKey.NumPadSubtract => VIRTUAL_KEY.VK_SUBTRACT,
+        VirtualKey.NumPadMultiply => VIRTUAL_KEY.VK_MULTIPLY,
+        VirtualKey.NumPadDivide => VIRTUAL_KEY.VK_DIVIDE,
+        VirtualKey.NumPadDecimal => VIRTUAL_KEY.VK_DECIMAL,
+        VirtualKey.NumLock => VIRTUAL_KEY.VK_NUMLOCK,
         _ => throw new ArgumentOutOfRangeException(nameof(key), key, "Key is not in the allow-list."),
     };
 
@@ -53,12 +60,13 @@ internal static class KeyCodes
 
     /// <summary>
     /// Keys outside the main block need <c>KEYEVENTF_EXTENDEDKEY</c>, or Windows reads them as their numeric-keypad
-    /// twins (for example Up as keypad 8).
+    /// twins (for example Up as keypad 8). On the keypad itself, divide and Num Lock are the extended ones.
     /// </summary>
     public static bool IsExtended(VIRTUAL_KEY key) => key is
         VIRTUAL_KEY.VK_UP or VIRTUAL_KEY.VK_DOWN or VIRTUAL_KEY.VK_LEFT or VIRTUAL_KEY.VK_RIGHT
         or VIRTUAL_KEY.VK_INSERT or VIRTUAL_KEY.VK_DELETE or VIRTUAL_KEY.VK_HOME or VIRTUAL_KEY.VK_END
         or VIRTUAL_KEY.VK_PRIOR or VIRTUAL_KEY.VK_NEXT or VIRTUAL_KEY.VK_SNAPSHOT
+        or VIRTUAL_KEY.VK_DIVIDE or VIRTUAL_KEY.VK_NUMLOCK
         or VIRTUAL_KEY.VK_LWIN
         or VIRTUAL_KEY.VK_MEDIA_PLAY_PAUSE or VIRTUAL_KEY.VK_MEDIA_NEXT_TRACK or VIRTUAL_KEY.VK_MEDIA_PREV_TRACK
         or VIRTUAL_KEY.VK_MEDIA_STOP or VIRTUAL_KEY.VK_VOLUME_UP or VIRTUAL_KEY.VK_VOLUME_DOWN or VIRTUAL_KEY.VK_VOLUME_MUTE;

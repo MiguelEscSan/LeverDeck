@@ -8,6 +8,7 @@ import {
   parseUrl,
   suggestedIcon,
   toggleModifier,
+  VIRTUAL_KEY_NAMES,
   VIRTUAL_KEYS,
 } from './action-catalog';
 
@@ -69,8 +70,15 @@ describe('toggleModifier', () => {
 
 describe('catalog', () => {
   it('lists every virtual key once', () => {
-    expect(VIRTUAL_KEYS).toHaveLength(76);
-    expect(new Set(VIRTUAL_KEYS).size).toBe(76);
+    expect(VIRTUAL_KEYS).toHaveLength(92);
+    expect(new Set(VIRTUAL_KEYS).size).toBe(92);
+  });
+
+  it('names the numeric keypad keys apart from the main ones', () => {
+    expect(VIRTUAL_KEY_NAMES.numPadAdd).toBe('Numpad +');
+    expect(VIRTUAL_KEY_NAMES.numPadSubtract).toBe('Numpad -');
+    expect(VIRTUAL_KEY_NAMES.numPad7).toBe('Numpad 7');
+    expect(VIRTUAL_KEY_NAMES.d7).toBe('7');
   });
 
   it('tells editable actions apart', () => {

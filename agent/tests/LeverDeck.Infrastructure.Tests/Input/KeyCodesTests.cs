@@ -48,6 +48,15 @@ public sealed class KeyCodesTests
     [InlineData(VirtualKey.PageUp, 0x21)]
     [InlineData(VirtualKey.PageDown, 0x22)]
     [InlineData(VirtualKey.PrintScreen, 0x2C)]
+    [InlineData(VirtualKey.NumPad0, 0x60)]
+    [InlineData(VirtualKey.NumPad5, 0x65)]
+    [InlineData(VirtualKey.NumPad9, 0x69)]
+    [InlineData(VirtualKey.NumPadMultiply, 0x6A)]
+    [InlineData(VirtualKey.NumPadAdd, 0x6B)]
+    [InlineData(VirtualKey.NumPadSubtract, 0x6D)]
+    [InlineData(VirtualKey.NumPadDecimal, 0x6E)]
+    [InlineData(VirtualKey.NumPadDivide, 0x6F)]
+    [InlineData(VirtualKey.NumLock, 0x90)]
     public void VirtualKey_MapsToTheWindowsCode(VirtualKey key, int expected)
     {
         Assert.Equal(expected, (int)KeyCodes.For(key));
@@ -80,6 +89,11 @@ public sealed class KeyCodesTests
     [InlineData(VirtualKey.A, false)]
     [InlineData(VirtualKey.Enter, false)]
     [InlineData(VirtualKey.F5, false)]
+    [InlineData(VirtualKey.NumPadDivide, true)]
+    [InlineData(VirtualKey.NumLock, true)]
+    [InlineData(VirtualKey.NumPad8, false)]
+    [InlineData(VirtualKey.NumPadAdd, false)]
+    [InlineData(VirtualKey.NumPadSubtract, false)]
     public void ExtendedKeys_AreFlagged(VirtualKey key, bool extended)
     {
         Assert.Equal(extended, KeyCodes.IsExtended(KeyCodes.For(key)));

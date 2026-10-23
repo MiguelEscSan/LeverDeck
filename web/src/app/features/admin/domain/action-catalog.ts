@@ -155,6 +155,22 @@ export const VIRTUAL_KEY_NAMES: Readonly<Record<VirtualKeyDto, string>> = {
   pageUp: 'Page Up',
   pageDown: 'Page Down',
   printScreen: 'Print Screen',
+  numPad0: 'Numpad 0',
+  numPad1: 'Numpad 1',
+  numPad2: 'Numpad 2',
+  numPad3: 'Numpad 3',
+  numPad4: 'Numpad 4',
+  numPad5: 'Numpad 5',
+  numPad6: 'Numpad 6',
+  numPad7: 'Numpad 7',
+  numPad8: 'Numpad 8',
+  numPad9: 'Numpad 9',
+  numPadAdd: 'Numpad +',
+  numPadSubtract: 'Numpad -',
+  numPadMultiply: 'Numpad *',
+  numPadDivide: 'Numpad /',
+  numPadDecimal: 'Numpad .',
+  numLock: 'Num Lock',
 };
 
 export const VIRTUAL_KEYS = Object.keys(VIRTUAL_KEY_NAMES) as VirtualKeyDto[];

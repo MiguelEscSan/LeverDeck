@@ -100,7 +100,23 @@ export type VirtualKeyDto =
   | 'end'
   | 'pageUp'
   | 'pageDown'
-  | 'printScreen';
+  | 'printScreen'
+  | 'numPad0'
+  | 'numPad1'
+  | 'numPad2'
+  | 'numPad3'
+  | 'numPad4'
+  | 'numPad5'
+  | 'numPad6'
+  | 'numPad7'
+  | 'numPad8'
+  | 'numPad9'
+  | 'numPadAdd'
+  | 'numPadSubtract'
+  | 'numPadMultiply'
+  | 'numPadDivide'
+  | 'numPadDecimal'
+  | 'numLock';
 
 export type ActionDto =
   | HotkeyActionDto
