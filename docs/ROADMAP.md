@@ -365,9 +365,10 @@ agent in the tray serving the phones. The UI stays the Angular editor; only wher
       is not AOT-compatible). Pick one from the spike's evidence.
 - [ ] GUI subsystem: `OutputType` `WinExe` in Release (no console window), `Exe` in Debug so `dotnet run` keeps its
       logs; Release logs go to a file under `<DataDirectory>/logs`.
-- [ ] Logs never grow without bound: each start begins a new log and deletes the older ones (owner's rule), and a
-      size cap (for example 10 MB) applies within a session, since a tray session can run for weeks. Open choice: keep
-      only the previous session's log as `leverdeck.previous.log`, so a crash can still be inspected after restart.
+- [ ] Logs never grow without bound: every start of the agent (Windows sign-in, or quitting from the tray and opening
+      it again) deletes every existing log and begins a new one; no previous log is kept (owner's decision). Closing
+      only the editor window is not a start. A size cap (for example 10 MB) applies within a session, since a tray
+      session can run for weeks.
 - [ ] Editor window: opens `http://localhost:8765/admin` with the admin token (never shown to the user), remembers its
       size and position, closing it hides it and keeps the tray; the tray menu gains "Open LeverDeck".
 - [ ] Single instance: a second launch (Start menu, shortcut) asks the running instance to show its window and exits.
