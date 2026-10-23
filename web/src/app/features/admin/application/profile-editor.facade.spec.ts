@@ -188,6 +188,15 @@ describe('ProfileEditorFacade', () => {
       expect(editor.selection()).toMatchObject({ kind: 'key', button: { label: 'Stream' } });
     });
 
+    it('clears a suggested label when the new game has no known name', () => {
+      editor.selectCell(1, 1);
+      editor.addKey();
+      editor.changeAction({ type: 'launchGame', store: 'steam', gameId: '252490' }, 'Rocket League');
+      editor.changeAction({ type: 'launchGame', store: 'steam', gameId: '108600' }, undefined, 'Rocket League');
+
+      expect(editor.selection()).toMatchObject({ kind: 'key', button: { label: '', action: { gameId: '108600' } } });
+    });
+
     it('removes the selected key and leaves its position selected', async () => {
       editor.selectCell(0, 0);
       editor.removeKey();

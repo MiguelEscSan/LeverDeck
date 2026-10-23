@@ -286,7 +286,7 @@ export class ProfileEditorFacade {
   /**
    * Changes what the selected key does. An icon that still matched the old action follows the new one, and so does a
    * label that is empty or still the suggested name of the old app or game: it becomes the name of the new one, cut
-   * to the label limit.
+   * to the label limit, or is cleared when the new one has no known name (a game typed by id).
    */
   changeAction(action: ActionDto, name?: string, previousName?: string): void {
     const profile = this.profileState();
@@ -300,8 +300,8 @@ export class ProfileEditorFacade {
       change.iconId = suggestedIcon(action);
     }
     const label = button.label.trim();
-    if (name && (label === '' || (previousName !== undefined && label === suggestedLabel(previousName)))) {
-      change.label = suggestedLabel(name);
+    if (label === '' || (previousName !== undefined && label === suggestedLabel(previousName))) {
+      change.label = name ? suggestedLabel(name) : '';
     }
     this.apply(updateButton(profile, button.id, change));
   }
