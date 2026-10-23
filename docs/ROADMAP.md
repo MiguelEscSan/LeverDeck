@@ -353,6 +353,56 @@ generated folder is never edited.
 - [ ] README: install, firewall, pairing, USB mode, known limits (anti-cheat, elevated apps — see HANDOFF.md).
 - [ ] Fill the **Commands** section of `CLAUDE.md`.
 
+## Phase 9 — macOS agent (planned, not started)
+
+Run the same agent on a Mac, with the Mac's own app catalog in the Apps view. The PWA and the protocol stay shared;
+everything OS-specific gets a macOS adapter behind the existing ports. Do not start until the owner asks
+(CLAUDE.md: Windows is the only platform in scope).
+
+### 9.1 What is Windows-only today
+
+| Area | Windows today | macOS replacement |
+|---|---|---|
+| Project targets | `LeverDeck.Infrastructure` and `LeverDeck.App` are `net10.0-windows`; CsWin32 (`NativeMethods.txt`) lives in Infrastructure | Split into a shared Infrastructure plus `Infrastructure.Windows` / `Infrastructure.MacOS` (or multi-target), the composition root picks one with `OperatingSystem.IsMacOS()` |
+| Hotkeys and media keys (`IActionExecutor`: `SendInputActionExecutor`, `KeyCodes`) | `SendInput` with virtual-key codes | `CGEventCreateKeyboardEvent` + `CGEventPost` (CoreGraphics), mac virtual key codes, media keys as `NX_SYSDEFINED` events; needs the **Accessibility** permission |
+| Launch apps and URLs (`ShellLauncher`, `LaunchUris`) | Shell execute, `shell:AppsFolder\<AUMID>` for Store apps | `open -b <bundle id>` / `NSWorkspace` for apps, `open <url>` for URLs |
+| Store app catalog (`IStoreAppCatalog`: `StartMenuStoreAppCatalog`) | Start menu query for AppUserModelIds | Scan `/Applications`, `/System/Applications`, `~/Applications` for `.app` bundles (name and `CFBundleIdentifier` from `Info.plist`); Mac App Store apps are the ones with `Contents/_MASReceipt` (or `mdfind "kMDItemAppStoreHasReceipt == 1"`) |
+| Registered app target (`RegisteredApp`, Domain) | Absolute path, or `shell:AppsFolder\<AUMID>` | A third form for bundles, e.g. `bundle:<CFBundleIdentifier>`, validated like the AUMID (closed pattern, never a command) |
+| Games (`IGameLibrary`: Steam, Epic) | `libraryfolders.vdf`, `%ProgramData%` Epic manifests | Steam keeps `libraryfolders.vdf` under `~/Library/Application Support/Steam/steamapps` (the VDF reader is reusable); Epic's manifest folder on macOS still to be verified |
+| Start with the OS (`IStartupRegistration`: Run key) | `HKCU\...\Run` | A LaunchAgent plist in `~/Library/LaunchAgents` (or `SMAppService` on macOS 13+, which needs an `.app` bundle) |
+| Admin token protection (`SecretProtector`) | DPAPI | Keychain (`SecItemAdd` / `SecItemCopyMatching`, Security.framework) |
+| mDNS (`DnsServiceAdvertiser` + own responder on UDP 5353) | `DnsServiceRegister` plus our own A-record responder | The system `mDNSResponder` owns 5353: register through `dns_sd` (`DNSServiceRegister` for the service, `DNSServiceRegisterRecord` for the `leverdeck-<pc>.local` A record) and drop the own responder there |
+| Tray (`TrayIcon`, `NativeTray`) | Win32 notification icon | Menu bar item (`NSStatusItem`) through the Objective-C runtime (`objc_msgSend`, AOT-safe `LibraryImport`); `LSUIElement` so there is no Dock icon |
+| Firewall (`FirewallRuleService`, `PrivateFirewallRule`) | `netsh` rule on the private profile | Nothing to add: the macOS application firewall asks once on first listen, and remembers a signed app |
+| Data directory | `%APPDATA%\LeverDeck` via `Environment.GetFolderPath` | `~/Library/Application Support/LeverDeck`; check which `SpecialFolder` maps there on .NET 10 before relying on it |
+| Domain and protocol naming | `StartWithWindows`, Store tab copy ("Microsoft Store", ".exe", "Copy as path") | `StartAtLogin` (protocol change + regenerated TypeScript); the agent reports its platform so the web shows "Mac App Store" / "Applications" and macOS path hints |
+| Hotkey model | Ctrl / Alt / Shift / Win | Decide how keys map: Win ↔ Cmd, Alt ↔ Option, or per-platform modifiers on the key |
+
+### 9.2 Packaging and distribution
+
+- Native AOT does not cross-compile to macOS: build on a macOS runner (`macos-latest`, Apple Silicon) for `osx-arm64`
+  (and `osx-x64`, joined with `lipo` into a universal binary, if Intel Macs matter).
+- Wrap the binary in `LeverDeck.app` (`Info.plist` with `CFBundleIdentifier`, `LSUIElement`, an `.icns` made from the
+  PWA icon) and ship it as a `.dmg` or `.zip` from the same GitHub Release workflow.
+- **Not through the Mac App Store:** App Store apps must run in the App Sandbox, which does not allow posting keyboard
+  events to other apps (Accessibility) or launching arbitrary apps; the agent's core job would not work there. Mac App
+  Store apps are still supported as *targets* (9.1, Store app catalog).
+- **Signing:** Gatekeeper blocks unsigned downloads. Options: Developer ID signing + notarization (Apple Developer
+  Program, paid yearly; best experience, the Accessibility grant survives updates), or free ad-hoc signing
+  (`codesign -s -`; the owner opens it with right-click › Open or clears the quarantine attribute, and macOS asks for
+  Accessibility again after each new build because the grant is tied to the signature).
+- **First-run setup on the Mac:** grant Accessibility (System Settings › Privacy & Security › Accessibility) so hotkeys
+  work; allow incoming connections when the firewall asks; start at login from the menu bar item.
+
+### 9.3 Tasks (when it starts)
+
+- [ ] Split Infrastructure by OS without changing the ports; Windows tests stay green.
+- [ ] `bundle:` target in `RegisteredApp` (test-first), catalog of `.app` bundles with Mac App Store flag.
+- [ ] macOS adapters: keyboard and media keys, launcher, Keychain secret, LaunchAgent, `dns_sd` advertiser, menu bar.
+- [ ] Platform in the protocol (agent → web) and platform-aware copy in the Apps dialog and settings.
+- [ ] macOS job in CI and in the release workflow (`.app` bundle, signing per the decision below).
+- [ ] Manual check on a Mac: pair a phone, press a hotkey, launch a Mac App Store app.
+
 ## Open decisions to settle along the way
 
 | Decision | Settle by |
@@ -363,3 +413,5 @@ generated folder is never edited.
 | Default grid size and max profiles shown | Phase 7 |
 | Light theme beyond system preference | Phase 7 |
 | Anti-cheat and elevated-target handling | After MVP (HANDOFF.md future ideas) |
+| macOS signing: Developer ID + notarization (paid) vs free ad-hoc signing (conflicts with HANDOFF "Cost: zero") | Phase 9 |
+| macOS hotkey modifiers: map Win ↔ Cmd, or per-platform modifiers on each key | Phase 9 |

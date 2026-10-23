@@ -37,8 +37,9 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 - **Security:** `Action` is a closed whitelist (`abstract record` + one `sealed record` per action); never arbitrary
   commands. An architecture test guards exhaustiveness, since C# does not check it for class hierarchies.
 - **Platforms:** Windows agent in scope. macOS agent planned but **not to be implemented yet**; keep OS code behind
-  ports in `Infrastructure` and resolve paths with `Environment.GetFolderPath` (known folders). Devices: anything with a
-  modern browser.
+  ports in `Infrastructure` and resolve paths with `Environment.GetFolderPath` (known folders). The macOS plan (what each
+  adapter becomes, the `.app` bundle, signing, the Accessibility permission, Mac App Store apps as launch targets) is
+  ROADMAP Phase 9. Devices: anything with a modern browser.
 - **Cost:** zero. No app stores, no paid certificates, no cloud.
 
 ## Rejected (and why)
@@ -53,6 +54,9 @@ Tapping a button on the device triggers an action on the PC (hotkeys, media keys
 - **Full CQRS:** single user, JSON storage — no benefit.
 - **Fixing IP by MAC / router reservation:** the browser cannot see MACs, and the user has no router access. mDNS name instead.
 - **Static IP on the PC:** risk of conflicts on a network the user does not control.
+- **Distributing the macOS agent through the Mac App Store:** App Store apps run in the App Sandbox, which forbids
+  posting keyboard events to other apps and launching arbitrary apps, the agent's core job. It would ship from GitHub
+  Releases instead (ROADMAP Phase 9); Mac App Store apps remain supported as launch targets.
 
 ## Future ideas (not scheduled)
 
