@@ -364,7 +364,10 @@ agent in the tray serving the phones. The UI stays the Angular editor; only wher
       `Microsoft.Web.WebView2` package with a self-contained single-file publish (the HANDOFF fallback when a dependency
       is not AOT-compatible). Pick one from the spike's evidence.
 - [ ] GUI subsystem: `OutputType` `WinExe` in Release (no console window), `Exe` in Debug so `dotnet run` keeps its
-      logs; Release logs go to a rolling file under `<DataDirectory>/logs`.
+      logs; Release logs go to a file under `<DataDirectory>/logs`.
+- [ ] Logs never grow without bound: each start begins a new log and deletes the older ones (owner's rule), and a
+      size cap (for example 10 MB) applies within a session, since a tray session can run for weeks. Open choice: keep
+      only the previous session's log as `leverdeck.previous.log`, so a crash can still be inspected after restart.
 - [ ] Editor window: opens `http://localhost:8765/admin` with the admin token (never shown to the user), remembers its
       size and position, closing it hides it and keeps the tray; the tray menu gains "Open LeverDeck".
 - [ ] Single instance: a second launch (Start menu, shortcut) asks the running instance to show its window and exits.
