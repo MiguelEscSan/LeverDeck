@@ -63,6 +63,10 @@ on construction; nothing is a free-form command.
 | `LaunchApp` | `AppId` pointing to an app registered on the PC (path chosen in the desktop UI, never sent by a phone); no arguments | Agent | 7 |
 | `OpenUrl` | Absolute `http`/`https` URL only | Agent | 7 |
 | `ObsScene` | `SceneName` (1–100 chars) | Agent | 7 |
+| `ObsStreaming` | `Command`: `Start`, `Stop`, `Toggle` | Agent | 7 |
+| `ObsRecord` | `Command`: `Start`, `Stop`, `Toggle` | Agent | 7 |
+| `ObsInputMute` | `InputName` (1–100 chars) + `Command`: `Mute`, `Unmute`, `Toggle` | Agent | 7 |
+| `ObsSourceVisibility` | `SceneName`, `SourceName` (1–100 chars each) + `Command`: `Show`, `Hide`, `Toggle` | Agent | 7 |
 | `LaunchGame` | `GameStore` (`Steam`, `Epic`) + validated `GameId` (Steam: digits; Epic: `[A-Za-z0-9]+`) | Agent | 7 |
 | `ChangePage` | `Next`, `Previous` or a `PageIndex` | PWA (navigation) | 6 |
 | `SwitchProfile` | `ProfileId` | PWA (navigation) | 7 |
@@ -137,7 +141,7 @@ issued device token, because it can be delivered only once. **Scope** says who m
 | `GetInstalledGames` | admin | Steam and Epic games installed on the PC (store, id, name), through the `IGameLibrary` port (Phase 7) |
 
 **Events** pushed by the agent: `ProfileUpdated`, `ProfileDeleted`, `DevicesChanged`, `DeviceRevoked`,
-`PairingSessionChanged`, `SettingsUpdated`, `ObsSceneChanged` (Phase 7).
+`PairingSessionChanged`, `SettingsUpdated`, `ObsSceneChanged`, `ObsStateChanged` (Phase 7).
 
 ### 2.4 Tasks
 
@@ -224,6 +228,7 @@ or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result 
 | `getPairingSession` | `{}` | `pairingSession` | `{ session: PairingSessionDto \| null }` |
 | `getSettings` | `{}` | `settings` | `{ settings: SettingsDto }` |
 | `getAgentStatus` | `{}` | `agentStatus` | `{ agentVersion, protocolVersion, obsConnected }` |
+| `getObsScenes` | `{}` | `obsScenes` | `{ scenes: string[], currentScene: string \| null }` (Phase 7) |
 | `getInstalledGames` | `{}` | `installedGames` | `{ games: InstalledGameDto[] }` (Phase 7) |
 | `getIcons` | `{}` | `icons` | `{ icons: string[] }` (Phase 7) |
 
@@ -238,6 +243,7 @@ or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result 
 | `pairingSessionChanged` | `{ session: PairingSessionDto \| null }` (admin connections only) |
 | `settingsUpdated` | `{ settings: SettingsDto }` (admin connections only) |
 | `obsSceneChanged` | `{ sceneName }` (Phase 7) |
+| `obsStateChanged` | `{ streaming, recording }` (Phase 7) |
 
 **DTOs**
 
@@ -247,7 +253,7 @@ or `400 ErrorDto`. `pairDevice` never travels over the WebSocket, so its result 
 | `ProfileDto` | `id`, `name`, `color`, `grid: { columns, rows }`, `pages: PageDto[]` |
 | `PageDto` | `index`, `buttons: ButtonDto[]` |
 | `ButtonDto` | `id`, `row`, `column`, `label`, `color`, `iconId`, `action: ActionDto` |
-| `ActionDto` | Discriminated by `type`: `hotkey { modifiers[], key }`, `mediaKey { key }`, `launchApp { appId }`, `openUrl { url }`, `obsScene { sceneName }`, `launchGame { store, gameId }`, `changePage { target: next \| previous \| specific, pageIndex }` (`pageIndex` only for `specific`, otherwise `null`), `switchProfile { profileId }` |
+| `ActionDto` | Discriminated by `type`: `hotkey { modifiers[], key }`, `mediaKey { key }`, `launchApp { appId }`, `openUrl { url }`, `obsScene { sceneName }`, `obsStreaming { command }`, `obsRecord { command }`, `obsInputMute { inputName, command }`, `obsSourceVisibility { sceneName, sourceName, command }`, `launchGame { store, gameId }`, `changePage { target: next \| previous \| specific, pageIndex }` (`pageIndex` only for `specific`, otherwise `null`), `switchProfile { profileId }` |
 | `DeviceDto` | `id`, `name`, `pairedAt`, `lastSeenAt`, `connected`, `revoked` |
 | `PairingSessionDto` | `code`, `qrUrl`, `fallbackUrl`, `expiresAt` |
 | `SettingsDto` | `startWithWindows`, `defaultGrid`, `obs: { host, port, hasPassword } \| null`, `apps: { appId, displayName, path }[]` |
@@ -339,7 +345,10 @@ generated folder is never edited.
       devices only read (see `odd/tasks/phase-7-make-it-usable.md`).
 - [x] More actions: open URL, launch registered apps, launch Steam/Epic games (installed games listed by
       `getInstalledGames`). Executed by `AgentActionExecutor` through the Windows shell.
-- [ ] OBS scene (confirm OBS client AOT compatibility). Postponed: not used by the owner.
+- [x] OBS backend: scene switch, stream and record start/stop/toggle, input mute and source visibility, scene list and
+      state events. Hand-written obs-websocket v5 client on `System.Net.WebSockets` (no library, no reflection, so AOT
+      needs no extra check); reconnects every 5 s. Not yet run against a live OBS; the scene picker and action editor
+      UI are deferred to the frontend phase.
 - [x] Multiple pages per profile and the grid size (3×3, 5×3, 8×4; new profiles take the 5×3 default setting) in
       the editor, plus dragging keys between positions and pages.
 - [x] Tray icon, start with Windows, firewall rule on the private profile (tray not yet checked on screen).

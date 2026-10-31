@@ -314,7 +314,7 @@ runtime (`win-x64`).
 | Open URL | `Process.Start` with `UseShellExecute` on the validated `http`/`https` URL (default browser) |
 | Steam/Epic games | Store URIs built from validated ids: `steam://rungameid/<id>`, `com.epicgames.launcher://apps/<AppName>?action=launch&silent=true` |
 | Installed games (`IGameLibrary`) | `InstalledGameLibrary`: Steam's `libraryfolders.vdf` and `appmanifest_*.acf` (folder from the `SteamPath` registry value, else Program Files (x86)), and the Epic launcher's `*.item` manifests under ProgramData |
-| OBS | obs-websocket client (library to confirm AOT compatibility) |
+| OBS | `ObsWebSocketClient`: hand-written obs-websocket v5 client on `System.Net.WebSockets` behind the `IObsClient` port; `ObsConnectionWorker` reconnects every 5 s; events `ObsSceneChanged` and `ObsStateChanged` |
 | mDNS | `MdnsHostNameResponder` (UDP 5353 responder for the A record of the PC's `leverdeck-<pc>.local` name, see Connectivity) plus native `DnsServiceRegister` (`dnsapi.dll`, Windows 10+) via CsWin32 for the service records, combined by `CompositeServiceAdvertiser` and run as a hosted service |
 | Persistence | JSON files (see Persistence) |
 | Secrets at rest | DPAPI (`ProtectedData`, current user) |

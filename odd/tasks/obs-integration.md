@@ -67,13 +67,18 @@ Strategy: `ask-on-risk`. Forecast about 900 authored changed lines, split into w
 
 ## Tasks
 
-- [ ] T1 Domain: `ObsStream`, `ObsRecord`, `ObsInputMute`, `ObsSourceVisibility` and their enums; catalog; tests first.
-- [ ] T2 Application: `IObsClient`, `GetObsScenes`, `ObsConnected` in status, `ObsSceneChanged` and `ObsStateChanged`
-      application events; tests with a fake client.
-- [ ] T3 Protocol: action DTOs and enum DTOs, `getObsScenes`, `obsStateChanged`, wire samples; regenerate TypeScript.
-- [ ] T4 Infrastructure mapping: `ActionMapper`, persistence records, `EventFanOut`, `StatusMapper`; tests.
-- [ ] T5 OBS client: `ObsProtocol` (pure framing and auth), `ObsWebSocketClient`, `ObsConnectionWorker`; tests with a
-      fake server.
-- [ ] T6 Executor and wiring: route the OBS actions, `ActionExecutorCoverage`, DI registration, query use case; tests.
-- [ ] T7 Docs: ARCHITECTURE and ROADMAP.
-- [ ] T8 Checks: build, tests, regenerated protocol; work-unit commits on `feat/obs-backend`.
+- [x] T1 Domain: `ObsStreaming` (renamed from `ObsStream`, CA1711), `ObsRecord`, `ObsInputMute`, `ObsSourceVisibility`
+      and their enums; catalog; tests first. Commit `4e7ee28`.
+- [x] T2 Application: `IObsClient`, `GetObsScenes`, `ObsConnected` in status, `ObsSceneChanged` and `ObsStateChanged`
+      application events; tests with a fake client. Commit `5d043f3`.
+- [x] T3 Protocol: action DTOs and enum DTOs, `getObsScenes`, `obsStateChanged`, wire samples; regenerate TypeScript.
+      Commit `8b95c66`.
+- [x] T4 Infrastructure mapping: `ActionMapper`, persistence records, `EventFanOut`, `StatusMapper`; tests.
+      Commit `bd1c0bc`.
+- [x] T5 OBS client: `ObsProtocol` (pure framing and auth), `ObsWebSocketClient`, `ObsConnectionWorker`; tests with a
+      fake server. Commit `5d043f3`.
+- [x] T6 Executor and wiring: route the OBS actions, `ActionExecutorCoverage`, DI registration, query use case; tests.
+      Commit `5d043f3`.
+- [x] T7 Docs: ARCHITECTURE and ROADMAP.
+- [x] T8 Checks: build and full test run green (`dotnet test LeverDeck.slnx`: 1276 passed); work-unit commits on
+      `feat/obs-backend`. Still pending: a manual run against a real OBS instance.
