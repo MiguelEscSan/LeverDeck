@@ -34,6 +34,10 @@ internal sealed record ButtonRecord(
 [JsonDerivedType(typeof(LaunchAppRecord), "launchApp")]
 [JsonDerivedType(typeof(OpenUrlRecord), "openUrl")]
 [JsonDerivedType(typeof(ObsSceneRecord), "obsScene")]
+[JsonDerivedType(typeof(ObsStreamingRecord), "obsStreaming")]
+[JsonDerivedType(typeof(ObsRecordingRecord), "obsRecord")]
+[JsonDerivedType(typeof(ObsInputMuteRecord), "obsInputMute")]
+[JsonDerivedType(typeof(ObsSourceVisibilityRecord), "obsSourceVisibility")]
 [JsonDerivedType(typeof(LaunchGameRecord), "launchGame")]
 [JsonDerivedType(typeof(ChangePageRecord), "changePage")]
 [JsonDerivedType(typeof(SwitchProfileRecord), "switchProfile")]
@@ -48,6 +52,14 @@ internal sealed record LaunchAppRecord(Guid AppId) : ActionRecord;
 internal sealed record OpenUrlRecord(string Url) : ActionRecord;
 
 internal sealed record ObsSceneRecord(string SceneName) : ActionRecord;
+
+internal sealed record ObsStreamingRecord(ObsOutputCommand Command) : ActionRecord;
+
+internal sealed record ObsRecordingRecord(ObsOutputCommand Command) : ActionRecord;
+
+internal sealed record ObsInputMuteRecord(string InputName, ObsMuteCommand Command) : ActionRecord;
+
+internal sealed record ObsSourceVisibilityRecord(string SceneName, string SourceName, ObsVisibilityCommand Command) : ActionRecord;
 
 internal sealed record LaunchGameRecord(GameStore Store, string GameId) : ActionRecord;
 

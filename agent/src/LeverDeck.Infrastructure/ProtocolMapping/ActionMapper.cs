@@ -27,6 +27,13 @@ public static class ActionMapper
         LaunchApp launchApp => new LaunchAppActionDto(launchApp.App.Value),
         OpenUrl openUrl => new OpenUrlActionDto(openUrl.Url.AbsoluteUri),
         ObsScene obsScene => new ObsSceneActionDto(obsScene.SceneName),
+        ObsStreaming streaming => new ObsStreamingActionDto(Convert<ObsOutputCommand, ObsOutputCommandDto>(streaming.Command)),
+        ObsRecord recording => new ObsRecordActionDto(Convert<ObsOutputCommand, ObsOutputCommandDto>(recording.Command)),
+        ObsInputMute mute => new ObsInputMuteActionDto(mute.InputName, Convert<ObsMuteCommand, ObsMuteCommandDto>(mute.Command)),
+        ObsSourceVisibility visibility => new ObsSourceVisibilityActionDto(
+            visibility.SceneName,
+            visibility.SourceName,
+            Convert<ObsVisibilityCommand, ObsVisibilityCommandDto>(visibility.Command)),
         LaunchGame launchGame => new LaunchGameActionDto(Convert<GameStore, GameStoreDto>(launchGame.Store), launchGame.GameId),
         ChangePage changePage => new ChangePageActionDto(
             Convert<PageTargetKind, PageTargetDto>(changePage.Destination.Kind),
@@ -47,6 +54,13 @@ public static class ActionMapper
         LaunchAppActionDto launchApp => new LaunchApp(new AppId(launchApp.AppId)),
         OpenUrlActionDto openUrl => new OpenUrl(ToUri(openUrl.Url)),
         ObsSceneActionDto obsScene => new ObsScene(obsScene.SceneName),
+        ObsStreamingActionDto streaming => new ObsStreaming(Convert<ObsOutputCommandDto, ObsOutputCommand>(streaming.Command)),
+        ObsRecordActionDto recording => new ObsRecord(Convert<ObsOutputCommandDto, ObsOutputCommand>(recording.Command)),
+        ObsInputMuteActionDto mute => new ObsInputMute(mute.InputName, Convert<ObsMuteCommandDto, ObsMuteCommand>(mute.Command)),
+        ObsSourceVisibilityActionDto visibility => new ObsSourceVisibility(
+            visibility.SceneName,
+            visibility.SourceName,
+            Convert<ObsVisibilityCommandDto, ObsVisibilityCommand>(visibility.Command)),
         LaunchGameActionDto launchGame => new LaunchGame(Convert<GameStoreDto, GameStore>(launchGame.Store), launchGame.GameId),
         ChangePageActionDto changePage => new ChangePage(ToTarget(changePage)),
         SwitchProfileActionDto switchProfile => new SwitchProfile(new ProfileId(switchProfile.ProfileId)),
