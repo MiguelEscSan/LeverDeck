@@ -22,6 +22,12 @@ export type KeyModifierDto = 'ctrl' | 'shift' | 'alt' | 'win';
 
 export type MediaKeyDto = 'playPause' | 'next' | 'previous' | 'stop' | 'volumeUp' | 'volumeDown' | 'mute';
 
+export type ObsMuteCommandDto = 'mute' | 'unmute' | 'toggle';
+
+export type ObsOutputCommandDto = 'start' | 'stop' | 'toggle';
+
+export type ObsVisibilityCommandDto = 'show' | 'hide' | 'toggle';
+
 export type PageTargetDto = 'next' | 'previous' | 'specific';
 
 export type VirtualKeyDto =
@@ -124,6 +130,10 @@ export type ActionDto =
   | LaunchAppActionDto
   | OpenUrlActionDto
   | ObsSceneActionDto
+  | ObsStreamingActionDto
+  | ObsRecordActionDto
+  | ObsInputMuteActionDto
+  | ObsSourceVisibilityActionDto
   | LaunchGameActionDto
   | ChangePageActionDto
   | SwitchProfileActionDto;
@@ -151,6 +161,7 @@ export type EventMessage =
   | PairingSessionChangedEvent
   | SettingsUpdatedEvent
   | ObsSceneChangedEvent
+  | ObsStateChangedEvent
   | IconsChangedEvent;
 
 export type Message = CommandMessage | QueryMessage | AckMessage | ErrorMessage | QueryResultMessage | EventMessage;
@@ -164,7 +175,8 @@ export type QueryMessage =
   | GetAgentStatusQuery
   | GetInstalledGamesQuery
   | GetStoreAppsQuery
-  | GetIconsQuery;
+  | GetIconsQuery
+  | GetObsScenesQuery;
 
 export type QueryResultMessage =
   | ProfilesResult
@@ -175,7 +187,8 @@ export type QueryResultMessage =
   | AgentStatusResult
   | InstalledGamesResult
   | StoreAppsResult
-  | IconsResult;
+  | IconsResult
+  | ObsScenesResult;
 
 export interface AckMessage {
   kind: 'ack';
@@ -344,6 +357,13 @@ export interface GetInstalledGamesQuery {
   payload: EmptyPayload;
 }
 
+export interface GetObsScenesQuery {
+  kind: 'query';
+  type: 'getObsScenes';
+  requestId: string;
+  payload: EmptyPayload;
+}
+
 export interface GetPairingSessionQuery {
   kind: 'query';
   type: 'getPairingSession';
@@ -444,6 +464,17 @@ export interface MediaKeyActionDto {
   key: MediaKeyDto;
 }
 
+export interface ObsInputMuteActionDto {
+  type: 'obsInputMute';
+  inputName: string;
+  command: ObsMuteCommandDto;
+}
+
+export interface ObsRecordActionDto {
+  type: 'obsRecord';
+  command: ObsOutputCommandDto;
+}
+
 export interface ObsSceneActionDto {
   type: 'obsScene';
   sceneName: string;
@@ -459,10 +490,45 @@ export interface ObsSceneChangedPayload {
   sceneName: string;
 }
 
+export interface ObsScenesPayload {
+  scenes: string[];
+  currentScene: string | null;
+}
+
+export interface ObsScenesResult {
+  kind: 'queryResult';
+  type: 'obsScenes';
+  requestId: string;
+  payload: ObsScenesPayload;
+}
+
 export interface ObsSettingsDto {
   host: string;
   port: number;
   hasPassword: boolean;
+}
+
+export interface ObsSourceVisibilityActionDto {
+  type: 'obsSourceVisibility';
+  sceneName: string;
+  sourceName: string;
+  command: ObsVisibilityCommandDto;
+}
+
+export interface ObsStateChangedEvent {
+  kind: 'event';
+  type: 'obsStateChanged';
+  payload: ObsStatePayload;
+}
+
+export interface ObsStatePayload {
+  streaming: boolean;
+  recording: boolean;
+}
+
+export interface ObsStreamingActionDto {
+  type: 'obsStreaming';
+  command: ObsOutputCommandDto;
 }
 
 export interface ObsUpdateDto {

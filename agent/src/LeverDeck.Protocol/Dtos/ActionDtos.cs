@@ -9,6 +9,10 @@ namespace LeverDeck.Protocol.Dtos;
 [JsonDerivedType(typeof(LaunchAppActionDto), "launchApp")]
 [JsonDerivedType(typeof(OpenUrlActionDto), "openUrl")]
 [JsonDerivedType(typeof(ObsSceneActionDto), "obsScene")]
+[JsonDerivedType(typeof(ObsStreamingActionDto), "obsStreaming")]
+[JsonDerivedType(typeof(ObsRecordActionDto), "obsRecord")]
+[JsonDerivedType(typeof(ObsInputMuteActionDto), "obsInputMute")]
+[JsonDerivedType(typeof(ObsSourceVisibilityActionDto), "obsSourceVisibility")]
 [JsonDerivedType(typeof(LaunchGameActionDto), "launchGame")]
 [JsonDerivedType(typeof(ChangePageActionDto), "changePage")]
 [JsonDerivedType(typeof(SwitchProfileActionDto), "switchProfile")]
@@ -35,3 +39,13 @@ public sealed record LaunchGameActionDto(GameStoreDto Store, string GameId) : Ac
 public sealed record ChangePageActionDto(PageTargetDto Target, int? PageIndex) : ActionDto;
 
 public sealed record SwitchProfileActionDto(Guid ProfileId) : ActionDto;
+
+/// <summary>Starts, stops or toggles the OBS stream.</summary>
+public sealed record ObsStreamingActionDto(ObsOutputCommandDto Command) : ActionDto;
+
+/// <summary>Starts, stops or toggles the OBS recording.</summary>
+public sealed record ObsRecordActionDto(ObsOutputCommandDto Command) : ActionDto;
+
+public sealed record ObsInputMuteActionDto(string InputName, ObsMuteCommandDto Command) : ActionDto;
+
+public sealed record ObsSourceVisibilityActionDto(string SceneName, string SourceName, ObsVisibilityCommandDto Command) : ActionDto;

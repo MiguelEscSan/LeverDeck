@@ -20,3 +20,6 @@ public sealed record SettingsUpdatedEvent(SettingsPayload Payload) : EventMessag
 public sealed record ObsSceneChangedEvent(ObsSceneChangedPayload Payload) : EventMessage;
 
 public sealed record IconsChangedEvent(IconsPayload Payload) : EventMessage;
+
+/// <summary>Streaming and recording state, pushed when OBS reports a change.</summary>
+public sealed record ObsStateChangedEvent(ObsStatePayload Payload) : EventMessage;
