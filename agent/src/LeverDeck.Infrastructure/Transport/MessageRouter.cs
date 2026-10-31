@@ -2,6 +2,7 @@ using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
 using LeverDeck.Application.Games;
 using LeverDeck.Application.Icons;
+using LeverDeck.Application.Obs;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Security;
@@ -37,6 +38,7 @@ public sealed partial class MessageRouter(
     GetAgentStatus getAgentStatus,
     GetInstalledGames getInstalledGames,
     GetStoreApps getStoreApps,
+    GetObsScenes getObsScenes,
     SaveIcon saveIcon,
     DeleteIcon deleteIcon,
     TransportPayloads payloads,
@@ -190,7 +192,13 @@ public sealed partial class MessageRouter(
                 return ResponseMapper.ToResponse(
                     id,
                     await getAgentStatus.ExecuteAsync(caller, ct).ConfigureAwait(false),
-                    status => new AgentStatusResult(id, StatusMapper.ToPayload(status, obsConnected: false)));
+                    status => new AgentStatusResult(id, StatusMapper.ToPayload(status)));
+
+            case GetObsScenesQuery:
+                return ResponseMapper.ToResponse(
+                    id,
+                    await getObsScenes.ExecuteAsync(caller, ct).ConfigureAwait(false),
+                    scenes => new ObsScenesResult(id, new ObsScenesPayload(scenes.Scenes, scenes.CurrentScene)));
 
             case GetIconsQuery:
                 return ResponseMapper.ToResponse(

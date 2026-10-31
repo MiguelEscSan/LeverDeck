@@ -2,6 +2,7 @@ using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
 using LeverDeck.Application.Games;
 using LeverDeck.Application.Icons;
+using LeverDeck.Application.Obs;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
@@ -36,6 +37,8 @@ internal sealed class Harness
     public FakeStoreAppCatalog StoreApps { get; } = new();
 
     public InMemoryIconStore Icons { get; } = new();
+
+    public FakeObsClient Obs { get; } = new();
 
     /// <summary>Total writes to every repository and the pairing store, to prove a call had no side effects.</summary>
     public int RepositoryWrites => Profiles.Writes + Devices.Writes + Settings.Writes + Icons.Writes;
@@ -74,7 +77,9 @@ internal sealed class Harness
 
     public GetSettings GetSettings() => new(Settings);
 
-    public static GetAgentStatus GetAgentStatus() => new();
+    public GetAgentStatus GetAgentStatus() => new(Obs);
+
+    public GetObsScenes GetObsScenes() => new(Obs);
 
     public GetInstalledGames GetInstalledGames() => new(Games);
 

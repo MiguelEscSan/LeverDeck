@@ -89,14 +89,14 @@ public sealed class ErrorAndResponseMapperTests
     [Fact]
     public void SuccessfulQuery_UsesTheResultFactory()
     {
-        var status = new AgentStatus(1, "1.2.3");
+        var status = new AgentStatus(1, "1.2.3", ObsConnected: true);
 
         var response = ResponseMapper.ToResponse(
             "q1",
             Result.Success(status),
-            value => new AgentStatusResult("q1", StatusMapper.ToPayload(value, obsConnected: false)));
+            value => new AgentStatusResult("q1", StatusMapper.ToPayload(value)));
 
-        Assert.Equal(new AgentStatusResult("q1", new AgentStatusPayload("1.2.3", ProtocolInfo.ProtocolVersion, false)), response);
+        Assert.Equal(new AgentStatusResult("q1", new AgentStatusPayload("1.2.3", ProtocolInfo.ProtocolVersion, true)), response);
     }
 
     [Fact]

@@ -1,18 +1,20 @@
-using System.Diagnostics.CodeAnalysis;
 using LeverDeck.Application.Common;
+using LeverDeck.Application.Obs.Ports;
 using LeverDeck.Application.Security;
 using LeverDeck.Domain.Common;
 
 namespace LeverDeck.Application.Status;
 
-/// <summary>The agent's versions. The OBS connection state is added in Phase 7.</summary>
-public sealed record AgentStatus(int ProtocolVersion, string AgentVersion);
+/// <summary>The agent's versions and whether it is connected to OBS.</summary>
+public sealed record AgentStatus(int ProtocolVersion, string AgentVersion, bool ObsConnected);
 
-/// <summary>Query (device scope): the agent's protocol and informational versions.</summary>
-public sealed class GetAgentStatus
+/// <summary>Query (device scope): the agent's protocol and informational versions, and the OBS connection state.</summary>
+public sealed class GetAgentStatus(IObsClient obs)
 {
-    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Every use case is an instance with one ExecuteAsync.")]
     public Task<Result<AgentStatus>> ExecuteAsync(Caller caller, CancellationToken cancellationToken) =>
         UseCase.RunAsync(caller, CallerScope.Device, () =>
-            Task.FromResult(Result.Success(new AgentStatus(ApplicationInfo.ProtocolVersion, ApplicationInfo.AgentVersion))));
+            Task.FromResult(Result.Success(new AgentStatus(
+                ApplicationInfo.ProtocolVersion,
+                ApplicationInfo.AgentVersion,
+                obs.IsConnected))));
 }

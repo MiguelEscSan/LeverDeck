@@ -1,4 +1,5 @@
 using LeverDeck.Application.Actions.Ports;
+using LeverDeck.Application.Obs.Ports;
 using LeverDeck.Application.Settings.Ports;
 using LeverDeck.Domain.Actions;
 using LeverDeck.Domain.Common;
@@ -10,18 +11,20 @@ namespace LeverDeck.Infrastructure.Input;
 /// <summary>
 /// The agent's <see cref="IActionExecutor"/>: hotkeys and media keys go to <see cref="SendInputActionExecutor"/>;
 /// URLs, store game launches and registered apps go to the Windows shell. A registered app is launched by the path
-/// stored in the settings, never one from the client. OBS scenes arrive later and fail with
-/// <see cref="DomainErrorCode.ActionNotExecutable"/>; client actions are rejected the same way, as a defence in depth.
+/// stored in the settings, never one from the client. OBS actions go to the OBS client, which fails with
+/// <see cref="DomainErrorCode.ActionFailed"/> while OBS is not connected. Client actions are rejected with
+/// <see cref="DomainErrorCode.ActionNotExecutable"/>, as a defence in depth.
 /// </summary>
 public sealed class AgentActionExecutor : IActionExecutor
 {
     private readonly IActionExecutor _keys;
     private readonly IShellLauncher _shell;
     private readonly ISettingsRepository _settings;
+    private readonly IObsClient _obs;
     private readonly Func<string, bool> _fileExists;
 
-    public AgentActionExecutor(ISettingsRepository settings)
-        : this(new SendInputActionExecutor(), new WindowsShellLauncher(), settings, File.Exists)
+    public AgentActionExecutor(ISettingsRepository settings, IObsClient obs)
+        : this(new SendInputActionExecutor(), new WindowsShellLauncher(), settings, obs, File.Exists)
     {
     }
 
@@ -29,11 +32,13 @@ public sealed class AgentActionExecutor : IActionExecutor
         IActionExecutor keys,
         IShellLauncher shell,
         ISettingsRepository settings,
+        IObsClient obs,
         Func<string, bool> fileExists)
     {
         _keys = keys;
         _shell = shell;
         _settings = settings;
+        _obs = obs;
         _fileExists = fileExists;
     }
 
@@ -50,7 +55,15 @@ public sealed class AgentActionExecutor : IActionExecutor
                 _shell.Open(LaunchUris.For(game)),
                 $"Windows could not start the game. Is {(game.Store == GameStore.Steam ? "Steam" : "the Epic Games Launcher")} installed?"),
             LaunchApp launch => await LaunchAppAsync(launch, cancellationToken).ConfigureAwait(false),
-            ObsScene => Fail(DomainErrorCode.ActionNotExecutable, "OBS actions arrive later."),
+            ObsScene scene => await _obs.SetSceneAsync(scene.SceneName, cancellationToken).ConfigureAwait(false),
+            ObsStreaming streaming => await _obs.ControlStreamAsync(streaming.Command, cancellationToken).ConfigureAwait(false),
+            ObsRecord recording => await _obs.ControlRecordingAsync(recording.Command, cancellationToken).ConfigureAwait(false),
+            ObsInputMute mute => await _obs.ControlInputMuteAsync(mute.InputName, mute.Command, cancellationToken).ConfigureAwait(false),
+            ObsSourceVisibility visibility => await _obs.ControlSourceVisibilityAsync(
+                visibility.SceneName,
+                visibility.SourceName,
+                visibility.Command,
+                cancellationToken).ConfigureAwait(false),
             ChangePage or SwitchProfile => Fail(DomainErrorCode.ActionNotExecutable, "This action runs on the client."),
             _ => Fail(DomainErrorCode.ActionNotExecutable, $"{action.GetType().Name} is not supported."),
         };

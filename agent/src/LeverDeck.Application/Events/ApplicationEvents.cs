@@ -22,3 +22,9 @@ public sealed record PairingSessionChanged : ApplicationEvent;
 public sealed record SettingsUpdated : ApplicationEvent;
 
 public sealed record IconsChanged : ApplicationEvent;
+
+/// <summary>The program scene OBS switched to.</summary>
+public sealed record ObsSceneChanged(string SceneName) : ApplicationEvent;
+
+/// <summary>Whether OBS is streaming and recording after a change.</summary>
+public sealed record ObsStateChanged(bool Streaming, bool Recording) : ApplicationEvent;

@@ -27,7 +27,9 @@ public sealed class ScopeTests
         ["GetProfile"] = (CallerScope.Device, async (h, c) =>
             await h.GetProfile().ExecuteAsync(c, ProfileId.New(), CancellationToken.None)),
         ["GetAgentStatus"] = (CallerScope.Device, async (h, c) =>
-            await Harness.GetAgentStatus().ExecuteAsync(c, CancellationToken.None)),
+            await h.GetAgentStatus().ExecuteAsync(c, CancellationToken.None)),
+        ["GetObsScenes"] = (CallerScope.Device, async (h, c) =>
+            await h.GetObsScenes().ExecuteAsync(c, CancellationToken.None)),
         ["SaveProfile"] = (CallerScope.Admin, (h, c) =>
             h.SaveProfile().ExecuteAsync(c, Build.ProfileWith("Main"), CancellationToken.None)),
         ["DeleteProfile"] = (CallerScope.Admin, (h, c) =>

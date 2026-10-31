@@ -71,9 +71,9 @@ public static class ResponseMapper
 /// <summary>Maps the agent status; the OBS connection state comes from the OBS adapter (Phase 7).</summary>
 public static class StatusMapper
 {
-    public static AgentStatusPayload ToPayload(AgentStatus status, bool obsConnected)
+    public static AgentStatusPayload ToPayload(AgentStatus status)
     {
         ArgumentNullException.ThrowIfNull(status);
-        return new AgentStatusPayload(status.AgentVersion, status.ProtocolVersion, obsConnected);
+        return new AgentStatusPayload(status.AgentVersion, status.ProtocolVersion, status.ObsConnected);
     }
 }
