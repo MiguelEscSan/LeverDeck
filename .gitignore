@@ -24,5 +24,5 @@ coverage/
 Thumbs.db
 
 # Local tooling state
-.atl/*.cache.json
+.atl/
 .impeccable/hook.cache.json
