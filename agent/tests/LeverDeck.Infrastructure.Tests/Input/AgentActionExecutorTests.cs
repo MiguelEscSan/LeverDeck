@@ -1,3 +1,5 @@
+using LeverDeck.Application.Obs;
+using LeverDeck.Application.Obs.Ports;
 using LeverDeck.Application.Actions.Ports;
 using LeverDeck.Application.Settings.Ports;
 using LeverDeck.Domain.Actions;
@@ -48,6 +50,39 @@ public sealed class AgentActionExecutorTests
         }
     }
 
+    private sealed class RecordingObs : IObsClient
+    {
+        public bool IsConnected { get; set; } = true;
+
+        public List<string> Calls { get; } = [];
+
+        public Task<Result<ObsSceneList>> GetScenesAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(Result.Success(new ObsSceneList([], null)));
+
+        public Task<Result> SetSceneAsync(string sceneName, CancellationToken cancellationToken) => Record($"scene:{sceneName}");
+
+        public Task<Result> ControlStreamAsync(ObsOutputCommand command, CancellationToken cancellationToken) => Record($"stream:{command}");
+
+        public Task<Result> ControlRecordingAsync(ObsOutputCommand command, CancellationToken cancellationToken) => Record($"record:{command}");
+
+        public Task<Result> ControlInputMuteAsync(string inputName, ObsMuteCommand command, CancellationToken cancellationToken) =>
+            Record($"mute:{inputName}:{command}");
+
+        public Task<Result> ControlSourceVisibilityAsync(
+            string sceneName,
+            string sourceName,
+            ObsVisibilityCommand command,
+            CancellationToken cancellationToken) => Record($"visibility:{sceneName}:{sourceName}:{command}");
+
+        private Task<Result> Record(string call)
+        {
+            Calls.Add(call);
+            return Task.FromResult(IsConnected
+                ? Result.Success()
+                : Result.Failure(new DomainError(DomainErrorCode.ActionFailed, "OBS is not connected.")));
+        }
+    }
+
     private sealed class FixedSettings(AgentSettings settings) : ISettingsRepository
     {
         public Task<AgentSettings> GetAsync(CancellationToken cancellationToken) => Task.FromResult(settings);
@@ -65,7 +100,8 @@ public sealed class AgentActionExecutorTests
     private static (AgentActionExecutor Executor, RecordingKeys Keys, RecordingShell Shell) Create(
         AgentSettings? settings = null,
         bool shellAccepts = true,
-        bool fileExists = true)
+        bool fileExists = true,
+        RecordingObs? obs = null)
     {
         var keys = new RecordingKeys();
         var shell = new RecordingShell(shellAccepts);
@@ -73,6 +109,7 @@ public sealed class AgentActionExecutorTests
             keys,
             shell,
             new FixedSettings(settings ?? AgentSettings.CreateDefault()),
+            obs ?? new RecordingObs(),
             _ => fileExists);
         return (executor, keys, shell);
     }
@@ -84,7 +121,8 @@ public sealed class AgentActionExecutorTests
     public async Task EverySample_IsRoutedAsItsCoverageSays(DomainAction action)
     {
         var settings = action is LaunchApp launch ? SettingsWith(launch.App) : AgentSettings.CreateDefault();
-        var (executor, keys, shell) = Create(settings);
+        var obs = new RecordingObs();
+        var (executor, keys, shell) = Create(settings, obs: obs);
 
         var result = await executor.ExecuteAsync(action, CancellationToken.None);
 
@@ -92,13 +130,13 @@ public sealed class AgentActionExecutorTests
         {
             case ActionSupport.Executable:
                 Assert.True(result.IsSuccess, result.Error?.ToString());
-                Assert.Equal(1, keys.Executed.Count + shell.Calls.Count);
+                Assert.Equal(1, keys.Executed.Count + shell.Calls.Count + obs.Calls.Count);
                 break;
-            case ActionSupport.NotExecutableYet:
             case ActionSupport.ClientOnly:
                 Assert.Equal(DomainErrorCode.ActionNotExecutable, result.Error?.Code);
                 Assert.Empty(keys.Executed);
                 Assert.Empty(shell.Calls);
+                Assert.Empty(obs.Calls);
                 break;
             default:
                 Assert.Fail($"Unknown support for {action.GetType().Name}.");
@@ -112,6 +150,36 @@ public sealed class AgentActionExecutorTests
         Assert.Equal(
             ActionCatalog.All.OrderBy(type => type.Name),
             JsonProfileRepositoryTests.DomainActionSamples().Select(action => action.GetType()).Distinct().OrderBy(type => type.Name));
+    }
+
+    [Fact]
+    public async Task Obs_ActionsGoToTheObsClientWithTheirParameters()
+    {
+        var obs = new RecordingObs();
+        var (executor, keys, shell) = Create(obs: obs);
+
+        await executor.ExecuteAsync(new ObsScene("Gameplay"), CancellationToken.None);
+        await executor.ExecuteAsync(new ObsStreaming(ObsOutputCommand.Toggle), CancellationToken.None);
+        await executor.ExecuteAsync(new ObsRecord(ObsOutputCommand.Stop), CancellationToken.None);
+        await executor.ExecuteAsync(new ObsInputMute("Mic", ObsMuteCommand.Unmute), CancellationToken.None);
+        await executor.ExecuteAsync(new ObsSourceVisibility("Gameplay", "Webcam", ObsVisibilityCommand.Hide), CancellationToken.None);
+
+        Assert.Equal(
+            ["scene:Gameplay", "stream:Toggle", "record:Stop", "mute:Mic:Unmute", "visibility:Gameplay:Webcam:Hide"],
+            obs.Calls);
+        Assert.Empty(keys.Executed);
+        Assert.Empty(shell.Calls);
+    }
+
+    [Fact]
+    public async Task Obs_WhenNotConnected_FailsWithActionFailed()
+    {
+        var (executor, _, _) = Create(obs: new RecordingObs { IsConnected = false });
+
+        var result = await executor.ExecuteAsync(new ObsStreaming(ObsOutputCommand.Start), CancellationToken.None);
+
+        Assert.Equal(DomainErrorCode.ActionFailed, result.Error?.Code);
+        Assert.Equal("OBS is not connected.", result.Error?.Message);
     }
 
     [Fact]

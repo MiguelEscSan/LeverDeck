@@ -166,3 +166,27 @@ public enum ErrorCodeDto
     ActionFailed,
     Internal,
 }
+
+[JsonConverter(typeof(CamelCaseEnumConverter<ObsOutputCommandDto>))]
+public enum ObsOutputCommandDto
+{
+    Start,
+    Stop,
+    Toggle,
+}
+
+[JsonConverter(typeof(CamelCaseEnumConverter<ObsMuteCommandDto>))]
+public enum ObsMuteCommandDto
+{
+    Mute,
+    Unmute,
+    Toggle,
+}
+
+[JsonConverter(typeof(CamelCaseEnumConverter<ObsVisibilityCommandDto>))]
+public enum ObsVisibilityCommandDto
+{
+    Show,
+    Hide,
+    Toggle,
+}

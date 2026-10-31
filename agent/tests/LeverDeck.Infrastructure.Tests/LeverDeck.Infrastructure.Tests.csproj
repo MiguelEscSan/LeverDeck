@@ -8,4 +8,9 @@
   <ItemGroup>
     <ProjectReference Include="../../src/LeverDeck.Infrastructure/LeverDeck.Infrastructure.csproj" />
   </ItemGroup>
+
+  <!-- A local Kestrel server stands in for OBS in the client tests. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 </Project>

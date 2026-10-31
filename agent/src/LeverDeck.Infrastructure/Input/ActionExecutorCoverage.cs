@@ -8,9 +8,6 @@ public enum ActionSupport
     /// <summary>Executed now.</summary>
     Executable,
 
-    /// <summary>An agent action whose adapter arrives later (OBS); it fails with <c>actionNotExecutable</c>.</summary>
-    NotExecutableYet,
-
     /// <summary>Runs on the client and never reaches the executor.</summary>
     ClientOnly,
 }
@@ -27,7 +24,11 @@ public static class ActionExecutorCoverage
         [typeof(MediaKey)] = ActionSupport.Executable,
         [typeof(LaunchApp)] = ActionSupport.Executable,
         [typeof(OpenUrl)] = ActionSupport.Executable,
-        [typeof(ObsScene)] = ActionSupport.NotExecutableYet,
+        [typeof(ObsScene)] = ActionSupport.Executable,
+        [typeof(ObsStreaming)] = ActionSupport.Executable,
+        [typeof(ObsRecord)] = ActionSupport.Executable,
+        [typeof(ObsInputMute)] = ActionSupport.Executable,
+        [typeof(ObsSourceVisibility)] = ActionSupport.Executable,
         [typeof(LaunchGame)] = ActionSupport.Executable,
         [typeof(ChangePage)] = ActionSupport.ClientOnly,
         [typeof(SwitchProfile)] = ActionSupport.ClientOnly,

@@ -44,6 +44,7 @@ public abstract record CommandMessage([property: JsonPropertyOrder(-1)] string R
 [JsonDerivedType(typeof(GetInstalledGamesQuery), "getInstalledGames")]
 [JsonDerivedType(typeof(GetStoreAppsQuery), "getStoreApps")]
 [JsonDerivedType(typeof(GetIconsQuery), "getIcons")]
+[JsonDerivedType(typeof(GetObsScenesQuery), "getObsScenes")]
 public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>The answer to a query, correlated by <see cref="RequestId"/>.</summary>
@@ -57,6 +58,7 @@ public abstract record QueryMessage([property: JsonPropertyOrder(-1)] string Req
 [JsonDerivedType(typeof(InstalledGamesResult), "installedGames")]
 [JsonDerivedType(typeof(StoreAppsResult), "storeApps")]
 [JsonDerivedType(typeof(IconsResult), "icons")]
+[JsonDerivedType(typeof(ObsScenesResult), "obsScenes")]
 public abstract record QueryResultMessage([property: JsonPropertyOrder(-1)] string RequestId) : Message;
 
 /// <summary>Pushed by the agent to keep clients in sync; it answers no request, so it has no request id.</summary>
@@ -68,6 +70,7 @@ public abstract record QueryResultMessage([property: JsonPropertyOrder(-1)] stri
 [JsonDerivedType(typeof(PairingSessionChangedEvent), "pairingSessionChanged")]
 [JsonDerivedType(typeof(SettingsUpdatedEvent), "settingsUpdated")]
 [JsonDerivedType(typeof(ObsSceneChangedEvent), "obsSceneChanged")]
+[JsonDerivedType(typeof(ObsStateChangedEvent), "obsStateChanged")]
 [JsonDerivedType(typeof(IconsChangedEvent), "iconsChanged")]
 public abstract record EventMessage : Message;
 

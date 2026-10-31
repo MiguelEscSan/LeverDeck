@@ -3,6 +3,7 @@ using LeverDeck.Application.Common.Ports;
 using LeverDeck.Application.Devices.Ports;
 using LeverDeck.Application.Games.Ports;
 using LeverDeck.Application.Icons.Ports;
+using LeverDeck.Application.Obs.Ports;
 using LeverDeck.Application.Pairing.Ports;
 using LeverDeck.Application.Platform.Ports;
 using LeverDeck.Application.Profiles.Ports;
@@ -14,6 +15,7 @@ using LeverDeck.Infrastructure.Games;
 using LeverDeck.Infrastructure.Icons;
 using LeverDeck.Infrastructure.Apps;
 using LeverDeck.Infrastructure.Input;
+using LeverDeck.Infrastructure.Obs;
 using LeverDeck.Infrastructure.Pairing;
 using LeverDeck.Infrastructure.Persistence;
 using LeverDeck.Infrastructure.Platform;
@@ -61,6 +63,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IActionExecutor, AgentActionExecutor>();
         services.AddSingleton<IGameLibrary, InstalledGameLibrary>();
         services.AddSingleton<IStoreAppCatalog, StartMenuStoreAppCatalog>();
+
+        services.AddSingleton<ObsWebSocketClient>();
+        services.AddSingleton<IObsClient>(provider => provider.GetRequiredService<ObsWebSocketClient>());
+        services.AddHostedService<ObsConnectionWorker>();
 
         // mDNS: our own responder answers A queries for this PC's host name (Windows does not for DnsServiceRegister's
         // target host); the native registration still publishes the _http._tcp service records.

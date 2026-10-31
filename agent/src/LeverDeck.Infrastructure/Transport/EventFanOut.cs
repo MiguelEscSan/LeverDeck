@@ -92,6 +92,14 @@ public sealed partial class EventFanOut(
                 break;
             }
 
+            case ObsSceneChanged sceneChanged:
+                await SendAsync(registry.All(), new ObsSceneChangedEvent(new ObsSceneChangedPayload(sceneChanged.SceneName))).ConfigureAwait(false);
+                break;
+
+            case ObsStateChanged state:
+                await SendAsync(registry.All(), new ObsStateChangedEvent(new ObsStatePayload(state.Streaming, state.Recording))).ConfigureAwait(false);
+                break;
+
             case PairingSessionChanged:
                 if (Loaded(await payloads.PairingSessionAsync(Caller.Admin, cancellationToken).ConfigureAwait(false)) is { } session)
                 {

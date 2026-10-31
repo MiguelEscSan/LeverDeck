@@ -48,6 +48,10 @@ export const ACTION_TYPE_NAMES: Readonly<Record<ActionDto['type'], string>> = {
   launchApp: 'Launch app',
   openUrl: 'Open URL',
   obsScene: 'OBS scene',
+  obsStreaming: 'OBS stream',
+  obsRecord: 'OBS recording',
+  obsInputMute: 'OBS input mute',
+  obsSourceVisibility: 'OBS source visibility',
   launchGame: 'Launch game',
   changePage: 'Change page',
   switchProfile: 'Switch profile',
@@ -292,6 +296,14 @@ export function actionSummary(action: ActionDto, context: Pick<ActionContext, 'p
       const game = context.games.find((candidate) => candidate.store === action.store && candidate.gameId === action.gameId);
       return `Play ${game?.name ?? action.gameId} (${GAME_STORE_NAMES[action.store]})`;
     }
+    case 'obsStreaming':
+      return `OBS stream ${action.command}`;
+    case 'obsRecord':
+      return `OBS recording ${action.command}`;
+    case 'obsInputMute':
+      return `OBS ${action.command} ${action.inputName}`;
+    case 'obsSourceVisibility':
+      return `OBS ${action.command} ${action.sourceName} in ${action.sceneName}`;
   }
 }
 
@@ -324,5 +336,10 @@ export function suggestedIcon(action: ActionDto): string {
       return 'window';
     case 'openUrl':
       return 'globe';
+    case 'obsStreaming':
+    case 'obsRecord':
+    case 'obsInputMute':
+    case 'obsSourceVisibility':
+      return 'scene';
   }
 }

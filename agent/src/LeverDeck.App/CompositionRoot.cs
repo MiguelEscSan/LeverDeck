@@ -5,6 +5,7 @@ using LeverDeck.Application.Actions;
 using LeverDeck.Application.Devices;
 using LeverDeck.Application.Games;
 using LeverDeck.Application.Icons;
+using LeverDeck.Application.Obs;
 using LeverDeck.Application.Pairing;
 using LeverDeck.Application.Profiles;
 using LeverDeck.Application.Settings;
@@ -92,6 +93,7 @@ internal static class CompositionRoot
         services.AddSingleton<GetAgentStatus>();
         services.AddSingleton<GetInstalledGames>();
         services.AddSingleton<GetStoreApps>();
+        services.AddSingleton<GetObsScenes>();
 
         services.AddSingleton<SaveIcon>();
         services.AddSingleton<DeleteIcon>();

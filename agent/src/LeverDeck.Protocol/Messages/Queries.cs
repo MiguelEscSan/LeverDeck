@@ -59,3 +59,10 @@ public sealed record GetIconsQuery(string RequestId) : QueryMessage(RequestId)
 }
 
 public sealed record IconsResult(string RequestId, IconsPayload Payload) : QueryResultMessage(RequestId);
+
+public sealed record GetObsScenesQuery(string RequestId) : QueryMessage(RequestId)
+{
+    public EmptyPayload Payload { get; init; } = EmptyPayload.Instance;
+}
+
+public sealed record ObsScenesResult(string RequestId, ObsScenesPayload Payload) : QueryResultMessage(RequestId);

@@ -55,3 +55,9 @@ public sealed record IconIdPayload(string IconId);
 
 /// <summary>The uploaded icons' ids; each is served as <c>/api/icons/&lt;id&gt;.png</c>.</summary>
 public sealed record IconsPayload(IReadOnlyList<string> Icons);
+
+/// <summary>The OBS scene names; <see cref="CurrentScene"/> is null while OBS has no program scene.</summary>
+public sealed record ObsScenesPayload(IReadOnlyList<string> Scenes, string? CurrentScene);
+
+/// <summary>Whether OBS is streaming and recording right now.</summary>
+public sealed record ObsStatePayload(bool Streaming, bool Recording);
